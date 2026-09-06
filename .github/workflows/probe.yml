@@ -1,15 +1,25 @@
-# The device probe (M0/W3, founding decision D4). Builds the Android APK and attaches it to a
-# release, so the owner installs it, taps Run, and copies one JSON document back.
+# The device probe (M0/W3, founding decision D4). Cross-compiles the probe for aarch64, packages it
+# in a shell APK, and attaches that APK to a GitHub Release — so the owner installs from a link with
+# no toolchain, taps Run, and copies one JSON document back.
 #
-# NOT YET WIRED: the Rust core, the JNI entry point and the Kotlin shell are W3, which is open.
-# This file exists so the delivery path is decided and reviewed before the thing it delivers is
-# written — the pipeline is the long pole, and discovering it in week five is what this avoids.
+# The delivery path, in one line: `cargo build --target aarch64-linux-android --release -p
+# aurora-probe` -> rename the PIE binary to `libaurora_probe.so` -> `gradle assembleDebug` -> release
+# asset. There is no JNI and no keystore: the binary is executed as a subprocess, and a debug APK is
+# signed by the SDK's own key, which is what makes it sideloadable without a secret in this repo.
 name: probe
 
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to publish the APK under'
+        required: false
+        default: ''
   push:
     tags: ['probe-v*']
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -17,9 +27,72 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - name: Not yet wired
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Resolve the NDK
         run: |
-          echo "W3 is open. This workflow builds nothing until the probe crate exists."
-          echo "Planned: cargo-ndk -> aarch64-linux-android cdylib -> Kotlin shell -> signed debug APK"
-          echo "         -> attached to a GitHub Release for sideloading."
-          exit 0
+          NDK=$(ls -d "$ANDROID_HOME"/ndk/* | sort -V | tail -1)
+          echo "ANDROID_NDK_HOME=$NDK" >> "$GITHUB_ENV"
+          echo "using $NDK"
+
+      # minSdk is 26, so the API-26 linker is the one to build against.
+      - name: Cross-compile the probe
+        env:
+          AURORA_COMMIT: ${{ github.sha }}
+        run: |
+          BIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin"
+          export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER="$BIN/aarch64-linux-android26-clang"
+          export CC_aarch64_linux_android="$BIN/aarch64-linux-android26-clang"
+          export AR_aarch64_linux_android="$BIN/llvm-ar"
+          cargo build --release --target aarch64-linux-android -p aurora-probe
+
+      # Packaged under a library's name so Android extracts it with the execute bit set. `file` is
+      # printed because a non-PIE binary would install and then fail to launch, which is exactly the
+      # failure that is expensive to diagnose from a phone.
+      - name: Package the binary as a native library
+        run: |
+          mkdir -p android/app/src/main/jniLibs/arm64-v8a
+          cp target/aarch64-linux-android/release/aurora-probe \
+             android/app/src/main/jniLibs/arm64-v8a/libaurora_probe.so
+          file android/app/src/main/jniLibs/arm64-v8a/libaurora_probe.so
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build the APK
+        working-directory: android
+        run: gradle --no-daemon assembleDebug
+
+      - name: Name it after the commit
+        run: |
+          SHORT=$(git rev-parse --short HEAD)
+          mkdir -p dist
+          cp android/app/build/outputs/apk/debug/app-debug.apk "dist/aurora-probe-$SHORT.apk"
+          ls -l dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aurora-probe-apk
+          path: dist/*.apk
+
+      # A tag publishes; a manual run with a tag input publishes; a bare manual run leaves the APK as
+      # a workflow artifact, which is enough to test the pipeline without minting a release.
+      - name: Attach to a release
+        if: startsWith(github.ref, 'refs/tags/probe-v') || inputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
+        run: |
+          gh release create "$TAG" dist/*.apk \
+            --title "Aurora probe $TAG" \
+            --notes "Install, tap Run, wait about twenty minutes, tap Copy, paste the JSON back. Fifteen of those minutes are the thermal soak: every other figure is a burst and the tick budget is the sustained one. Schema: aurora.probe/1, commit ${{ github.sha }}." \
+            || gh release upload "$TAG" dist/*.apk --clobber

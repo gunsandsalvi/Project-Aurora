@@ -1,0 +1,5 @@
+The cross-compiled probe lands here as `libaurora_probe.so` — a PIE executable under a library's
+name, so Android extracts it with the execute bit set and the activity can run it as a subprocess.
+
+It is not committed. `.github/workflows/probe.yml` builds it, and a binary in the tree would be a
+build output nothing checks.

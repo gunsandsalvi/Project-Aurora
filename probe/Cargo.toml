@@ -9,6 +9,21 @@ publish = false
 # whole output is one JSON document. It becomes the Android cdylib in W3 and it ships in no engine
 # artifact, so the engine's lint table does not apply to it — the same boundary `tools` has.
 
+[lib]
+name = "aurora_probe"
+
+# How the APK gets it, and why there is no JNI here. The BINARY is cross-compiled for
+# aarch64-linux-android and packaged as `lib/arm64-v8a/libaurora_probe.so` — a PIE executable under a
+# library's name. Android extracts anything matching `lib*.so` from that directory with the execute
+# bit set, so the activity runs it as a subprocess and reads its stdout.
+#
+# The alternative is a `cdylib` with a JNI entry point, which would need `unsafe` to touch `JNIEnv`
+# and would put the measurement behind a foreign-function boundary whose cost is not the thing being
+# measured. This way `forbid(unsafe_code)` survives all the way into the delivered artifact.
+[[bin]]
+name = "aurora-probe"
+path = "src/main.rs"
+
 [dependencies]
 
 [lints.rust]

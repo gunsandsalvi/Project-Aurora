@@ -81,24 +81,40 @@ the paper falsifiers need no device at all.
 
 | | Task | Detail | Days | Done when |
 |---|---|---|---|---|
-| W3.1 | `cargo-ndk` cross-compile | `aarch64-linux-android`, release profile with the shipping codegen settings, into a `cdylib` | 3 | an `.so` builds in CI |
-| W3.2 | The shell APK | Minimal Kotlin activity: one **Run** button, a scrolling text view, a **Copy** button. `largeHeap="true"`, a foreground service so a long run is not killed. It calls one JNI entry point and displays what comes back | 5 | the APK installs on the owner's device and prints `{}` |
-| W3.3 | Release delivery | The `probe` workflow attaches a signed debug APK to a GitHub Release with the commit SHA in its name | 2 | the owner can install from a link with no toolchain |
-| W3.4 | Allocation ceiling | Allocate in 128 MB steps, **commit every page by touching it**, hold 60 s under a churn workload, record where it fails. Reserved-but-uncommitted address space tells you nothing on Android. **Host-meaningless; needs the device** | 2 | the ceiling is in the JSON |
-| W3.8 | Transcendental bit-identity | The **host half is measured**: `ln` hashes to `b5d414b87dd05ab7` and `exp` to `a493d8dc7d53c03e` over the committed 4,096 inputs. What remains is the device half and the comparison | 1 | two hashes from the device, equal to the host's or not |
-| W3.9 | Thermal soak | 15 minutes at full load, throughput per minute, battery temperature. N2b is a sustained figure and every other measurement here is a burst. **Needs the device** | 1 | the throttled/burst ratio is in the JSON |
+| W3.10 | **The device run** | The owner installs the APK from the Release link, taps Run, waits about twenty minutes, taps Copy, and pastes the JSON back. **Everything else in W3 is done; this is the only step that needs hardware** | — | one `aurora.probe/1` document with no field null |
 
-**The output the owner copies back** — one object, printed once, with a Copy button beside it:
+**The output the owner copies back**, as the host emits it today (`cargo run --release -p
+aurora-probe`). Every field is written before the document is printed, so a zero is a measurement that
+ran and found zero, and a missing key would be a bug rather than a blank:
 
 ```json
-{ "schema": "aurora.probe/1", "commit": "<sha>", "device": {...}, "runAt": "<iso8601>",
-  "allocation":     { "ceilingMiB": 0, "heldSeconds": 0, "splitCeilingMiB": 0 },
-  "operationCost":  { "moveNs": 0.0, "exchangeNs": 0.0, "journalAppendNs": 0.0, "noiseFloorNs": 0.0 },
-  "blockOps":       { "insert": {"10":0.0,"256":0.0,"4096":0.0,"16384":0.0}, "remove": {...} },
-  "storage":        { "seqWriteMiBs": 0.0, "chunkedWriteMiBs": 0.0 },
-  "transcendental": { "lnHash": "", "expHash": "", "ciLnHash": "", "ciExpHash": "", "identical": false },
-  "thermal":        { "burstOpsPerSec": 0.0, "soakOpsPerSec": 0.0, "ratio": 0.0, "peakBatteryC": 0.0 } }
+{ "schema": "aurora.probe/1", "commit": "<sha>", "device": "<manufacturer model, android, sdk>",
+  "slots": 7177280, "ops": 2000000,
+  "allocation":     { "ceilingMiB": 2048, "heldSeconds": 10 },
+  "operationCost":  { "interleavedNs": 133.8, "columnarNs": 213.0, "noiseFloorNs": 0.8, "budgetNs": 96.5 },
+  "blockOps":       { "10": 31.1, "256": 70.7, "4096": 405.6, "16384": 2036.8 },
+  "storage":        { "seqWriteMiBs": 145.3, "chunkedWriteMiBs": 461.5 },
+  "transcendental": { "lnHash": "b5d414b87dd05ab7", "expHash": "a493d8dc7d53c03e" },
+  "thermal":        { "burstOpsPerSec": 37059878, "soakOpsPerSec": 37217543, "ratio": 1.004, "soakSeconds": 5 },
+  "sink": 8501787225403862321 }
 ```
+
+*The host's `ratio` of 1.004 is not a result, it is the absence of one:* a desktop with a fan does not
+throttle over five seconds. On the device the soak is fifteen minutes and the ratio is the number N2b
+is derived from.
+
+**How the owner runs it.** The `probe` workflow cross-compiles for `aarch64-linux-android`, packages
+the binary as `lib/arm64-v8a/libaurora_probe.so`, builds the shell APK and attaches it to a Release.
+Install from the link, tap **Run**, keep the screen on for about twenty minutes, tap **Copy**, paste.
+
+*Two deviations from this plan as drafted, both deliberate.* **There is no JNI**: the probe is a PIE
+executable run as a subprocess, which keeps `forbid(unsafe_code)` in the delivered artifact and keeps
+a foreign-function boundary out of the thing being measured. And **there is no foreground service**:
+the run is a child of the app with the screen held on, so the app stays foreground and the child stays
+alive — a service defends against the app being *backgrounded*, which is not this case. If a soak is
+ever actually killed, that is the evidence for adding one. `largeHeap` is declared and does nothing:
+it raises the JVM ceiling and every byte the probe allocates is in another process, which is precisely
+why the allocation ceiling is worth measuring at all.
 
 ---
 
@@ -221,7 +237,7 @@ derivation rather than testing whether one exists. **The first gate with stop au
 |---|---|
 | **W1** the workspace that refuses | **done** — 12 crates, the layer matrix proved by a committed fixture, the lint floor, the `surface`/`shell` split |
 | **W2** build machinery and CI | **done but for two**, each blocked on the thing it would police: `check-generated` needs a generator (M1), `check-registry` is W4's |
-| **W3** the probe and the way results get back | **the measurements are written and run** (`cargo run --release -p aurora-probe`), and three are already red on the host, which is a floor. What remains is the Android packaging — `cargo-ndk`, the Kotlin shell, the release — and the device run |
+| **W3** the probe and the way results get back | **built, and waiting on hardware.** The probe emits one `aurora.probe/1` document; the cross-compile, the shell APK and the release workflow are written. **The only step left is the owner installing it and pasting the JSON back** |
 | **W4** the parameter registry | **done but for two**, both deferred with a reason: the generated unit vocabulary needs `domain`'s quantity types (M1), and the `capacity` read rule needs systems to police |
 | **W5** ADR machinery | **done.** Format and `check-adr`; the counter (`register.txt` + `adr new`); the coupling (`coupling.toml` + `check-coupling`, ratified against draft); Appendix A's guard column generated from the decisions (`aurora-tools appendix` + `check-register`). Ten negative fixtures across the three |
 | **W6** falsifiers that need code | **done.** The seed generator is red and pinned; all four burn-in tests are measured, and the gate they falsified is recalibrated and guarded (ADR-0019, `aurora-tools gate`); the intrinsic table and the amendment matrix are filled, total, and checked |
