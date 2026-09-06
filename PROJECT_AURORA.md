@@ -1029,6 +1029,24 @@ a model household and anything outside the model, because there is nothing outsi
 sub-units it must supply — so concentration is a property of the opening rather than an outcome of
 entry, and entry dynamics among large firms are effectively absent at this scale.
 
+*Open, and it is a model question rather than a scale question.* **SME and Large firm are two classes, so
+no firm can cross between them, and the size distribution of firms is fixed at the opening for the whole
+run.** Under M6 that is a phenomenon built in rather than explained, and the accepted cost above frames
+it as being about the count when the binding constraint is the split: at ten times the scale, still no
+firm could grow into the other class.
+
+What legitimately separates them is **mandate**, and it is real: §9.5 prices corporate credit in *two
+buckets plus single names* and lists equity *on a listing rule*, so a large firm is named in the market —
+individually priced debt, listed equity — and an SME is treated generically. That is declaration 1 of
+§8.1 and it survives the test §8.4 now applies to classes. **But nobody has written either mandate down**,
+and until both exist the split rests on the names rather than on a declaration.
+
+Two resolutions, and the choice is owed at the point the firm declarations are written. **Two classes**:
+simple, matches the block widths, and firm growth stays inexpressible. **One firm class carrying a
+listing fact**: growth becomes expressible when a firm meets the listing rule, M6 is better served, and
+the cost is that every firm needs the larger block or a promotion that relocates a row into a bigger one —
+which §5.5's relocation already makes work rather than a new concept.
+
 *Settled, where the previous edition owed a rule.* One seed primitive covers the pair, and no rule
 splitting 40 into 22 and 18 is needed, because there is nothing to split: the class is the pair.
 

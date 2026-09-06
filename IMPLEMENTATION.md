@@ -460,6 +460,7 @@ Sources are `PROJECT_AURORA.md` unless stated.*
 | **Who holds the opening capital and dwellings** sourced at position 6 of tick 0 | *silently missing*, surfaced by §13.6 | **M6** |
 | The production specification | Appendix B *Owed* | **M6** |
 | The five declarations for eight agent classes | §8.1 — a shape with no content | **M7**, **M9** |
+| **SME and Large firm: two classes, or one with a listing fact?** Two classes fix the firm size distribution at the opening for the whole run, which M6 makes a phenomenon built in rather than explained. The mandate difference is real (§9.5 prices SMEs in buckets and large firms as single names) but neither mandate is written | §8.4, surfaced by the class-merge test | **M7**, when the firm declarations are written |
 | ~30 per-position §17.4 specifications, 1 written | *silently missing* | **M6**–**M10** |
 | The trait declaration set | *silently missing* | **M7** |
 | The bank capital regime's values and cure window | *silently missing* | **M8** |
