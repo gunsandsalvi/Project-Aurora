@@ -249,12 +249,13 @@ sweeps affordable, and a result quoted from either is a result about a different
 Every budget in this document is derived from this section, and the arena is sized from it.
 
 **Entities: 550,638 at tick 0** — 550,598 deciding, plus 40 counter-account rows. Counts by class
-are in §8.4; the regional split is in §13.3. **Identifiers ever issued by tick 1,560: ≈ 15,700,000**,
+are in §8.4; the regional split is in §13.3. **Identifiers ever issued by tick 1,560: ≈ 9,400,000**,
 and none is reused. The previous figure of ≈ 971,000 was below the opening entity count plus one
 generation of employment contracts alone — 350,000 live contracts at a six-year mean term issue about
 1.75 M identifiers over thirty years without a single loan, tenancy or bond. `aurora-tools sizing`
-counts the spaces bottom up; several of its mean lives are still owed, so the figure is an order of
-magnitude rather than a number, and the directory is sized at 60.0 MiB from it.
+counts the spaces bottom up and the directory is **35.8 MiB**. Several of its mean lives are still
+owed, so the figure is an order of magnitude rather than a number; ADR-0009 removed the schedules
+space, which was 6,360,000 of the former 15.7 M.
 
 **Holdings are blocks, and the table does not grow.** Each party class has a declared slot capacity,
 allocated once:
@@ -932,12 +933,26 @@ type's quote basis; a schedule whose bucket family disagrees with the carrier.
 **A new column must be either an instance answer to one of the thirteen questions or a provenance
 field named in this table. Anything else is a fourteenth question and an ADR.**
 
-*Unresolved.* This table and §3.4.4 describe two different rows — 44 bytes with a schedule
-directory, against 148 bytes with the schedule and two price epochs inline, which removes the
-schedule identity space and a directory of 8.1 M entries. They have different memory budgets,
-different save formats and different relocation costs. **It is settled by measurement on the target
-device, and it is an entry criterion for Phase 2.** Until then this section's family counts are not
-to be used for sizing.
+*Settled by derivation, not by measurement* (ADR-0009). **The row is 80 bytes with the schedule and
+both price epochs inline, and there is no schedule identity space.** `optionsFirst` stays out of line;
+`scheduleFirst` is gone.
+
+Neither of the two figures this section used to offer was a derived width. The eleven columns above
+come to 33 B and pad to **40**, not 44. The inline row comes to **80**, not 148 — and the 68 bytes of
+difference buy five dated schedule rows, which cannot express a ten-year loan at weekly ticks. Nor
+could the comparison have been made: it named §3.4.4, which does not exist.
+
+Priced against §5.2's census the two arms are 93.3 MB and 84.8 MB, eight and a half megabytes apart,
+inside the error bar on the census's own owed mean lives. **What decides it is that a schedule is not a
+claim.** Under A2 an instrument is data and under R-1 a claim exists as its issuer's negative balance;
+nothing holds a schedule, nothing pledges one, no journal row names one. It is a field of the
+instrument saying when the instrument pays, addressed by exactly one thing — the instrument, which
+already has an identity. The 6,360,000 schedule identifiers were **40% of the whole identifier census**,
+directoried, digest-walked and saved, for rows nobody can address.
+
+A schedule is therefore a **generating rule**: first period, interval, count, amount, kind, rate basis.
+If a type arrives needing genuinely arbitrary dates, `kind` is where that shows up and this decision is
+reopened. **This section's family counts are now usable for sizing.**
 
 ### 7.6 Option terms: seven typed tables, never a bag
 
@@ -2716,7 +2731,7 @@ hand-written guard, and the check publishes how many such rows remain.
 | 6 | Counter-accounts | four families, four owners, ten pairs per region, `Real` only | the class law at the door; the minted capability |
 | 7 | Workload | weekly ticks, 1,560-tick runs, burn-in floor 260 / ceiling 520; 550,638 entities; 37 venues; 3,119,665 calls a tick (derivation owed, §3.4) | §3.3 splits requirements from targets; no milestone may be brought into budget by reducing the agent population or coarsening a cadence (ADR-0002) |
 | 8 | Journal retention | two ticks, 7,200,000 rows in two segments, 345.6 MB | aurora-tools sizing — the row width is summed from the field list and the ring from the width, so a field added without a decision changes a published number (ADR-0008) |
-| 9 | Observation store | fourteen families, 624 declared, hard cap 2,048 under sub-caps | the sub-cap at declaration |
+| 9 | Observation store | fourteen families, 624 declared, hard cap 2,048 under sub-caps | aurora-tools sizing — both arms are summed from their field lists and priced against the census on every run, so a column added to either changes a published number; and the identifier census has no schedules row to sum (ADR-0009) |
 | 10 | Intrinsic questions | thirteen, at two levels | a missing answer does not compile |
 | 11 | Regimes | seven, three relational questions, 21 answers per type | declared count, column distinctness, two-cell separation |
 | 12 | Amendment | eight mechanisms, five owners, no general handle | check-instruments — every mechanism declares the types it applies to, and a mechanism naming an undeclared type fails; the mint takes the pair (ADR-0018) |
@@ -2791,6 +2806,7 @@ nothing reads failing the build. **The cap was never what made A3 true; the rule
 | What changed | To | Why |
 |---|---|---|
 | A1's part 2 | **the conserved column is private to the `ledger` crate**, replacing "exactly one writer in the whole source tree, checked in CI" | The old form was false. Relocation, the zeroed-entry tail shift and slot canonicalisation all write the quantity column; a CI check would have needed exemptions on its first run. The crate boundary is true, is the compiler's, and covers writers nobody has thought of |
+| The instrument row | **80 B, schedule and both price epochs inline; no schedule identity space** | §7.5's 44 B and §3.4.4's 148 B are both underived, and §3.4.4 does not exist. The arms are 8.5 MB apart; what decides it is that nothing holds a schedule, so it is a field rather than a claim (ADR-0009) |
 | The household block | **ten slots, and named as not holding the enumerated tail** | Written out against the eight opening types, the tail is seventeen and the mean five. Whether it is ten or seventeen turns on whether a household holds a goods stock, which is worth 84.0 MB and which nothing in §9 answers. The capacity is re-derived in M1 with the schema |
 | The journal row | **48 B, field list published; the realised rate is not a field** | §6.4 asked for both rates and both do not fit — 53 B padding to 56, a 403.2 MB ring. The realised rate is `quantityReceived / quantityGiven` exactly, so the pair in the row is it at full precision and a stored copy is that value rounded twice (ADR-0008) |
 | The holdings slot | **24 B, with its field list published** | 20 B could not hold what §6.11 requires — asset, quantity and integral exhaust it with no tick column — so it was an unsourced constant the rest of the document contradicted |
@@ -2798,7 +2814,7 @@ nothing reads failing the build. **The cap was never what made A3 true; the rule
 | §13.4's `ŷ` | `(output_t − μ_K) / μ_K` | dimensionless, needs no transcendental, and says the same thing about the gap |
 | §13.1.2's technology | **reopened** | its stated reason was the assumption cap, and the cap is gone. §9.5's twenty-seven goods lines and one composite sub-unit still contradict each other and the contradiction is now to be settled on the economics |
 | N4's 1,488.3 MB | **unresolved, and named as such** | the itemisation was never published and the named components leave roughly 705 MB unaccounted, whose largest term is the instrument row width §7.5 declares unsettled |
-| §3.4's identifier census | **15,732,835 ever issued**, counted bottom up per identity space; the directory is 60.0 MiB | ≈ 971,000 was below the opening entity count plus one generation of employment contracts. The mean lives the census assumes are still owed, and each is replaced by the milestone that builds the instrument |
+| §3.4's identifier census | **9,372,835 ever issued**, counted bottom up per identity space; the directory is 35.8 MiB | ≈ 971,000 was below the opening entity count plus one generation of employment contracts. The mean lives the census assumes are still owed, and each is replaced by the milestone that builds the instrument |
 | The trailing-statistics system | **owed a position** | §13.4 requires it, §9.4's twenty-one positions do not contain it |
 | Insurer and Pension fund | **merged into one class, `Liability-matched institution`** — nine agent classes became eight | They differed on no column §8.4 carries and on no declaration of §8.1. What differs is the liabilities they issued, which A2 makes instrument data. The owed rule for splitting 40 into 22 and 18 is not needed, because nothing is split |
 | SME and Large firm | **merged into one class `Firm` with two tiers, and a promotion path** (§8.7) — seven agent classes | Two classes fixed the firm size distribution at the opening for the whole run, which M6 makes a phenomenon asserted rather than produced. What separated them was capital-market access, which §8.7 makes something a firm *does*. Tier is a fact, not a class: §8.4's "class is not a block" licenses two block widths in one class rather than forbidding them |

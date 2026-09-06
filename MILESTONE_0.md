@@ -140,7 +140,6 @@ was refused for the right reason.
 | W7.4 | **The position workload table.** Twenty-one rows of operation counts summing to a published total, clearing's sort cost separated from operation-call cost. §12's targets are decomposed against this and it does not exist | 3 | the table sums to a published total |
 | W7.7 | **The registry cost of one economic system.** Write the complete registry for *credit* on paper and count the assumed entries. Under D3 this no longer breaches a cap; it establishes the *rate*, which is what M3 needs to know | 3 | a count, and an extrapolation to seven agent classes |
 | W7.8 | **Household and bank behaviour, hand-simulated.** The five declarations for two classes, written out, and ten ticks simulated by hand. Called by one study the single highest-value item available anywhere in the project: it buys much of G3's signal for none of M7's cost | 5 | two written declarations and a ten-tick trace |
-| W7.9 | **The instrument row A/B, on paper.** 44 B with a schedule directory against 148 B inline, against W7.1's completed derivation. §7.5 calls this a Phase 2 entry criterion; it is not, because it decides whether the schedule identity space exists at all, and identity spaces are M1 | 2 | an ADR, confirmed by measurement in M3 |
 
 ---
 
@@ -230,7 +229,7 @@ derivation rather than testing whether one exists. **The first gate with stop au
 | **W4** the parameter registry | **done but for two**, both deferred with a reason: the generated unit vocabulary needs `domain`'s quantity types (M1), and the `capacity` read rule needs systems to police |
 | **W5** ADR machinery | **done.** Format and `check-adr`; the counter (`register.txt` + `adr new`); the coupling (`coupling.toml` + `check-coupling`, ratified against draft); Appendix A's guard column generated from the decisions (`aurora-tools appendix` + `check-register`). Ten negative fixtures across the three |
 | **W6** falsifiers that need code | **done.** The seed generator is red and pinned; all four burn-in tests are measured, and the gate they falsified is recalibrated and guarded (ADR-0019, `aurora-tools gate`); the intrinsic table and the amendment matrix are filled, total, and checked |
-| **W7** falsifiers that need paper | **four of nine done**, all four computations rather than prose, all in `aurora-tools sizing`: the memory derivation, the identifier census, the journal row (ADR-0008), and the household block. Five remain: the tick-0 trace, the position workload, the credit registry cost, the two-class hand simulation, and the instrument row A/B |
+| **W7** falsifiers that need paper | **five of nine done**, all five computations rather than prose, all in `aurora-tools sizing`: the memory derivation, the identifier census, the journal row (ADR-0008), the household block, and the instrument row (ADR-0009). Four remain: the tick-0 trace, the position workload, the credit registry cost, and the two-class hand simulation |
 
 **Checks running, behind one `./gate.sh`:** `check-lints` · `check-surface` · `check-deps` ·
 `check-refs` · `check-adr` · `check-registry` · `check-instruments` · `check-coupling` ·
@@ -250,7 +249,7 @@ so the thing checked before a commit and the thing checked after a push cannot d
 0005 the surface/shell split · 0013 the definitional identities · 0014 the registry's two namespaces ·
 0018 amendment handles · 0019 the burn-in gate's calibration and correction.
 
-**Sixteen findings so far, every one measured rather than reviewed.** `check-lints`' first draft substring-matched and its first run reported *itself*.
+**Eighteen findings so far, every one measured rather than reviewed.** `check-lints`' first draft substring-matched and its first run reported *itself*.
 `check-surface`'s first run flagged one subtraction twice, because `->` is a `-` punct.
 `check-refs` found §17.4 demoted from a heading to bold text by an earlier edit, while three
 citations still pointed at it. `check-registry` rule 3 rejected the first derived entry written
@@ -282,6 +281,13 @@ hold found that **§3.4's ten slots do not cover its own tail**: the tail is sev
 that decides it is `GoodsUnit` at one line per sector across seven sectors — 84.0 MB of holdings
 table riding on a question (does a household hold a goods stock between operations?) that no section
 answers. Ten is the only capacity in §3.4's table that is not a power of two.
+Writing out both arms of §7.5's instrument row found that **neither published width is derived** —
+the eleven columns come to 40 B, not 44, and the inline row to 80 B, not 148 — and that **the
+comparison could not have been made at all**, because the 148-byte arm is specified in §3.4.4, one of
+the eight dangling references. The two arms then came out 8.5 MB apart, inside the census's own error
+bar, so what actually decided it was that **a schedule is not a claim**: nothing holds one, nothing
+pledges one, no journal row names one. Its 6,360,000 identifiers were 40% of the whole census, for
+rows that were never addressable.
 The tenth was found by the process rather than by a check, and it is about the checks: **`verify`
 printed "7 checks ran, 0 failed" on a tree where clippy was reporting a finding, twice**, because
 `verify` never ran clippy and clippy returns zero on a warning. The gate existed as a habit — a list

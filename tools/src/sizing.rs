@@ -94,21 +94,15 @@ fn memory() -> String {
         },
         Table {
             name: "identifier directory",
-            count: None,
+            count: Some(ever_issued()),
             width: Some(4),
-            source: "§5.2 — the count is the contradiction below",
+            source: "§5.2, counted bottom up below",
         },
         Table {
             name: "instruments",
-            count: None,
-            width: None,
-            source: "§7.5 unresolved: 44 B or 148 B, and the live count is owed",
-        },
-        Table {
-            name: "schedules + rows + deltas",
-            count: None,
-            width: None,
-            source: "§7.4 — owed",
+            count: Some(1_060_000),
+            width: Some(80),
+            source: "ADR-0009: schedule and both price epochs inline",
         },
         Table {
             name: "instrument options + 7 terms tables",
@@ -183,9 +177,9 @@ fn memory() -> String {
     let _ = writeln!(
         out,
         "  §12.1 publishes 1,488.3 MB derived and N4 = 1,610 MB as the target.\n  \
-         So {:.1} MiB of the published derivation is in rows that cannot yet be computed — and the\n  \
-         largest of them, the instruments table, is the one §7.5 declares unresolved while also saying\n  \
-         its own family counts are not to be used for sizing.",
+         So {:.1} MiB of the published derivation is in rows that cannot yet be computed. The\n  \
+         instruments table is no longer among them: ADR-0009 settled the row at 80 B with the\n  \
+         schedule inline, and §7.5's family counts are usable for sizing.",
         1_488.3 - known_mib
     );
     out
@@ -213,13 +207,9 @@ impl Space {
     }
 }
 
-/// §3.4's identifier census against §5.2's directory.
-#[allow(clippy::too_many_lines)]
-fn identifiers() -> String {
-    let mut out = String::new();
-    let _ = writeln!(out, "\n§5.2 — the identifier census, bottom up\n");
-
-    let spaces = [
+/// The identity spaces, and how many identifiers each issues over a 1,560-tick run.
+fn spaces() -> Vec<Space> {
+    vec![
         Space {
             name: "entities",
             live: 550_622,
@@ -286,13 +276,24 @@ fn identifiers() -> String {
             life: Some(52),
             basis: "collateral turns over on the margin cycle; assumed here and owed",
         },
-        Space {
-            name: "schedules",
-            live: 1_060_000,
-            life: Some(312),
-            basis: "one per obligation-bearing instrument above",
-        },
-    ];
+        // ADR-0009 removed the schedules space: a schedule is a field of its instrument, not a
+        // claim, so nothing holds one and nothing can address one. It was 6,360,000 identifiers —
+        // 40% of this census — for rows that were never addressable.
+    ]
+}
+
+/// Every identifier issued over the run, across all spaces.
+fn ever_issued() -> u64 {
+    spaces().iter().map(Space::ever).sum()
+}
+
+/// §3.4's identifier census against §5.2's directory.
+#[allow(clippy::too_many_lines)]
+fn identifiers() -> String {
+    let mut out = String::new();
+    let _ = writeln!(out, "\n§5.2 — the identifier census, bottom up\n");
+
+    let spaces = spaces();
 
     let _ = writeln!(
         out,
@@ -315,18 +316,26 @@ fn identifiers() -> String {
 
     #[allow(clippy::cast_precision_loss)]
     let dir_mib = (total * 4) as f64 / MIB;
-    let _ = writeln!(
-        out,
-        "\n  ever issued, bottom up: {total}   directory at 4 B each: {dir_mib:.1} MiB\n  \
-         §3.4 says ≈971,000.  §5.2's 47.5 MiB implies 12,451,840.\n\n  \
-         FINDING. §3.4's figure is not merely low, it is **below the opening entity count plus one\n  \
-         generation of employment contracts alone**. It cannot be right: 350,000 live contracts at a\n  \
-         six-year mean term issue about 1.75 M identifiers over thirty years without a single loan,\n  \
-         tenancy or bond. §5.2's implied 12.45 M is the plausible one, and this census lands in the\n  \
-         same order. The two figures differ by a factor of about thirteen and §3.4's is the wrong one.\n  \
-         The rows marked owed above are the mean lives, which are assumed here to get an order of\n  \
-         magnitude and must be derived once the instruments exist."
-    );
+    for line in [
+        String::new(),
+        format!("  ever issued, bottom up: {total}   directory at 4 B each: {dir_mib:.1} MiB"),
+        "  ADR-0009 removed the schedules space: 6,360,000 identifiers, 40% of the former census."
+            .to_owned(),
+        String::new(),
+        "  RESOLVED. \u{a7}3.4's \u{2248} 971,000 was below the opening entity count plus one generation of".to_owned(),
+        "  employment contracts alone: 350,000 live at a six-year mean term issue about 1.75 M".to_owned(),
+        "  identifiers over thirty years without a single loan, tenancy or bond. \u{a7}3.4 now carries this".to_owned(),
+        "  census's figure, and \u{a7}5.2's 47.5 MiB directory (implying \u{2248} 12,451,840) is superseded by the".to_owned(),
+        "  bottom-up count above.".to_owned(),
+        String::new(),
+        "  STILL OWED: the mean lives. Six years for an employment contract, four for a tenancy, ten".to_owned(),
+        "  for household credit, five for a corporate facility, one margin cycle for a lien \u{2014} every one".to_owned(),
+        "  of them an assumption standing in for a mechanism that does not exist yet, and each replaced".to_owned(),
+        "  by the milestone that builds the instrument. The figure is an order of magnitude, not a".to_owned(),
+        "  number, and the 32-bit identifier is chosen with that in mind.".to_owned(),
+    ] {
+        let _ = writeln!(out, "{line}");
+    }
     out
 }
 
@@ -592,6 +601,146 @@ fn household_finding(mean: usize, tail: usize) -> String {
     out
 }
 
+/// §7.5's unresolved instrument row: 44 B with a schedule directory, against 148 B inline (W7.9).
+///
+/// §7.5 defers this to "measurement on the target device" and calls it a Phase 2 entry criterion. It
+/// is neither. It decides whether the **schedule identity space exists at all**, and an identity space
+/// is M1's; and it is decided by arithmetic, because the two arms differ by less than either arm's own
+/// error bar while differing by 6.36 M identifiers.
+fn instrument_row() -> String {
+    let mut out = String::new();
+    let _ = writeln!(
+        out,
+        "\n\u{a7}7.5 — the instrument row, both arms written out\n"
+    );
+
+    // §7.5's eleven columns, at the widths the rest of the specification forces.
+    let core = [
+        ("minPieceUnits", "i64", 8usize),
+        ("issuer", "EntityId (u32)", 4),
+        ("optionsFirst", "OptionTermsId (u32)", 4),
+        ("holdCount", "u32", 4),
+        ("venue", "u16", 2),
+        ("maturityPeriod", "u16", 2),
+        ("issuePeriod", "u16", 2),
+        ("type", "u8", 1),
+        ("currency", "u8", 1),
+        ("status", "u8", 1),
+    ];
+    // A schedule as a GENERATING RULE rather than a list of dated rows.
+    let schedule = [
+        ("amount", "i64", 8usize),
+        ("rateBasis", "SeriesId (u32)", 4),
+        ("firstPeriod", "u16", 2),
+        ("intervalPeriods", "u16", 2),
+        ("count", "u16", 2),
+        ("kind", "u8", 1),
+    ];
+    // Two price epochs: when the price last changed, and what it changed to.
+    let epochs = [("price", "i64", 8usize), ("period", "u16", 2)];
+
+    let sum = |fields: &[(&str, &str, usize)]| fields.iter().map(|f| f.2).sum::<usize>();
+    let align8 = |n: usize| n.div_ceil(8) * 8;
+
+    let _ = writeln!(
+        out,
+        "  core columns (\u{a7}7.5's eleven, less scheduleFirst)"
+    );
+    for (name, kind, bytes) in &core {
+        let _ = writeln!(out, "    {name:<18} {kind:<20} {bytes:>3}");
+    }
+    let _ = writeln!(out, "    {:<18} {:<20} {:>3}", "subtotal", "", sum(&core));
+
+    let _ = writeln!(out, "\n  a schedule, as a generating rule");
+    for (name, kind, bytes) in &schedule {
+        let _ = writeln!(out, "    {name:<18} {kind:<20} {bytes:>3}");
+    }
+    let _ = writeln!(
+        out,
+        "    {:<18} {:<20} {:>3}",
+        "subtotal",
+        "",
+        sum(&schedule)
+    );
+
+    let _ = writeln!(
+        out,
+        "\n  a price epoch, of which the inline row carries two"
+    );
+    for (name, kind, bytes) in &epochs {
+        let _ = writeln!(out, "    {name:<18} {kind:<20} {bytes:>3}");
+    }
+    let _ = writeln!(
+        out,
+        "    {:<18} {:<20} {:>3}  (x2, each aligned to 8)",
+        "subtotal",
+        "",
+        align8(sum(&epochs))
+    );
+
+    let a_row = align8(sum(&core) + 4); // + scheduleFirst
+    let a_schedule = align8(sum(&schedule));
+    let b_row = align8(sum(&core) + sum(&schedule) + 2 * align8(sum(&epochs)));
+    out.push_str(&instrument_finding(a_row, a_schedule, b_row));
+    out
+}
+
+/// The two arms priced against the census, and what actually decides between them.
+fn instrument_finding(a_row: usize, a_schedule: usize, b_row: usize) -> String {
+    let mut out = String::new();
+    let live = 1_060_000usize;
+    let ever = 6_360_000usize;
+    #[allow(clippy::cast_precision_loss)]
+    let mb = |b: usize| b as f64 / 1e6;
+    #[allow(clippy::cast_precision_loss)]
+    let share = ever as f64 / 15_732_835.0 * 100.0;
+
+    let a_total = live * a_row + live * a_schedule + ever * 4;
+    let b_total = live * b_row;
+
+    for line in [
+        String::new(),
+        format!("  A \u{2014} row {a_row} B + schedule {a_schedule} B out of line + a schedule identity space"),
+        format!("      rows       {live} x {a_row:>3} B = {:>6.1} MB", mb(live * a_row)),
+        format!("      schedules  {live} x {a_schedule:>3} B = {:>6.1} MB", mb(live * a_schedule)),
+        format!("      directory  {ever} x   4 B = {:>6.1} MB   (\u{a7}5.2's ever-issued)", mb(ever * 4)),
+        format!("      TOTAL                        {:>6.1} MB", mb(a_total)),
+        String::new(),
+        format!("  B \u{2014} row {b_row} B, schedule and two price epochs inline, NO schedule identity space"),
+        format!("      rows       {live} x {b_row:>3} B = {:>6.1} MB", mb(live * b_row)),
+        format!("      TOTAL                        {:>6.1} MB", mb(b_total)),
+        String::new(),
+        format!(
+            "  Inline is {:.1} MB cheaper and removes {ever} identifiers \u{2014} {share:.0}% of the whole",
+            mb(a_total - b_total)
+        ),
+        "  identifier census.".to_owned(),
+        String::new(),
+        "  FINDING 1. NEITHER PUBLISHED NUMBER IS THE ANSWER. \u{a7}7.5's eleven columns come to 33 B and".to_owned(),
+        format!("  pad to {a_row}, not 44. And the inline row comes to {b_row}, not 148 \u{2014} the 68 B of difference is"),
+        "  what an ENUMERATED schedule costs: five dated rows and no more, which cannot express a".to_owned(),
+        "  ten-year mortgage at weekly ticks. A schedule enumerated rather than generated is not a".to_owned(),
+        format!("  148 B row at all: {live} instruments x 120 payments x 16 B is {:.1} GB.", mb(live * 120 * 16) / 1000.0),
+        String::new(),
+        "  FINDING 2. THE COMPARISON \u{a7}7.5 DEFERS CANNOT BE MADE AS WRITTEN. It says \"this table and".to_owned(),
+        "  \u{a7}3.4.4 describe two different rows\" \u{2014} and \u{a7}3.4.4 is one of the eight dangling cross-".to_owned(),
+        "  references M0 already found. The 148 B arm is specified in a section that does not exist, so".to_owned(),
+        "  no measurement on any device could have settled it.".to_owned(),
+        String::new(),
+        "  FINDING 3. AND MEMORY IS NOT WHAT DECIDES IT. The two arms are within ten per cent of each".to_owned(),
+        "  other, which is inside the error bar on the census's owed mean lives. What decides it is".to_owned(),
+        "  whether a schedule needs an IDENTITY: under A2 an instrument is data, and under R-1 a claim".to_owned(),
+        "  exists as its issuer's negative balance. NOTHING HOLDS A SCHEDULE. It is a field of the".to_owned(),
+        "  instrument, not a claim on anyone, so it has no holder, no balance and no reason to be".to_owned(),
+        "  addressable. \u{a7}7.4's prepayment and payment-holiday amend the INSTRUMENT, which already has".to_owned(),
+        "  an identity. The 6.36 M schedule identifiers are an identity space for a thing that is not".to_owned(),
+        "  a claim.".to_owned(),
+    ] {
+        let _ = writeln!(out, "{line}");
+    }
+    out
+}
+
 /// Both derivations, as one report.
 pub fn report() -> String {
     format!(
@@ -600,7 +749,7 @@ pub fn report() -> String {
         identifiers(),
         journal(),
         household_block()
-    )
+    ) + &instrument_row()
 }
 
 /// What the 48 buys, and what §6.4 asked for that does not fit.
