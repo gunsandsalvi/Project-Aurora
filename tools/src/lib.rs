@@ -8,6 +8,7 @@
 pub mod burnin;
 pub mod check_adr;
 pub mod check_deps;
+pub mod check_instruments;
 pub mod check_lints;
 pub mod check_refs;
 pub mod check_registry;

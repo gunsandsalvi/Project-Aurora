@@ -1,0 +1,57 @@
+# §7.4 — the eight amendment mechanisms against the eight opening types.
+#
+# This settles ADR-0018: whether an amendment handle is minted per MECHANISM or per
+# (mechanism, type). §7.4 says "no system holds a general amendment handle" and lists five owners.
+# If every mechanism applies to every type the answer is per-mechanism; if the matrix is sparse, a
+# per-mechanism handle lets credit truncate an employment contract, which labour owns.
+#
+# `applies` lists the types each mechanism may amend. A mechanism naming a type not in its list must
+# fail to mint.
+
+[[mechanism]]
+name = "default-truncation"
+delta = "Truncate"
+owner = "credit"
+applies = ["DepositLine", "SovereignBond", "SecuredTermLoan"]
+
+[[mechanism]]
+name = "prepayment"
+delta = "Truncate|Reparameterise"
+owner = "credit"
+applies = ["SecuredTermLoan"]
+
+[[mechanism]]
+name = "payment-holiday"
+delta = "Defer"
+owner = "credit"
+applies = ["SecuredTermLoan"]
+
+[[mechanism]]
+name = "restructure"
+delta = "Reparameterise"
+owner = "credit"
+applies = ["SovereignBond", "SecuredTermLoan"]
+
+[[mechanism]]
+name = "call-and-early-redemption"
+delta = "Truncate|Insert"
+owner = "primary-issuance"
+applies = ["SovereignBond", "ListedEquity", "PrivateEquity"]
+
+[[mechanism]]
+name = "cancellation-on-wind-up"
+delta = "Truncate"
+owner = "wind-up"
+applies = ["DepositLine", "SovereignBond", "SecuredTermLoan", "EmploymentContract", "ListedEquity", "PrivateEquity"]
+
+[[mechanism]]
+name = "claim-crystallisation"
+delta = "Insert"
+owner = "insurance"
+applies = []
+
+[[mechanism]]
+name = "employment-termination"
+delta = "Truncate"
+owner = "labour"
+applies = ["EmploymentContract"]

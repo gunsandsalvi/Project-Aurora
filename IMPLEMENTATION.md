@@ -551,6 +551,7 @@ Sources are `PROJECT_AURORA.md` unless stated.*
 | The party platforms, the party and seat counts, the disposition dispersion | §21 *Owed* | **M8b** |
 | Whether a household's vote reads a forward expectation — the model has no expectations mechanism, so "outlook" is currently recent experience | §21.5 *Owed* | **M8b** |
 | **Covenants and acceleration**: an option family under §7.6, a ninth `amend` mechanism, or a fourteenth intrinsic question | §2.3 | **M3** |
+| **§7.2's question 1 admits "one of the nine unit classes" and no section enumerates them.** Filling the intrinsic table by hand required reconstructing the list from §5.3 and §6.2 — currency, face value, share, fund unit, goods, capital unit, dwelling, floor area, labour hour — which is a closed set the specification asserts the size of and never states | found by filling `instruments/intrinsic.toml` | **M3**, and §5.3 should own the list |
 | **The derivative contract shape and a clearing house.** §7.6 gives options embedded in an instrument, not a bilateral contract with a reference and variation margin. Margin must respond to the reference's own realised move, or procyclicality — the contagion mechanism — is deleted | §2.3, Appendix C 25 | **M9** |
 | **The securitisation vehicle.** §6.5's trustee *holds* for a class of holders; an SPV *issues* against a pool | §2.3 | **M9** |
 | **Is freight in scope at all?** A network with capacity per route is genuinely new structure. Under R20 the options are to model it or declare it out of scope on the surface | §2.3 | **M9** |

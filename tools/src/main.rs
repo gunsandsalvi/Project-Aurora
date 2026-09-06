@@ -5,7 +5,10 @@
 
 use std::process::ExitCode;
 
-use aurora_tools::{check_adr, check_deps, check_lints, check_refs, check_registry, check_surface};
+use aurora_tools::{
+    check_adr, check_deps, check_instruments, check_lints, check_refs, check_registry,
+    check_surface,
+};
 
 fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
@@ -26,6 +29,7 @@ fn main() -> ExitCode {
         "check-refs" => check_refs::run(&root),
         "check-adr" => check_adr::run(&root),
         "check-registry" => check_registry::run(&root),
+        "check-instruments" => check_instruments::run(&root),
         "sizing" => {
             println!("{}", aurora_tools::sizing::report());
             ExitCode::SUCCESS
@@ -60,13 +64,14 @@ fn verify(root: &std::path::Path) -> ExitCode {
     /// A check: its name, and the function that runs it and reports.
     type Check = (&'static str, fn(&std::path::Path) -> ExitCode);
 
-    let checks: [Check; 6] = [
+    let checks: [Check; 7] = [
         ("check-lints", check_lints::run),
         ("check-surface", check_surface::run),
         ("check-deps", check_deps::run),
         ("check-refs", check_refs::run),
         ("check-adr", check_adr::run),
         ("check-registry", check_registry::run),
+        ("check-instruments", check_instruments::run),
     ];
     let mut failed = Vec::new();
     for (name, run) in checks {

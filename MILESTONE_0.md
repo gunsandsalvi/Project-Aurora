@@ -150,8 +150,6 @@ be *recorded* until this exists.
 | | Task | Days | Done when |
 |---|---|---|---|
 | W6.2 | **The burn-in conjunction.** B1/B1b/B2/B3 against synthetic AR(1), random walk, mid-window break, diverging ensemble, frozen path; then Monte Carlo ~1,000 synthetic 42-series panels and report the empirical false-pass rate of the conjunction. `0.95^42 ≈ 11.6%` under the true null | 5 | the false-pass rate is measured and a multiplicity correction is specified |
-| W6.3 | **The intrinsic facts table as data.** All thirteen answers for the seven opening types, as a total mapping. **As data plus a totality check, not Rust** — §1 forbids engine code here for the same reason it did in W4, and the typechecked version lands in M3 | 3 | the table is complete and deleting one answer fails the check |
-| W6.4 | **The amendment matrix.** 7 types × 8 mechanisms as a total mapping. Decides whether handles are per-mechanism or per-(mechanism, type) — one extra column now, a rewrite of `amend` later | 2 | the mapping is total and the handle shape is ADR'd |
 
 ---
 
@@ -189,7 +187,6 @@ Enumerated, because "roughly eighteen ADRs" in an exit criterion is not a criter
 | 0015 | The output gap as a ratio; the transcendental ban widened to any digested path |
 | 0016 | Digest cadence decoupled from checkpoint cadence |
 | 0017 | Retirement queue drained every tick; capacity derived from max-per-tick × interval |
-| 0018 | Amendment handles: per-mechanism or per-(mechanism, type) |
 | 0019 | The burn-in multiplicity correction |
 
 ---
@@ -259,11 +256,12 @@ derivation rather than testing whether one exists. **The first gate with stop au
 | **W3** the probe and the way results get back | **the measurements are written and run** (`cargo run --release -p aurora-probe`), and three are already red on the host, which is a floor. What remains is the Android packaging — `cargo-ndk`, the Kotlin shell, the release — and the device run |
 | **W4** the parameter registry | **done but for two**, both deferred with a reason: the generated unit vocabulary needs `domain`'s quantity types (M1), and the `capacity` read rule needs systems to police |
 | **W5** ADR machinery | **part done** — the format and `check-adr` landed with W2; numbering, coupling and appendix generation remain |
-| **W6** falsifiers that need code | **two of four done** — the seed generator and the burn-in tests, both red and both pinned by tests. The facts table and the amendment matrix remain |
+| **W6** falsifiers that need code | **done but for B2/B3's ensemble half.** The seed generator and the burn-in tests are red and pinned; the intrinsic table and the amendment matrix are filled, total, and checked |
 | **W7** falsifiers that need paper | **two of nine done**, and both were computations rather than prose: the memory derivation and the identifier census (`aurora-tools sizing`) |
 
-**Checks running, each with negative fixtures, behind one `aurora-tools verify`:**
-`check-lints` · `check-surface` · `check-deps` · `check-refs` · `check-adr` · `check-registry`
+**Checks running, behind one `aurora-tools verify`:**
+`check-lints` · `check-surface` · `check-deps` · `check-refs` · `check-adr` · `check-registry` ·
+`check-instruments`
 
 **The census, published on every build:** 21 model entries — 9 assumed, 10 structural, 2 derived,
 0 placeholder — and 4 capacity entries counted separately. No cap (D3); the direction is down.

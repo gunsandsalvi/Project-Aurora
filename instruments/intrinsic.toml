@@ -1,0 +1,158 @@
+# §7.2 — the thirteen intrinsic questions, answered for every opening instrument type.
+#
+# A2's cheapest falsification. §7.2 says adding a type "fails to compile until all thirteen are given
+# — there is no default, because a default is a fourteenth decision made by whoever wrote it." Filling
+# the table by hand, before any code reads it, is what tests whether thirteen questions are enough.
+#
+# In M0 this is data plus a totality check (§1 forbids engine code here, as it did for the registry).
+# It becomes the typechecked `INTRINSIC` mapping in M3, and the answers do not change when it does.
+#
+# q1  unit          one of the nine unit classes
+# q2  piece         SingleUnit | DeclaredPiece
+# q3  denomination  InCurrency | NotDenominated
+# q4  issuer_role   LiabilityOf | ResidualClaimOn | NoIssuer
+# q5  quoted_as     price | yield | spread | rate
+# q6  tenor         Dated | Perpetual | Demand
+# q7  accrual       NoAccrual | PerTickSimple | PerTickCompounded
+# q8  optionality   a set drawn from the seven families of §7.6
+# q9  carrier       NoCarrier | PerUnit | PerContract
+# q10 holders       any | institutional | issuer-restricted | sovereign
+# q11 rank          secured:<bool> rank:<preferred|senior|subordinated|residual> [shortfall:<rank>]
+# q12 liquidity     tier1 | tier2 | illiquid
+# q13 pricing       VenueCleared | DerivedMark | UnitOfAccount
+
+[[type]]
+name = "CurrencyClaim"
+note = "Notes and reserves: a liability of a region's central bank. §5.3 — the currency is the unit of account, and what is held is a claim denominated in it."
+q1 = "currency"
+q2 = "SingleUnit"
+q3 = "InCurrency"
+q4 = "LiabilityOf"
+q5 = "price"
+q6 = "Demand"
+q7 = "NoAccrual"
+q8 = []
+q9 = "NoCarrier"
+q10 = "any"
+q11 = "secured:false rank:senior"
+q12 = "tier1"
+q13 = "UnitOfAccount"
+
+[[type]]
+name = "DepositLine"
+note = "One line per issuer, not one per holder (§7.7). `Demand` is what makes a bank run expressible at weekly ticks."
+q1 = "currency"
+q2 = "SingleUnit"
+q3 = "InCurrency"
+q4 = "LiabilityOf"
+q5 = "price"
+q6 = "Demand"
+q7 = "PerTickSimple"
+q8 = []
+q9 = "PerUnit"
+q10 = "any"
+q11 = "secured:false rank:preferred"
+q12 = "tier1"
+q13 = "DerivedMark"
+
+[[type]]
+name = "SovereignBond"
+note = "The curve's owner. Conformance case 9 needs it, which is why §15.1 says it must exist in Phase 1a rather than Phase 2."
+q1 = "face-value"
+q2 = "DeclaredPiece"
+q3 = "InCurrency"
+q4 = "LiabilityOf"
+q5 = "price"
+q6 = "Dated"
+q7 = "PerTickSimple"
+q8 = []
+q9 = "PerUnit"
+q10 = "any"
+q11 = "secured:false rank:senior"
+q12 = "tier1"
+q13 = "VenueCleared"
+
+[[type]]
+name = "SecuredTermLoan"
+note = "One borrower, one holder. Its collateral is lien rows whose beneficiary holds for it (§6.5), which is why q11 carries a boolean and an ordinal rather than an ordinal doing both jobs."
+q1 = "face-value"
+q2 = "SingleUnit"
+q3 = "InCurrency"
+q4 = "LiabilityOf"
+q5 = "spread"
+q6 = "Dated"
+q7 = "PerTickSimple"
+q8 = ["prepayable"]
+q9 = "PerContract"
+q10 = "institutional"
+q11 = "secured:true rank:senior shortfall:senior"
+q12 = "illiquid"
+q13 = "DerivedMark"
+
+[[type]]
+name = "EmploymentContract"
+note = "One worker, one employer, one wage (§9.6.2). Its obligation is a plain money obligation, and the hours are endowed on delivery so no household ever holds them."
+q1 = "labour-hour"
+q2 = "SingleUnit"
+q3 = "InCurrency"
+q4 = "LiabilityOf"
+q5 = "price"
+q6 = "Dated"
+q7 = "NoAccrual"
+q8 = []
+q9 = "PerContract"
+q10 = "issuer-restricted"
+q11 = "secured:false rank:preferred"
+q12 = "illiquid"
+q13 = "DerivedMark"
+
+[[type]]
+name = "GoodsUnit"
+note = "A produced good. NoIssuer, because a real thing enters the world through a counter-account and not as somebody's liability (§6.2, R-1)."
+q1 = "goods"
+q2 = "SingleUnit"
+q3 = "NotDenominated"
+q4 = "NoIssuer"
+q5 = "price"
+q6 = "Perpetual"
+q7 = "NoAccrual"
+q8 = []
+q9 = "NoCarrier"
+q10 = "any"
+q11 = "secured:false rank:residual"
+q12 = "tier2"
+q13 = "VenueCleared"
+
+[[type]]
+name = "ListedEquity"
+note = "§8.7: a firm in the listed tier has issued this. VenueCleared is what listing MEANS here."
+q1 = "share"
+q2 = "SingleUnit"
+q3 = "NotDenominated"
+q4 = "ResidualClaimOn"
+q5 = "price"
+q6 = "Perpetual"
+q7 = "NoAccrual"
+q8 = []
+q9 = "PerUnit"
+q10 = "any"
+q11 = "secured:false rank:residual"
+q12 = "tier1"
+q13 = "VenueCleared"
+
+[[type]]
+name = "PrivateEquity"
+note = "§8.7: the same claim on the same firm, priced differently because no venue clears it. This is the pair that makes going public and going private ordinary work at position 19."
+q1 = "share"
+q2 = "SingleUnit"
+q3 = "NotDenominated"
+q4 = "ResidualClaimOn"
+q5 = "price"
+q6 = "Perpetual"
+q7 = "NoAccrual"
+q8 = []
+q9 = "PerUnit"
+q10 = "institutional"
+q11 = "secured:false rank:residual"
+q12 = "illiquid"
+q13 = "DerivedMark"
