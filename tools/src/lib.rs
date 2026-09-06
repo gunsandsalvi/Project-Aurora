@@ -7,6 +7,7 @@
 
 pub mod adr_new;
 pub mod appendix;
+pub mod behaviour;
 pub mod bootstrap;
 pub mod burnin;
 pub mod check_adr;

@@ -1071,6 +1071,29 @@ claims weighted out, and the weight reads §7.2 Q11's rank — a fact, so §8.1'
 no capital credit for them. That is conservative in the direction real regimes are, and it is
 stated once rather than as a deduction schedule §7.3 does not carry.
 
+**Written out and run** (`aurora-tools behaviour`). The five declarations exist for two classes —
+`Household` and `Bank` — and ten ticks are executed from them over the same ledger §13.6's walk uses,
+with A1 and R-1 checked after every operation. Four things it establishes that the declarations alone
+cannot:
+
+- **The capital ratio reads two rows on the bank's own block and nothing else**, exactly as claimed
+  above. That is a consequence of R-1 rather than of the constraint's design: a model holding
+  liabilities anywhere but as the issuer's negative balance would need precisely the attribution step
+  this section says it does not have.
+- **The bank's capital arrives as a liability swap, not an inflow.** Equity bought with a deposit is
+  one claim the bank issued exchanged for another, so its lending capacity rises while its cash does
+  not move. Under R-1 that falls out of the arithmetic; a separate liability table would have to state
+  it as a rule.
+- **The floor binds, and binding looks like refusal rather than breach.** Under the declarations as
+  written it never binds — an equity flow of 20% of the wage against an 8% floor supports 2.5× the wage
+  bill of new lending a tick, so the binding constraint on credit is the *household's saving*. Stop the
+  equity buying and it binds at tick 13, with the ratio resting exactly on 0.08 and never below it.
+  **A constraint that shows up as a breach is a constraint that was checked too late.**
+- **Declaration 3 binds at position 12, not at the payment.** R-1 already makes an unbacked payment
+  impossible, so a constraint checked at settlement checks something the ledger cannot do anyway. This
+  section says what the constraints *are* and never says *where* they bind; §9.2 and §9.4 do, and the
+  three must be read together.
+
 ### 8.2 An agent holds rows, never fields
 
 An agent has no per-class holdings field. Its balance sheet is a query over its own block:

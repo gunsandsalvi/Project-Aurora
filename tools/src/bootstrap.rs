@@ -50,6 +50,12 @@ pub enum Party {
 }
 
 impl Party {
+    /// The display name.
+    #[must_use]
+    pub fn label(self) -> &'static str {
+        self.name()
+    }
+
     /// The counter-accounts, which may hold a negative balance in an asset they did not issue.
     ///
     /// This is not an exemption from R-1, it is what R-1 says: a counter-account's negative side is
@@ -101,6 +107,12 @@ pub enum Asset {
 }
 
 impl Asset {
+    /// The display name.
+    #[must_use]
+    pub fn label(self) -> &'static str {
+        self.name()
+    }
+
     /// The issuer, whose negative balance IS the claim (R-1). `None` for a real thing.
     fn issuer(self) -> Option<Party> {
         match self {
@@ -138,7 +150,9 @@ pub struct Ledger {
 }
 
 impl Ledger {
-    fn balance(&self, who: Party, what: Asset) -> i64 {
+    /// What `who` holds of `what`; negative means it issued it (R-1).
+    #[must_use]
+    pub fn balance(&self, who: Party, what: Asset) -> i64 {
         self.holdings.get(&(who, what)).copied().unwrap_or(0)
     }
 
@@ -147,7 +161,15 @@ impl Ledger {
     }
 
     /// §6.4's one-sided operation.
-    fn r#move(&mut self, tick: u16, position: u8, from: Party, to: Party, what: Asset, qty: i64) {
+    pub fn r#move(
+        &mut self,
+        tick: u16,
+        position: u8,
+        from: Party,
+        to: Party,
+        what: Asset,
+        qty: i64,
+    ) {
         self.credit(from, what, -qty);
         self.credit(to, what, qty);
         self.journal.push(format!(
@@ -161,7 +183,7 @@ impl Ledger {
 
     /// §6.4's indivisible two-sided operation.
     #[allow(clippy::too_many_arguments)]
-    fn exchange(
+    pub fn exchange(
         &mut self,
         tick: u16,
         position: u8,
