@@ -27,11 +27,12 @@ struct Table {
 
 impl Table {
     fn bytes(&self) -> Option<u64> {
-        Some(self.count?.checked_mul(self.width?)?)
+        self.count?.checked_mul(self.width?)
     }
 }
 
 /// The memory derivation N4 is owed.
+#[allow(clippy::too_many_lines)]
 fn memory() -> String {
     let mut out = String::new();
     let _ = writeln!(out, "N4 — the memory derivation, one row per table\n");
@@ -143,35 +144,32 @@ fn memory() -> String {
 
     let _ = writeln!(
         out,
-        "  {:<40} {:>12} {:>7} {:>12}  {}",
-        "table", "count", "width", "MiB", "source"
+        "  {:<40} {:>12} {:>7} {:>12}  source",
+        "table", "count", "width", "MiB"
     );
     let mut known = 0u64;
     let mut unknown = 0usize;
     for t in &tables {
-        match t.bytes() {
-            Some(b) => {
-                known += b;
-                #[allow(clippy::cast_precision_loss)]
-                let mib = b as f64 / MIB;
-                let _ = writeln!(
-                    out,
-                    "  {:<40} {:>12} {:>7} {:>12.1}  {}",
-                    t.name,
-                    t.count.unwrap_or(0),
-                    t.width.unwrap_or(0),
-                    mib,
-                    t.source
-                );
-            }
-            None => {
-                unknown += 1;
-                let _ = writeln!(
-                    out,
-                    "  {:<40} {:>12} {:>7} {:>12}  {}",
-                    t.name, "—", "—", "OWED", t.source
-                );
-            }
+        if let Some(b) = t.bytes() {
+            known += b;
+            #[allow(clippy::cast_precision_loss)]
+            let mib = b as f64 / MIB;
+            let _ = writeln!(
+                out,
+                "  {:<40} {:>12} {:>7} {:>12.1}  {}",
+                t.name,
+                t.count.unwrap_or(0),
+                t.width.unwrap_or(0),
+                mib,
+                t.source
+            );
+        } else {
+            unknown += 1;
+            let _ = writeln!(
+                out,
+                "  {:<40} {:>12} {:>7} {:>12}  {}",
+                t.name, "\u{2014}", "\u{2014}", "OWED", t.source
+            );
         }
     }
 
@@ -205,15 +203,18 @@ struct Space {
 impl Space {
     /// Ever issued over the run: the opening population plus one replacement per mean life.
     fn ever(&self) -> u64 {
-        match self.life {
-            None => self.live,
-            Some(l) if l > 0 => self.live + self.live * (1_560 / l),
-            Some(_) => self.live,
+        if let Some(l) = self.life
+            && l > 0
+        {
+            self.live + self.live * (1_560 / l)
+        } else {
+            self.live
         }
     }
 }
 
 /// §3.4's identifier census against §5.2's directory.
+#[allow(clippy::too_many_lines)]
 fn identifiers() -> String {
     let mut out = String::new();
     let _ = writeln!(out, "\n§5.2 — the identifier census, bottom up\n");
@@ -295,8 +296,8 @@ fn identifiers() -> String {
 
     let _ = writeln!(
         out,
-        "  {:<22} {:>10} {:>8} {:>14}  {}",
-        "space", "live", "life", "ever issued", "basis"
+        "  {:<22} {:>10} {:>8} {:>14}  basis",
+        "space", "live", "life", "ever issued"
     );
     let mut total = 0u64;
     for s in &spaces {

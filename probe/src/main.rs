@@ -15,6 +15,17 @@
 //! index by four fields at once, so columnar costs four cache misses where interleaved costs one.
 //! Both are measured here rather than argued.
 
+// A benchmark counts operations and divides by elapsed nanoseconds; every cast below is a count
+// crossing into a ratio, and none of them can reach a digested value because nothing here is the
+// engine. Stated once, at the top, rather than sprinkled.
+#![allow(
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss,
+    clippy::many_single_char_names,
+    clippy::too_many_lines
+)]
+
+use std::fmt::Write as _;
 use std::time::Instant;
 
 /// §3.4's slot count, at the corrected 24-byte width.
@@ -144,9 +155,10 @@ fn main() {
             block.remove(at);
         }
         let ns = t.elapsed().as_nanos() as f64 / reps as f64;
-        block_report.push_str(&format!(
-            "    {width:>6} slots: {ns:>8.1} ns per insert+remove\n"
-        ));
+        let _ = writeln!(
+            block_report,
+            "    {width:>6} slots: {ns:>8.1} ns per insert+remove"
+        );
     }
 
     // ── transcendental bit-identity: this host's half of the comparison ────────────────────────
