@@ -2,21 +2,29 @@
 
 ## A bottom-up simulation of four national economies
 
-**Version 5.0.** This document is the specification. It is written to be built from, and its
+**Version 6.0.** This document is the specification. It is written to be built from, and its
 organising rule is **one fact, one place**: every number appears once, in the section that owns it,
 and everything else points there. A figure printed twice is a figure that will disagree with itself.
+
+**Version 6.0 records four founding decisions taken by the project owner (D1–D4, Appendix B).** They
+change the language, the delivery target, the status of the performance budgets and the status of the
+assumption cap. Everything downstream of them is re-derived here rather than left to agree by accident.
+**The six model rules of §1.1 are the ends of this project; everything mechanical in this document is an
+instrument serving them, and an instrument that stops serving its rule is renegotiable.**
 
 ### How to read this
 
 | If you want | Read, in this order |
 |---|---|
+| **what this project is for** | **§1.1, the six model rules. Read this before anything else** |
 | what the model contains | §1, §2, §8, §7, §13.3 |
 | the rules you cannot break | §3.2, then §5 and §6 |
 | what happens in a tick | §9.4 first, then §9.1, §9.2, §9.3 |
 | where a number comes from | §16.1, then §13. **Nowhere else** |
 | how correctness is established | §15, then §11 |
-| how to build it | §4, §17, §18, then §19 |
-| what changed and why | Appendix B |
+| how to build it | `IMPLEMENTATION.md`, then §4, §17, §18 and §19 |
+| what changed and why | Appendix B, and D1–D4 at the head of it |
+| what is not yet decided | Appendix B's **Owed** list. It is long, and most of it is the economics |
 
 **Sections are ordered by number, not by reading path.** The numbers are stable addresses cited
 from source comments and from the construction plan, so a section keeps its number even when it is
@@ -26,7 +34,7 @@ rewritten.
 
 | | | |
 |---|---|---|
-| **1** What this is | **8** Agents | **15** Correctness |
+| **1** What this is — **M1–M6** | **8** Agents | **15** Correctness |
 | **2** Scope | **9** Markets | **16** Cross-cutting concerns |
 | **3** Requirements — A1–A4 | **10** Time and capabilities | **17** Standards |
 | **4** Layers | **11** Determinism | **18** Extension |
@@ -38,6 +46,8 @@ rewritten.
 
 - **A rule is stated imperatively and once.** Where a reason is given it is one sentence. Extended
   argument for a settled value lives in Appendix A's register and nowhere else.
+- **M-numbers are model rules and are the ends; A-numbers are architectural claims serving them; N-numbers
+  are engineering figures.** An N-number never overrides an M-number (D1).
 - **Every value declares its provenance** — `structural`, `derived` or `assumed` — in §13, and the
   build refuses one that does not (§16.1).
 - **A cost that a decision accepts is stated where the decision is**, in italics, beginning
@@ -58,14 +68,32 @@ The model produces prices; it is not given any. It produces regional difference;
 what the differences are. It produces unemployment, default, insolvency and financial crisis as
 outcomes of mechanisms, or not at all.
 
-**Four claims are load-bearing, and each has a mechanical discharge rather than a review question.**
+### 1.1 The six rules
 
-| | Claim | Discharged by |
-|---|---|---|
-| **A1** | Conservation is structural. A quantity cannot be created or destroyed except by an operation that names where it came from | one writer for the conserved column, and no mintable handle for it (§6.1a) |
-| **A2** | A new instrument type costs one vocabulary entry, one row of intrinsic facts, one row of relational facts per regime, and zero edits to any agent | the facts tables are total mappings; a branch on instrument type outside them does not compile (§7.2, §7.3) |
-| **A3** | No level is seeded. Every number in the opening world is structural, derived, or an assumed dimensionless ratio with a bracket | the registry build check, and the reservation mint (§16.1) |
-| **A4** | The loop closes. Every flow has a modelled source and a modelled sink, and the four regions are the entire world | no rest-of-world sector exists to be written; the issuer precondition at `register` (§9.7.5) |
+*These are the project's requirements. Everything else in this document is machinery in their service.*
+
+| | Rule |
+|---|---|
+| **M1** | **Fully bottom-up.** Every deciding entity is a row that decides for itself. No representative agents, no aggregate equations, no scaling factor between a model household and anything outside the model |
+| **M2** | **Realistic in mechanism, not fitted to outcomes.** A bank fails because its capital ran out, not because a failure rule fired. The model is never calibrated to an observed economy; realism is that the machinery is right |
+| **M3** | **Minimum priors.** The fewest assumed numbers possible. The count is a headline figure, reported on the surface, and every review pushes it downward |
+| **M4** | **Closed.** Every flow has a modelled source and a modelled sink. No rest of world, no residual absorber, no counterparty that exists to make the books balance. **An unmodelled counterparty is a prior wearing a costume** |
+| **M5** | **Nothing appears or vanishes** except where something in the model creates or destroys it and says so |
+| **M6** | **Emergence, not assertion.** Unemployment, default, insolvency, crisis, regional difference and the price level are outputs. A phenomenon that must be built in to appear has not been explained |
+
+**Where a mechanism in this document conflicts with a rule above, the rule wins and the mechanism is
+restated.** §12's performance targets are the standing example: they bend, and the model does not (D1).
+
+### 1.2 The four architectural claims
+
+**Each is a discharge of a rule above, and each is mechanical rather than a review question.**
+
+| | Claim | Serves | Discharged by |
+|---|---|---|---|
+| **A1** | Conservation is structural. A quantity cannot be created or destroyed except by an operation that names where it came from | M5 | the conserved column is private to the `ledger` crate and no mutable borrow of it exists outside it; no mintable `post` handle for it (§6.1a) |
+| **A2** | A new instrument type costs one vocabulary entry, one row of intrinsic facts, one row of relational facts per regime, and zero edits to any agent | M1, M6 | the facts tables are total mappings; a branch on instrument type outside them does not compile (§7.2, §7.3) |
+| **A3** | No level is seeded. Every number in the opening world is structural, derived, or an assumed dimensionless ratio with a bracket, and the assumed count is published | M2, M3 | the registry build check, and the reservation mint (§16.1) |
+| **A4** | The loop closes. Every flow has a modelled source and a modelled sink, and the four regions are the entire world | M4 | no rest-of-world sector exists to be written; the issuer precondition at `register` (§9.7) |
 
 **A4 is why there is no rest of world.** A sector that absorbs whatever is left over is an
 unmodelled counterparty wearing the costume of a simplification, and under it every closure test
@@ -78,7 +106,8 @@ passes while the model leaks.
 Price formation in multiple venues; production, consumption, employment, tenancy and investment;
 credit, default and resolution; bank balance sheets and the constraints that bind them; monetary
 and fiscal policy as rules over the model's own state; cross-region trade financed on modelled FX
-lines. A run is 1,560 weekly periods — thirty simulated years — on a single consumer device.
+lines. A run is 1,560 weekly periods — thirty simulated years. **The delivery target is an Android
+application: a native engine with a thin user interface** (D2).
 
 ### 2.2 Not in scope
 
@@ -111,9 +140,17 @@ The model must be able to express, without a special case anywhere:
 
 Stated in §1 and discharged as follows. **Each is a build failure, not a review item.**
 
-**A1 — conservation is structural.** The conserved column has exactly one writer in the whole
-source tree, checked in CI. `post` cannot address a conserved column, because the mint is typed and
-no such overload exists. Every operation appends exactly one journal row.
+**A1 — conservation is structural.** The conserved quantity column is a **private field of the `ledger`
+crate**, and no mutable borrow of it is obtainable anywhere outside that crate — not by a lint, by the
+compiler. `post` cannot address a conserved column, because the mint is typed and no such overload
+exists. Every operation appends exactly one journal row.
+
+*The property is about a module boundary, not a statement count.* Relocation (§5.5), the zeroed-entry
+tail shift (§5.6) and slot canonicalisation all write the quantity column, and all three live inside the
+ledger. A claim of "exactly one writing statement in the source tree" is false against them, and a check
+enforcing it would have to grow the exemption list §17 forbids. What is claimed, and what is
+mechanically true, is that **the set of code able to write a conserved quantity is one crate whose entire
+public surface is the nine operations.**
 
 **A2 — the instrument model is additive.** Intrinsic facts are a total mapping from type to
 thirteen answers; relational facts are a total mapping from (type, regime) to three. An agent
@@ -122,27 +159,46 @@ receives *facts*, never a type code, so `if (type === ...)` is not writable insi
 **A3 — no exogenous calibration.** Every entry in the opening seed carries a provenance, and
 `assumed` admits only `ratio`, `count`, `period`, `physical-unit` and `hour` dimensions, never a
 level, and never a region scope. A reservation level formed before any price exists is minted in
-one module against a declared source. Budget: **≤ 130 entries, of which ≤ 80 `assumed`** (§16.1).
+one module against a declared source.
 
-**A4 — the loop closes.** Every claim asset carries a non-null issuer, enforced at `register`. The
+**There is no cap on the number of entries (D1, D3).** The provenance rules above are build failures and
+stay build failures; the *count* is a published figure that every review pushes downward (M3). A cap
+decides modelling questions by arithmetic — §13.1.2 records a technology reduced from twenty-seven
+sub-units to one because eighty-one exceeded eighty — and a rule that answers a modelling question with a
+budget is not serving M2. **What replaces the cap is visibility: the assumed count, its trend, and the
+mechanism each entry buys, on the surface beside the placeholder count.**
+
+**A4 — the loop closes.** Every claim asset carries a non-null issuer, enforced at `register` (§9.7). The
 entity-to-(region, sector) mapping is total with no `external` member. Counter-accounts may hold
 only real units, so none can mint a claim. Sectoral net lending sums to exactly zero, per currency,
-every tick — an integer identity, not a tolerance (§9.7.3).
+every tick — an integer identity, not a tolerance (§9.7).
 
 ### 3.3 Non-functional
 
-| | Budget | Where |
+**Two kinds, and the difference is which way they bend (D1).** A *requirement* is a correctness property:
+a breach is a defect and stops the work. A *target* is a performance figure: it is measured every night,
+its trend is published, and **a breach never licenses a reduction in agent count or a coarsening of a
+cadence** — the target is restated and the delivery bends instead.
+
+| | Requirement | Where |
 |---|---|---|
-| N1 | The golden digest is identical at one worker and at 64 shards | §11 |
-| N2a | A tick completes within **680 ms** on the target device | §12.1 |
-| N2b | A long run sustains **1.70 ticks/s** | §12.1 |
+| N1 | The golden digest is identical at one thread and at 64 shards | §11 |
 | N3 | No per-tick cost is proportional to stock where it can be proportional to activity | §12.2 |
-| N4 | Peak allocation stays under **1,610 MB** | §3.4, §12.1 |
 | N5 | A save round-trips bit-identically | §13.5 |
 | N6 | The conformance suite passes before the first economic system exists | §15.1 |
 
-**The target device is a 16 GB Pixel-class phone.** A run at a reduced scale class is a different
-model and the surface says which class it ran at.
+| | Target | Where |
+|---|---|---|
+| N2a | A tick completes within **680 ms** on the target device | §12.1 |
+| N2b | A long run sustains **1.70 ticks/s** | §12.1 |
+| N4 | Peak allocation stays under **1,610 MB** | §3.4, §12.1 |
+
+**The target device is a 16 GB Pixel-class phone, and the delivery is an Android application** (D2).
+**N3 is a requirement and not a target**, because a cost that grows with stock is a structural defect
+rather than a slow program: it says the design has a pass over the world in it.
+
+**`full` is the only scale class that is this model.** `half` and `tenth` exist to make tests and nightly
+sweeps affordable, and a result quoted from either is a result about a different world (§12.4).
 
 
 ---
@@ -170,10 +226,25 @@ allocated once:
 | Government | 1,024 | 4 | 4,096 |
 | Central bank | 1,024 | 4 | 4,096 |
 | Counter-account | 64 | 40 | 2,560 |
-| | | | **7,141,440 slots, 20 B each, 142.8 MB** |
+| | | | **7,141,440 slots, 24 B each, 171.4 MB** |
 
 Blocks are sized for the tail, not the mean, because **exhaustion is a halt**: a mean household
 occupies about three of its ten slots once the negative side of what it issued is counted.
+
+**The slot is 24 bytes and its field list is published here**, because a width printed without a schema
+is a number that cannot be checked: asset `i32` (4), quantity `i64` (8), balance-tick integral `i64` (8),
+`integralUpdatedAtTick` `u16` (2, since 1,560 < 2¹⁶), 2 bytes padding. **The previous edition's 20 bytes
+could not hold what §6.11 requires** — asset, quantity and integral alone exhaust it, leaving no tick
+column — so 20 B was an unsourced constant that the rest of the document had already contradicted.
+Encumbrance is *not* on the slot: it is derived from root lien rows through a per-(holder, asset) index,
+because liens are institutional and rare and a per-slot flag would cost 7.1 M bytes to serve tens of
+thousands of rows.
+
+*Accepted cost.* 28.6 MB against N4, which is a target and not a requirement (D1).
+
+*Owed.* §6.6's 48-byte journal row is likewise printed without a field list, and an `exchange` row must
+carry two parties, two assets, two quantities, a cleared rate, a realised rate, a reason code and an
+actor. Publish the packing, or publish the row width the packing needs.
 
 **The flow model: 3,119,665 operation calls per tick**, derived position by position rather than
 from stocks. Every operation appends exactly one journal row, so the operation count and the
@@ -189,13 +260,27 @@ every tick from the standing plan**, and that is what keeps A4 intact under stag
 
 **Raising or lowering the household count is a change to this section**, not a resolution knob. If
 any figure here moves by an order of magnitude, the sections derived from it are re-derived rather
-than assumed to still hold.
+than assumed to still hold. **Under D1 it may never be lowered to meet a performance target**, which is
+the only reason anybody would want to.
+
+*Owed.* The 3,119,665 figure is stated as derived position by position and the derivation is not shown.
+A twenty-one-row table of operation counts summing to a published total — with clearing's sort and
+accumulate cost separated from operation-call cost — is what §12's targets are decomposed against, and
+it does not yet exist.
+
+*Owed.* §3.4's ≈ 971,000 identifiers ever issued and §5.2's 47.5 MiB directory at 4 bytes an identifier
+imply ≈ 12,450,000. The two differ by a factor of thirteen. The directory's size, the digest's
+identifier-order walk and the save all depend on which is right.
 
 ## 4. Layers
 
-**Eleven layers. `X → Y` means X may import Y, and a layer may import only what its row permits.**
-The import check has an **empty exemption list**: an exemption list that is allowed one entry will
-have forty.
+**Eleven layers, and each is a crate in one Cargo workspace** (D2). `X → Y` means X may depend on Y, and
+a crate declares exactly the dependencies its row permits. **A forbidden import is a compile error**, not
+a lint with an exemption list to keep empty: the dependency does not exist, so the module cannot be named.
+
+*This is the largest thing D2 bought.* The previous edition enforced the layer graph with a source-tree
+check whose exemption list had to be defended forever. A workspace enforces it in the resolver, which
+cannot be argued with and cannot be exempted.
 
 ```
 composition ──► everything                              (leaf: imported by nothing)
@@ -208,7 +293,7 @@ systems ──┬──► agents ──┬──► markets ──► domain
 surface     ──► world read views, observation store, domain   (leaf)
 ```
 
-| Layer | Contents |
+| Crate | Contents |
 |---|---|
 | **kernel** | storage primitives, typed columns, identifier machinery, quantity types, code generation. Knows no economics |
 | **domain** | vocabulary and pure arithmetic. No state. Also the parallel vocabulary: `RowSpan`, `ShardIndex`, `Selector`, `Cadence`, `Phase`, `Accumulator<T>` |
@@ -219,8 +304,14 @@ surface     ──► world read views, observation store, domain   (leaf)
 | **agents** | policy, not work: one module per agent kind, declaring the five items of §8.1 |
 | **systems** | the work of a position |
 | **runtime** | the loop, the committed order, the period trace |
-| **surface** | reads and displays. **Computes nothing** |
+| **surface** | named readers and the view model handed to the user interface. **Computes nothing** |
 | **composition** | wiring. Generated |
+
+**The user interface is not a layer; it is a separate application** (D2). The engine is a native library
+with one boundary — a generated foreign-function interface exposing the readers of `surface` and the
+run-control verbs of `runtime`. The interface may compute what a user interface must (layout, formatting,
+pixels); it holds no world handle and can write nothing. §4.4's prohibition binds `surface`, which is the
+last thing inside the engine, and that is what keeps it enforceable.
 
 **Two relocation prohibitions.** Never move a system *down* a layer for performance — a system that
 needs to be fast declares itself fast and stays where it is. Never move a module *up*, or into
@@ -248,11 +339,11 @@ one rule, and the first place anyone looks when they disagree.
 
 | # | Guard |
 |---|---|
-| 1 | **Generated, not written**, from the declaration set and the committed order. **Hand-written source is one host shim — clock, worker construction, capability probe — capped at 120 lines, and a hand edit anywhere else fails the build** |
+| 1 | **Generated, not written**, from the declaration set and the committed order. **Hand-written source is one host shim — clock, thread construction, capability probe, the foreign-function boundary — capped at 120 lines, and a hand edit anywhere else fails the build** |
 | 2 | **It decides nothing**: no conditional over a world-derived value, no arithmetic over a world-derived type, no loop over entities |
 | 3 | **It mints nothing** except the clock handle, and holds no writable view of any table |
 | 4 | **It runs once.** Anything that must run per period is a system at a named position |
-| 5 | **Nothing imports it**, which is what lets the wall clock and the `Worker` constructor live there |
+| 5 | **Nothing depends on it**, which is what lets the wall clock, thread spawning and the foreign-function boundary live there |
 
 ---
 
@@ -265,9 +356,13 @@ deltas, instrument options and their seven terms tables, holdings, liens, the jo
 resolution register, `plans`, `intents`, and the observation store. **No object holds fields.** A
 firm is a row and its balance sheet is a query.
 
-Columns are typed arrays over `ArrayBuffer`: identifiers and enumerated codes in `Int32Array`,
-quantities in `Float64Array` constrained to the safe-integer range, prices and rates in
-`Float64Array`.
+Columns are typed slices over one owned arena allocation: identifiers and enumerated codes as `i32`,
+conserved quantities as `i64` in the asset's smallest unit, prices and rates as `f64`.
+
+**Conserved quantities are `i64`, not floats constrained to the safe-integer range** (D2). The previous
+edition carried `|q| < 2^53` because its language had no integer type; with a native engine the
+constraint is the type, the range is ±9.22 × 10¹⁸, and an overflow is a panic rather than a silent loss
+of the low bit. §6.3's arithmetic is unchanged and its bound is now enforced rather than asserted.
 
 **There is no prices table.** A priced thing's mark lives in its own instrument row, because a
 second table keyed by the same identifier must be relocated in lockstep when a row moves.
@@ -277,9 +372,14 @@ inspectable, and **no decision system allocates a result object**.
 
 ### 5.2 Identity
 
-Every identity space — entity, instrument, venue, lien, schedule, series — is a **distinct nominal
-type**, minted by a named constructor, with one module per space owning it. Identifiers are dense
-integers issued from a deterministic per-space counter at the moment of creation.
+Every identity space — entity, instrument, venue, lien, schedule, series — is a **newtype over `i32`
+with a private field**, minted by a named constructor, with one module per space owning it. Identifiers
+are dense integers issued from a deterministic per-space counter at the moment of creation.
+
+**These are nominal at runtime, not only at compile time** (D2). The previous edition's brands were
+erased before the program ran, which is what made R18 the register's largest risk; a newtype with a
+private field cannot be forged from an integer anywhere outside its module, and there is nothing to
+erase.
 
 - **A lookup miss is an error, never a default.** Never a zero, never a blank row.
 - **An identifier is never reused.** Reuse silently re-points journal rows, digests and the
@@ -306,6 +406,13 @@ in it: `Notes:<cb>` and `Reserves:<cb>`, both liabilities of a region's central 
 **The numéraire is `S = 2 × 10¹¹` minor units, `structural`, identity `UnitOfAccount`** — never an
 `assumed` scale factor, because §6.3's quantization does not commute with scaling and calling it a
 scale factor would imply it does.
+
+*Owed: `S` has a lower bound and no stated upper bound, and the upper bound is the tighter one.* §13.2
+fixes the floor — one household's weekly wage at or above 10⁴ minor units. The ceiling comes from §6.11:
+the balance-tick integral accumulates `balance × ticks` over 1,560 ticks, so with `i64` a sustained
+single-holder balance is bounded, and the bound must be computed, registered as a two-sided bracket, and
+watched by a declared high-water series. Under the previous edition's `2^53` the headroom was roughly
+29× the opening money stock, which inside-money creation could plausibly exceed.
 
 ### 5.4 No stored value; one price per thing
 
@@ -388,10 +495,19 @@ conserved one — the mint is typed and no such overload exists**.
 A1 is a claim about the conserved column, discharged in four parts:
 
 1. Every mutation of a conserved quantity goes through the ledger door.
-2. The conserved column has **exactly one writer in the whole source tree**, checked in CI: the
-   ledger's quantity path, with `exchange` implemented as two calls to it inside one statement.
-3. Every `Posted` column has exactly one writing system, named in the registry, checked in CI.
+2. **The conserved column is private to the `ledger` crate.** No mutable borrow of it is obtainable
+   outside, so the set of code that can write it is one crate whose public surface is the nine
+   operations. Inside the crate the quantity path is one function, and `exchange` is two calls to it in
+   one statement.
+3. Every `Posted` column has exactly one writing system, named in the registry, checked at build.
 4. **No `post` handle is mintable for a `Conserved` column** — a compile error, not a check.
+
+**Part 2 was previously stated as "exactly one writer in the whole source tree, checked in CI", and that
+was false** (D2). Relocation copies the quantity column, the zeroed-entry tail shift moves it, and slot
+canonicalisation clears it — three writers, all necessary, all inside the ledger. The CI check would have
+been unimplementable without exemptions, which is how a check becomes a decoration. **The crate boundary
+is the honest form of the claim and is the stronger one**, because it is enforced by the compiler and
+covers writers nobody has thought of yet.
 
 ### 6.2 What may be created and destroyed
 
@@ -433,10 +549,11 @@ capability, and no new operation.
 
 ### 6.3 Integer quantities and the three rounding rules
 
-Conserved quantities are integers in the asset's smallest meaningful unit, `|q| < 2^53`. With
-floating-point quantities a debit followed by a credit is not exactly conservative, addition is not
-associative, and the total depends on summation order — conservation degrades from a theorem into a
-measurement with a tolerance, and a tolerance is a judgement that needs something to enforce it.
+Conserved quantities are **`i64` integers in the asset's smallest meaningful unit** (D2), and an
+overflow panics rather than rounding. With floating-point quantities a debit followed by a credit is not
+exactly conservative, addition is not associative, and the total depends on summation order —
+conservation degrades from a theorem into a measurement with a tolerance, and a tolerance is a judgement
+that needs something to enforce it.
 
 **Every `price × quantity` is quantized at the point of write. Discarding a remainder is
 forbidden.** There are exactly three cases and **no fourth**:
@@ -603,8 +720,8 @@ terminal path and **has no inverse**. The last step of every path is the end of 
 integral += balance_before × (t − integralUpdatedAtTick);  integralUpdatedAtTick = t
 ```
 
-O(1), exact in integers below 2^53 over a 1,560-tick run, and **proportional to activity, not to
-stock** — a dormant deposit costs nothing until it moves or is paid. **No system holds a handle to
+O(1), exact in `i64` over a 1,560-tick run within the bound §5.3 owes, and **proportional to activity,
+not to stock** — a dormant deposit costs nothing until it moves or is paid. **No system holds a handle to
 either column**, so no system can manufacture interest by setting one.
 
 
@@ -1248,10 +1365,14 @@ triangular residuals are declared series.
 **A tick is one week.** Everything slower declares a cadence and skips the ticks it has no content
 for; nothing is faster.
 
-**Capabilities are minted from the manifest, by the layer that owns the invariant being narrowed.**
-A system declares what it needs; the owning layer mints a handle that can do that and nothing else.
-**No handle constructor and no widening function is exported anywhere**, and a manifest naming a
+**Capabilities are minted from the manifest, by the crate that owns the invariant being narrowed.**
+A system declares what it needs; the owning crate mints a handle that can do that and nothing else.
+**No handle constructor and no widening function is public anywhere**, and a manifest naming a
 capability it does not own fails to mint at start-up rather than at first use.
+
+**A handle is a type with a private field and no public constructor** (D2), so it cannot be forged,
+widened or reconstructed from its parts anywhere outside the crate that mints it. Under the previous
+edition this was a naming convention a lint defended; it is now the compiler's.
 
 **Reads carry their age.** A read is typed by how old it is allowed to be, so a decision that reads
 a stale mark is a type error rather than a subtle result.
@@ -1264,26 +1385,48 @@ a stale mark is a type error rather than a subtle result.
 
 ## 11. Determinism
 
-Two runs from the same seed produce the same world, bit for bit, at one worker and at 64 shards.
-Everything below is a prohibition, and each is a lint with an empty exemption list:
+Two runs from the same seed produce the same world, bit for bit, at one thread and at 64 shards, **and
+between the CI machine and the device**. Everything below is a prohibition. **Most are now enforced by
+the type system or the crate graph rather than by a lint** (D2); the three that remain real work are
+marked, and they are the ones worth engineering attention:
 
 - **No global random stream.** Randomness is a pure function of (world seed, stream, entity,
   index), so a draw does not depend on how many draws preceded it.
-- **No sampler needing `log`, `exp` or `cos`.** They are not bit-identical across platforms, and
-  the golden digest is produced in CI and must reproduce on the target device.
+- **⚠ No transcendental on any path reaching a digested value** — not merely in samplers. `ln`, `exp`,
+  `sin` and `cos` lower to the platform's math library, so an x86 CI host and an ARM device can disagree
+  in the last bit, and the golden digest must reproduce on the device. **The previous edition scoped this
+  to samplers, and §13.4's output gap slipped through the letter of a rule it violated in substance**:
+  `log(output)` is computed inside the engine and read by a decision. Either §13.4 states the gap as a
+  ratio, which removes the transcendental entirely, or the engine carries a correctly-rounded software
+  implementation with declared rounding. **This is one of the three prohibitions that is real work.**
+  The build-time seed generator (§13.3) is exempt: it runs once, off the device, and ships its output as
+  `derived` entries.
 - **No ambient state below the two leaf layers.** No module-scope mutable singleton; everything a
   system needs is passed to it.
 - **One wall-clock module**, in `composition/host`. Duration is `NonDeterministic<Nanoseconds>`,
-  never saved and never digested; **no `NonDeterministic<T>` path reaches a world-derived type**.
+  never saved and never digested; **no `NonDeterministic<T>` path reaches a world-derived type**. The
+  type has a private field and no arithmetic, so the prohibition is the compiler's.
 - **No unordered iteration where order matters.** Iteration order over a map is not a guarantee to
   depend on.
-- **Cross-entity sums go through a declared `Accumulator<T>`, folded left in ascending shard
+- **⚠ Cross-entity sums go through a declared `Accumulator<T>`, folded left in ascending shard
   order**, never through a variable a shard body closes over. Real-valued addition is not
-  associative, so the fold order is part of the answer.
-- **The shard count is 64**, a saved run parameter and not a device property.
+  associative, so the fold order is part of the answer — and the order *within* a shard is declared too,
+  because a deterministic fold over non-deterministically-ordered partials is still non-deterministic.
+  **Real work**: the ownership rules stop a shard body writing another shard's lane, but nothing stops a
+  fold being written in the wrong order.
+- **The shard count is 64**, a saved run parameter and not a device property. Thread count is scheduling
+  and carries no semantic content: **one thread executing all 64 shards in ascending order is the
+  reference result**, and any other thread count must reproduce it bit for bit.
 - **The digest is over the live set in identifier order**, never slot order — rows relocate, so two
   runs that agree on every fact can disagree on every slot — **plus each table's retirement
   accumulator**, so what a run destroyed is bound in.
+
+- **⚠ No unmarked write to a digested column.** The tick digest is taken over dirty regions, so a write
+  path that forgets to mark its pages makes the digest agree where the world differs — which turns the
+  differ into a generator of false negatives at exactly the moment a determinism bug appears. **Real
+  work**: the set of code that can write a digested column and the set that marks pages are both derived
+  from the schema and must be equal, with a debug build cross-checking a full-arena hash against the
+  accumulated dirty-page hash at end of tick.
 
 **The differ is built before the first optimisation.** A digest alone says *that* something changed
 and is nearly useless for finding out *what*, and it is the single instrument that is painful to
@@ -1291,7 +1434,13 @@ add late.
 
 ## 12. Performance
 
-### 12.1 Two budgets
+### 12.1 Two targets
+
+**These are targets, not requirements (D1).** They are measured nightly, their trend is published, and a
+breach is restated rather than paid for out of the model. **No figure in this section may be met by
+reducing the agent population or coarsening a cadence** — that is a retreat from M1, and M1 is the point
+of the project. What may move: the tick budget itself, the run length, the device, and the amount of
+amortised maintenance the design carries.
 
 | | **N2a — interactive** | **N2b — throughput** |
 |---|---|---|
@@ -1303,17 +1452,37 @@ add late.
 **N3 — no per-tick cost proportional to stock where it can be proportional to activity.** Two
 limbs: the tick at 1,560 periods may not exceed 1.10× the tick at 260, and the fitted slope of tick
 time against period index may not exceed 0.02 ms per period. **A breach is a defect, not a
-regression**: it means a structure is growing with run length.
+regression**: it means a structure is growing with run length. **N3 stays a requirement under D1**,
+because it is a statement about structure rather than about speed.
 
-**N4 — peak allocation ≤ 1,610 MB**, against a derived 1,488.3 MB. **Capacities are `structural`
-registry entries carrying the arithmetic that produced them, and exhaustion raises rather than
-reallocating.** A capacity change is an ADR.
+**N4 — peak allocation ≤ 1,610 MB**, a target. **Capacities are `structural` registry entries carrying
+the arithmetic that produced them, and exhaustion raises rather than reallocating.** A capacity change
+is an ADR.
+
+*Unresolved, and it is the largest open number in this document.* The 1,488.3 MB was published without
+an itemisation and cannot be reproduced from the sections that own its parts. The five named components
+— journal 345.6, holdings 171.4 (§3.4, corrected), agent rows 95.6, `plans` and `intents` ≈ 121,
+directory 47.5 MiB — total ≈ 783 MB, leaving ≈ 705 MB unaccounted, and the largest term inside that
+residue is instrument count × row width, which §7.5 declares unsettled while also saying its own family
+counts are not to be used for sizing. **Until a table with one row per world table, capacity × width,
+is published and summed, N4 is not a figure anybody can check.** It is a target rather than a
+requirement, so this does not stop the work — but it does mean no claim about memory should be made
+until the derivation exists.
 
 ### 12.2 The derived tick
 
 478.7 ms single-threaded at peak clock, dominated by position 14's 1,671,884 exchanges (161.3 ms),
 position 4's 926,246 per-contract payments (87.8 ms) and position 13's clearing (84.8 ms).
 **3,119,665 operation calls per tick.**
+
+*This figure is a derivation awaiting a measurement.* 478.7 ms over 3,119,665 calls is 153 ns per
+operation, and position 14's share is 96.5 ns per exchange — for an operation that performs two door
+precondition sets, two block lookups into a structure far larger than any device's last-level cache,
+four accrual read-modify-writes, two quantity writes, one quantization and one journal append. On a
+phone's memory system that budget buys roughly one cache miss. **The first work in the build measures
+it** (`IMPLEMENTATION.md`, milestone 1). If the real figure is several times larger, §12.1's targets are
+restated and the cadence table, the scale classes and this section are re-derived — the model is not
+reduced to fit them (D1).
 
 ### 12.3 The acceleration seam
 
@@ -1328,8 +1497,8 @@ compose to neither.
   region-shaped shards would idle three workers in four.
 - Folds are by ascending `ShardIndex`, except at the two clearing positions where the shard unit is
   a **line** and the fold is by ascending line identifier.
-- **One construction site** for `Worker`, `Atomics` and `SharedArrayBuffer`. **A second
-  acceleration boundary is an ADR at any phase**, because it has no bounded cost.
+- **One construction site** for thread spawning and the shared arena. **A second acceleration boundary
+  is an ADR at any phase**, because it has no bounded cost.
 
 **The engine must be correct and within budget single-threaded.** Parallelism is a 1.0× assumption;
 anything above it is opportunistic and may not be quoted as the model's speed.
@@ -1346,6 +1515,11 @@ anything above it is opportunistic and may not be quoted as the model's speed.
 performed at. The engine **refuses to start** where the platform cannot carry the requested class,
 rather than shedding agents mid-run — which would be the leak A4 forbids wearing the costume of
 graceful degradation.
+
+**`half` and `tenth` exist for tests and nightly sweeps and for nothing else** (D1). No result quoted
+from either is a result about this model, and the reduced classes may never be used to bring a
+performance target into range — under D1 the target moves instead. The three rows' derived figures
+inherit §12.2's uncertainty and are re-derived once the measurement exists.
 
 ---
 
@@ -1445,17 +1619,31 @@ so, rather than clearing quietly at a level nobody chose.
 ### 13.1.2 The technology, and why there is one sub-unit
 
 §13.1 previously listed the technology coefficients as "input–output ratios, 27 sub-units, per
-specification", and gave none. **The budget decides this, not a preference:** twenty-seven
-sub-units at three coefficients each is **81 `assumed` entries against a cap of 80**, before
-preferences, credit, housing or insurance have spent anything.
+specification", and gave none. The previous edition then reduced them to one composite sub-unit, and
+**gave the budget as the reason**: twenty-seven sub-units at three coefficients each is 81 `assumed`
+entries against a cap of 80.
 
-**The opening carries one composite sub-unit.** Its input intensities are `derived` from the
-world's own capital and land endowments against its labour supply — the technology that uses the
-endowment fully, which is a stated modelling claim and costs no assumed entry — plus **one**
-assumed hour-productivity ratio on axis 2, which §13.3 names as an axis-2 primitive anyway.
+**That reasoning is withdrawn (D3), and the decision is reopened.** The cap no longer exists, and a
+modelling question answered by arithmetic about a budget was never answered on its merits. A rule that
+decides how much structure an economy has by counting rows is not serving M2, and this section is the
+place the previous edition recorded it happening.
 
-A second sub-unit is additive under A2 and is bounded and reviewable. Starting at twenty-seven and
-discovering they do not fit is not.
+**What must now be decided, on the model's terms:** how many production sub-units the opening carries.
+The arguments are about the economics and not about the count. In favour of more: with one composite
+good there is no relative price between goods, no input–output structure, no sector-specific shock, and
+inter-firm trade is trade in a single homogeneous thing — which makes §9.5's twenty-seven goods lines per
+region meaningless and much of the trade motive with it. In favour of fewer: each sub-unit costs
+coefficients that are genuinely assumed, and M3 counts them.
+
+**§9.5 and this section currently contradict each other** — twenty-seven goods lines per region against
+one composite sub-unit — and the contradiction is load-bearing: it changes the line census, the retail
+staggering of §9.6.3, observation family 3's declared count, and §3.4's estimate of position 14's
+1,671,884 exchanges. **It is settled before the line registry is built**, and whichever way it is settled
+the sections derived from it are re-derived.
+
+Whatever the count, input intensities are `derived` from the world's own capital and land endowments
+against its labour supply — the technology that uses the endowment fully, which is a stated modelling
+claim and costs no assumed entry — plus the assumed hour-productivity ratio §13.3 names on axis 2.
 
 *Accepted cost.* The opening is a full-employment configuration by construction, so the model
 cannot **start** with idle capital or idle land. Slack has to arise from dynamics.
@@ -1587,7 +1775,7 @@ i_t = i_{t−1} + a·(π̂_t − π*) + b·ŷ_t + c·( (ρ̄_t + π̂_t) − i_{
 |---|---|---|
 | `π̂_t` | trailing `K`-period growth of the bank's **own published price index** | a posted column: a decision reads it, so it is state |
 | `π*` | the target | **0**, `structural`, identity `FixedPointOfPublishedIndex` |
-| `ŷ_t` | `log(output_t)` less its trailing `K`-period mean | a posted column |
+| `ŷ_t` | the output gap. **`log` is not available to the engine (§11)**, so this is `(output_t − μ_K) / μ_K`, a ratio, which is dimensionless and needs no transcendental | a posted column |
 | `ρ̄_t` | trailing `K`-period mean **realised real return on the region's capital stock** — value added net of `Wear:` over capital at market value | a posted column |
 | `i_{t−1}` | the previous policy rate | a posted column |
 | `a, b, c` | 1.5, 0.5, 0.10 | `assumed`, `ratio`, world |
@@ -1615,6 +1803,11 @@ household's re-plan tick is supposed not to be a function of anything.
 **after position 17's marks**, and read as prior-close by position 7 the following tick.
 **No policy rate exists before tick 104.**
 
+*Owed.* §9.4's committed order has twenty-one positions and none of them is the trailing-statistics
+system this section requires. It reads position 17's marks and is read by position 7 the following tick,
+so it sits after 17; it must be given a stable position name in §9.4 or the order does not describe the
+model.
+
 *Accepted cost.* The four central banks cannot meet on different rhythms, so a model in which one
 region's policy is structurally more reactive than another's is unavailable. Regional policy
 difference is carried by the slopes' **inputs** — each region's own `π̂`, `ŷ` and `ρ̄` — not by how
@@ -1626,7 +1819,8 @@ Every column, the directories, the retirement accumulators, the extinguished-sto
 `plans`, `intents`, the resolution register including a mid-flight shard cursor, and the
 observation store. A saved state carries a **schema identifier and a scale-class identity**, and a
 build whose schema differs **refuses to load it and says so** rather than coercing: a coerced load
-is a world that silently differs from the one that was saved.
+is a world that silently differs from the one that was saved. The schema identifier is a hash of the
+generated column schema, so it changes when the layout changes and cannot be forgotten.
 
 Observations are saved with the world but **excluded from the golden digest**, carrying their own
 series digest, so a reporting change does not force a state re-baseline.
@@ -1807,6 +2001,9 @@ not.** The schema is eight fields:
 
 #### The six rules of the build check
 
+**These six are build failures and remain build failures.** D3 removed the cap on how many entries there
+may be; it removed nothing about what an entry must be.
+
 1. **No assumed level.** `assumed` admits only `ratio`, `count`, `period`, `physical-unit` and
    `hour`. A currency or index dimension with `assumed` provenance fails the build.
 2. **No assumed region scope.** An `assumed` entry with `region:r` scope fails the build, **with no
@@ -1822,9 +2019,32 @@ not.** The schema is eight fields:
 Plus: a justification citing an external source, a proper noun or a URL fails the lint. It catches
 the careless, not the determined, and that is what it claims.
 
-**Budget: ≤ 130 entries, of which ≤ 80 `assumed`.** The number of assumptions is the honest measure
-of how much of the world was chosen rather than produced, and a budget is the only thing that keeps
-it countable. The counts are on the dashboard beside the placeholder count.
+Plus a seventh, which the previous edition owed and did not have: **an `Entry` that no declared system
+reads fails the build.** This is the other half of the defect recounted below — the capital constraints
+that would have forbidden those loans "sat correctly declared and unread", and nothing noticed.
+
+#### The count is published, not capped
+
+**There is no budget (D3).** The previous edition carried ≤ 130 entries of which ≤ 80 `assumed`, and the
+cap did real damage: §13.1.2 records a technology reduced from twenty-seven production sub-units to one
+because eighty-one exceeded eighty. **A rule that answers a modelling question by counting rows is not
+serving M2**, and a cap reached during the economics — where most of the assumptions live — would answer
+every remaining question the same way.
+
+What replaces it is **visibility and pressure**:
+
+- the **assumed count, the total, the placeholder count and the trend of each** are published on the
+  surface and carried in the run manifest, so no result can be quoted without its assumption count;
+- **every entry names the mechanism it buys**, and a review that cannot say what a number buys deletes it;
+- **two entries that could be one are one.** §7.3's relational table is the worked example: twenty-one
+  answers per instrument type expressed as a base weight times a per-regime severity, about nine entries,
+  and the compression says something the flat table does not;
+- the counts are a **standing agenda item**, and the direction is downward. M3 is a direction, not a line.
+
+**A capacity is not a model assumption.** §12.1's arena sizes are `structural` entries carrying their
+arithmetic, they answer no question about the world, and they are counted separately and are unreadable
+by any agent, valuation or economic system. Counting forty engineering sizes against a figure whose
+stated purpose is measuring how much of the world was *chosen* was always going to mislead.
 
 #### The check has a subject, and it is the registry
 
@@ -1876,27 +2096,41 @@ mark; the retirement census; and the residency series asserted against §3.4 nig
 
 ### 16.4 Configuration
 
-Configuration is passed in at construction. **Nothing below `composition` reads the environment.**
+Configuration is passed in at construction. **Nothing below `composition` reads the environment**, and
+nothing below it can: the crates that would do so are not dependencies of the crates that must not.
 
 ---
 
 ## 17. Standards
 
-**Modules.** One concept per module. No module-scope mutable state. `strict` is a build gate, not a
-setting: a build without it fails CI, and `any`, non-null assertions and casts to any door, handle
-or branded type are lint errors with an **empty exemption list**. `domain`, `world` and `ledger`
-carry **zero runtime dependencies**.
+**Crates and modules.** One concept per module, one layer per crate (§4). No module-scope mutable state
+— there are no statics, so two worlds in one process share nothing. Every crate carries
+`#![forbid(unsafe_code)]` except the single named arena seam, which is small, reviewed and has its
+safety argument written down. Warnings are errors; the lint set is checked in and a change to it is a
+diff a reviewer sees. **`domain`, `world` and `ledger` carry zero third-party dependencies.**
 
-**Every boundary that leaves the type system has exactly one construction site and one parser** —
-`postMessage`, the save file, the host shim, configuration — with the parser generated from the same
-schema as the columns. **A value entering the engine any other way is a build failure, not a runtime
-check.** At runtime a branded identifier is a number and a handle is an object; every guarantee here
-is a property of the source tree the compiler saw.
+*Most of what this section used to contain is gone, and that is D2's doing.* The previous edition needed
+`strict` as a build gate and lints with empty exemption lists against `any`, non-null assertions and
+casts to branded types, because its language erased those distinctions before the program ran. A newtype
+with a private field is not castable, a private field is not borrowable, and a crate that is not a
+dependency cannot be named. **What was a permanent enforcement burden is now the default state of the
+program**, and the enforcement effort is freed for the three prohibitions §11 marks as real work.
+
+**Every boundary that leaves the type system has exactly one construction site and one parser** — the
+foreign-function interface to the user interface, the save file, the host shim, configuration — with the
+parser generated from the same schema as the columns. **A value entering the engine any other way is a
+build failure, not a runtime check.**
+
+**The guarantees survive into the running program** (D2). The previous edition had to concede the
+opposite — "at runtime a branded identifier is a number and a handle is an object" — and registered it as
+R18, the largest risk in the register. A newtype's private field, a crate's absent dependency and an
+unconstructable capability type are all present at runtime, so the residue R18 described is gone rather
+than managed.
 
 **Naming.** A reader that returns a magnitude is named for the magnitude; a reader that returns a
 signed balance is named for the balance. Units are in the name where two units could be confused.
 
-**Definition of done for a system** (§17.4): its specification is written first; its manifest
+**17.4 Definition of done for a system.** Its specification is written first; its manifest
 declares exactly what it reads and writes; its capabilities are minted and no wider; its numbers are
 registry entries; its outputs are declared series; it has a conformance case or a stated reason it
 needs none; and this document still describes what it does.
@@ -1933,6 +2167,11 @@ and it may not drop a column to fit a screen. The rows that matter most:
 
 ## 19. Phases and gates
 
+**This section states the gates and their evidence. The build plan itself lives in `IMPLEMENTATION.md`**,
+which decomposes the work into named milestones with entry and exit criteria, and which supersedes the
+phase table below wherever the two differ. The phase table is kept because the gates are cited from
+elsewhere in this document; it is a summary, not the plan.
+
 **Phases have entry and exit criteria. A phase is not finished because time has passed.**
 
 **Three gates, two of which carry continue/stop authority.**
@@ -1942,6 +2181,15 @@ and it may not drop a column to fit a screen. The rows that matter most:
 | **G1** | end of Phase 1a | **continue or stop on the substrate.** Do A1 and A4 hold structurally, and does the write model fit the device? | the conformance suite on a world small enough to reason about; the journalling measurement on the target device; the platform probe |
 | **G2** | end of Phase 2 | **scope and workload.** The first real counts; instrument and price scope fixed for Phase 3 | first real row counts, schedule volumes, first clearing. No agents, therefore no economics |
 | **G3** | end of Phase 3 | **continue or stop on the economics.** Does a closed loop reach tick 260 from primitives alone, with sectoral net lending exactly zero and a stable digest? | the first end-to-end period, the first agent behaviour, the first long-run benchmark |
+
+**G1 splits in two, because Phase 1a as previously scoped could not pass its own exit criterion.** Of
+§15.1's twenty cases, roughly five are reachable with storage, doors and the journal alone; the rest need
+an instrument to exist. §15.1 half-admits this — "it needs a sovereign instrument type to exist in
+Phase 1a rather than Phase 2" — and the phase table was left unchanged. **G1a** gates on the substrate
+cases and carries the continue/stop authority on the write model; **G1b** gates on the remainder once a
+minimum instrument kit lands, and carries the authority on the instrument model. Holding one undivided
+G1 puts the substrate stop decision behind months of instrument work, which is the ceremony the next
+paragraph warns against.
 
 **A gate is worth what it saves, and a gate placed after the saving has already been spent is a
 ceremony.** Everything that can falsify the substrate is measurable early; everything after that is
@@ -1959,7 +2207,7 @@ but Phase 4, and no gate protects against that.
 
 | Phase | Contents | Exits when |
 |---|---|---|
-| **1a** — the substrate experiment | typed column storage, the three doors, the counter-account registry, the identity spaces, the row lifecycle, the journal, the conformance suite, the platform probe, the benchmark harness | the conformance suite passes; the journalling measurement exists on the target device; the platform probe reports a real ceiling |
+| **1a** — the substrate experiment | typed column storage, the three doors, the counter-account registry, the identity spaces, the row lifecycle, the journal, the conformance suite, the device probe, the benchmark harness. **Plus the minimum instrument kit** — see the note below | the substrate conformance cases pass; the operation-cost measurement exists on the target device; the probe reports a real ceiling |
 | **1b** — the substrate proper | code generation and the generated composition root; the state differ and the row inspector; persistence as a file format with schema identifier and migration; the batch forms of every operation; the remaining posted-column families; the observation store | the root wires the engine with no hand-written line outside the 120-line shim; a save round-trips bit-identically; the batch forms exist and are reviewed alongside the single forms; the standing benchmarks run with published noise floors |
 | **2** — instruments, obligations and prices | the two facts tables; the seven option-terms tables; the due-tick index; `amend` for all eight mechanisms; the price table with epoch-typed reads; the clearing interface; the opening world built by ledger operations from primitives | an instrument can be issued, held, priced, pay a full irregular schedule to multiple holder classes with no holder-specific code, and be amended by a default and by a prepayment; **the payment walk contains no `InstrumentTypeCode`**; the opening world generates from primitives alone and reaches tick 260 with no seeded price and no seeded term; the registry instantiates 37 venues under the 4,096-line cap |
 | **3** — agents and the period loop | systems and manifests; capability minting; the period order as a committed list; **agents as the five declarations**; decision staggering with every cohort re-planning at tick 0 | a period runs end to end with two agent classes; every position has a system or a stated reason it has none; the digest is stable and equal at 1 worker and 64 shards; the manifest/order consistency check passes; **sectoral net lending is exactly zero every tick**; the burn-in gate is instrumented and a `burnInPeriod` is recorded |
@@ -1987,7 +2235,7 @@ elsewhere, and each mitigation is a mechanism rather than a promise.
 | **R15** | the generated composition root becoming a place to put logic | it is generated, decides nothing, mints nothing writable, and a hand edit fails the build |
 | **R16** | a capacity raised in a commit about something else, so N4 becomes a preference | capacities are `structural` entries carrying their arithmetic; exhaustion raises; a change is an ADR |
 | **R17** | the directory indirection bypassed for speed, so a stale slot re-points at a different subject | slots do not cross a module boundary and have no integer-yielding method |
-| **R18** | **every guarantee here is compile-time, in a language that erases types at runtime.** Any path reaching the engine without passing the compiler restores every possibility tier 1 claims is impossible | `strict` as a build gate with an empty exemption list; zero runtime dependencies in the three core layers; one construction site and one generated parser per boundary; and where a guarantee can be made unforgeable at runtime for no cost, it is. **The residue is a source-tree property and cannot be made a runtime one without the pass this design refuses** |
+| **R18** | ~~every guarantee here is compile-time, in a language that erases types at runtime~~ **Largely retired by D2.** Newtypes with private fields, crate-level privacy and unconstructable capability types are present at runtime, so a value cannot be forged from an integer and a layer cannot be reached that is not a dependency | what remains: the foreign-function boundary to the user interface and the save file, each with one construction site and one generated parser, and the single named arena seam with its safety argument written down |
 | **R19** | an unmodelled counterparty admitted under scope pressure — a residual holder, an `external` member | A4's four structural parts. **A4 fails and A1 still passes: the books balance perfectly, which is exactly why nothing sees it** |
 | **R20** | a phenomenon that genuinely needs an outside faked inside — a firm invented to produce an import, a transfer standing in for migration | the admissible responses are enumerated and neither is a fake: **model the source**, or **declare it out of scope and say so on the surface.** A placeholder is registered and counted; **an invented producer is not a placeholder, it is a mechanism nobody specified** |
 | **R21** | closure failing at runtime, and a world-summing pass proposed as the pragmatic fix | **tier 4 is empty by design.** If closure fails, the failure is in a door precondition, a total mapping or a single-writer check. A world-summing pass is an ADR against A1 and A4 and is refused as a whole |
@@ -2006,19 +2254,20 @@ what they replaced is in Appendix B.
 
 | # | Decision | Current value | Guard |
 |---|---|---|---|
-| 1 | Language and runtime | TypeScript, typed columns over `ArrayBuffer`, `strict` as a build gate | the gate; the empty-exemption lints |
-| 2 | Integer width, units, numéraire | safe-integer float64, `\|q\| < 2^53`; one unit class per asset class; `S = 2 × 10¹¹`, `structural` | the unit-class table; the registry check |
+| 0 | **The six model rules** | M1–M6 (§1.1). They are the project's requirements; everything mechanical serves them | a mechanism conflicting with a rule is restated, not the rule |
+| 1 | Language, runtime and delivery | **Rust, one crate per layer, delivered as an Android application: native engine plus a thin user interface** (D2) | the crate graph; `#![forbid(unsafe_code)]`; private fields on newtypes and conserved columns |
+| 2 | Integer width, units, numéraire | **`i64` conserved quantities, overflow panics**; one unit class per asset class; `S = 2 × 10¹¹`, `structural`, upper bracket owed (§5.3) | the type; the unit-class table; the registry check |
 | 3 | Rounding | three rules and no fourth | a rounding decision outside them is a review-checklist item |
 | 4 | The write model | three doors, nine operations | typed handles; a tenth is an ADR |
 | 5 | Rehypothecation depth | 3 | the pledge door |
 | 6 | Counter-accounts | four families, four owners, ten pairs per region, `Real` only | the class law at the door; the minted capability |
-| 7 | Workload | weekly ticks, 1,560-tick runs, burn-in floor 260 / ceiling 520; 550,638 entities; 37 venues; 3,119,665 calls a tick | N2a, N2b, N3, N4 as standing benchmarks |
+| 7 | Workload | weekly ticks, 1,560-tick runs, burn-in floor 260 / ceiling 520; 550,638 entities; 37 venues; 3,119,665 calls a tick (derivation owed, §3.4) | N3 as a requirement; N2a, N2b, N4 as nightly targets that bend before the model does (D1) |
 | 8 | Journal retention | two ticks, 7,200,000 rows in two segments, 345.6 MB | exhaustion raises; the high-water series |
 | 9 | Observation store | fourteen families, 624 declared, hard cap 2,048 under sub-caps | the sub-cap at declaration |
 | 10 | Intrinsic questions | thirteen, at two levels | a missing answer does not compile |
 | 11 | Regimes | seven, three relational questions, 21 answers per type | declared count, column distinctness, two-cell separation |
 | 12 | Amendment | eight mechanisms, five owners, no general handle | per-mechanism minted capabilities |
-| 13 | Opening primitives | §13.1's list; ≤ 130 entries, ≤ 80 `assumed` | the A3 build check |
+| 13 | Opening primitives | §13.1's list. **No cap; the assumed count and its trend are published and pushed down** (D3) | the A3 build check's seven rules; the published census; the dead-entry check |
 | 14 | Budget allocation | two stages, per line, no intra-stage reallocation | the committed order |
 | 15 | Simultaneity | per fact, not per position; one named crossing | the tick stamp; the manifest/order check |
 | 16 | Layering | eleven layers, generated composition root, 120-line shim | the import check; a hand edit fails the build |
@@ -2028,11 +2277,12 @@ what they replaced is in Appendix B.
 | 20 | Submission shapes | two: schedule and price-taking, 64 log-spaced buckets | one clearing interface |
 | 21 | Agent inventory | nine classes, one total mapping to (regime, cadence, count); **five declarations, total per class** | a class naming no regime, or declaring four items, does not compile |
 | 22 | Agent state budget | 160 B household, 256 B SME, 1,024 B institution, 95.6 MB | asserted at schema build |
+| 22a | Holdings slot | **24 B, field list published in §3.4**; encumbrance derived from lien rows, not stored | asserted at schema build |
 | 23 | Staggering | 13 / 4 / 1; phase from a dedicated stream, never `id mod C`; six triggers, one minted handle each | the manifest fails the N3 check if a trigger's index is a scan |
 | 24 | Decision outputs | `plans` and `intents` as world tables, ≈121 MB fixed at init | no decision system allocates a result object |
 | 25 | The acceleration seam | W1 = 8–10, W2 = 12–13; 64 shards; sequential ledger; one construction site | a second boundary is an ADR |
 | 26 | The period trace | rows touched is a series; duration is `NonDeterministic` and never digested | the type |
-| 27 | The A3 build check | eight fields, six rules; `assumed` never a level and never region-scoped | the build |
+| 27 | The A3 build check | eight fields, **seven rules**; `assumed` never a level and never region-scoped; an unread entry fails | the build |
 | 28 | Structural asymmetry | three axes, `Z`, three orderings, δ = 0.35 / 0.20 / 0.15; **rank 1 takes the smallest loading**; every per-region value `derived` | no per-region `assumed` entry compiles |
 | 29 | Policy rate | difference rule with a Wicksellian anchor; `a, b, c, K` = 1.5, 0.5, 0.10, 104; `π* = 0` structural; no rate before tick 104 | the registry; the posted-column owner |
 | 30 | The burn-in gate | 42 series, W = 104, E = 16, four tests, `burnInPeriod ∈ [260, 520]` | reaching 520 without a pass is a defect |
@@ -2063,8 +2313,35 @@ not observable before then.
 records what this edition changed and why. It does not record what earlier editions changed; that
 is what version control is for.
 
+#### The four founding decisions (D1–D4)
+
+*Taken by the project owner, and the reason this is version 6.0. Everything below them in this log is a
+consequence rather than a separate decision.*
+
+| | Decision | Supersedes | Why |
+|---|---|---|---|
+| **D1** | **The model wins; the delivery target bends.** 550,638 deciding entities and weekly ticks are held whatever they cost. N2a, N2b and N4 become measured targets; N1, N3, N5, N6 stay requirements | §3.3's undifferentiated budget table; §12.1's "two budgets" | A performance budget that can stop the project is a budget that will be met by shedding agents or coarsening cadences, and both are retreats from M1. The cheapest way to hit a tick budget is always to have less model. Making the target the flexible side removes the incentive permanently |
+| **D2** | **Rust, one crate per layer, delivered as an Android application** — a native engine and a thin user interface | Appendix A #1 (TypeScript, typed columns over `ArrayBuffer`, `strict` as a build gate) and the lint apparatus of §11 and §17 that existed to compensate for it | The previous language erased its own guarantees before the program ran, which the register recorded as R18, its largest risk. Crate privacy, newtypes with private fields and unconstructable capability types are present at runtime. It also makes §12.2's 96.5 ns per exchange plausible rather than optimistic, and an application rather than a page removes the memory ceiling the previous target implied |
+| **D3** | **Minimise priors and publish the count; no cap.** The ≤ 130 / ≤ 80 budget is withdrawn. The seven provenance rules stay build failures | §3.2's A3 budget clause; §16.1's budget; Appendix A #13 | The cap decided modelling questions by arithmetic. §13.1.2 is the recorded instance: a technology collapsed from twenty-seven production sub-units to one because 81 > 80. A rule that answers "how much structure does this economy have" by counting rows is not serving M2. The count is now a published figure that review pushes down, which is pressure without a cliff |
+| **D4** | **Device measurement is a cross-compiled probe published to releases**; the owner installs it, runs it, and returns one JSON document | the implied device lab | The evidence needed is a handful of numbers from one real device, not a phone farm. The measurement is the input to §12's targets and to the §7.5 row-width question |
+
+**What D3 does not change.** The provenance rules are untouched and remain build failures: no assumed
+level, no assumed region scope, a bracket on every assumed entry, dimension-checked derived expressions,
+literals drawn from `{0, 1, −1, 2}`, a structural entry naming a definitional identity, and an entry
+nothing reads failing the build. **The cap was never what made A3 true; the rules were.**
+
+#### Consequences and other changes in this edition
+
 | What changed | To | Why |
 |---|---|---|
+| A1's part 2 | **the conserved column is private to the `ledger` crate**, replacing "exactly one writer in the whole source tree, checked in CI" | The old form was false. Relocation, the zeroed-entry tail shift and slot canonicalisation all write the quantity column; a CI check would have needed exemptions on its first run. The crate boundary is true, is the compiler's, and covers writers nobody has thought of |
+| The holdings slot | **24 B, with its field list published** | 20 B could not hold what §6.11 requires — asset, quantity and integral exhaust it with no tick column — so it was an unsourced constant the rest of the document contradicted |
+| §11's transcendental ban | **widened from samplers to any path reaching a digested value** | §13.4's output gap computed `log(output)` inside the engine and was read by a decision, slipping the letter of a rule it violated in substance. `ŷ` is now a ratio |
+| §13.4's `ŷ` | `(output_t − μ_K) / μ_K` | dimensionless, needs no transcendental, and says the same thing about the gap |
+| §13.1.2's technology | **reopened** | its stated reason was the assumption cap, and the cap is gone. §9.5's twenty-seven goods lines and one composite sub-unit still contradict each other and the contradiction is now to be settled on the economics |
+| N4's 1,488.3 MB | **unresolved, and named as such** | the itemisation was never published and the named components leave roughly 705 MB unaccounted, whose largest term is the instrument row width §7.5 declares unsettled |
+| §3.4's identifier census | **unresolved, and named as such** | ≈ 971,000 ever issued against §5.2's implied ≈ 12,450,000 is a factor of thirteen, and it sizes the directory, the digest walk and the save |
+| The trailing-statistics system | **owed a position** | §13.4 requires it, §9.4's twenty-one positions do not contain it |
 | The institutional census: banks, funds, insurers-and-pension-funds | **56 / 54 / 40** | The seed carried 120 / 240 / 80 while the entity census, the agent inventory and the workload decision carried 56 / 54 / 22 + 18. The layout, the arena sizing, the block widths and the entity budget are all derived from the second set, and it is the set with an argument attached |
 | Every published per-region vector | **withdrawn; §13.3's derived table replaces them** | The published household row descended while every other axis-1 primitive in the same table ascended, so one axis was being read in two directions; and no household vector printed anywhere was the formula's output |
 | `Z`'s index direction | **rank 1 takes the smallest loading** | The only reading reproducing the axis-1 share row, both multiplier rows and the sign of ρ(P₂,P₃) |
@@ -2083,9 +2360,35 @@ is what version control is for.
 148-byte row. They have different memory budgets, different save formats and different relocation
 costs. It is settled by measurement on the target device and is an entry criterion for Phase 2.
 
-**Owed:** δ₁'s justification; the relational table's values; the split of one insurer-and-pension
-primitive into two agent classes; a production section, of which position 6's row and five sentences
-are currently the whole.
+**Owed**, and this list is the honest measure of what the document does not yet contain:
+
+*Model content, which is most of it.* A **production section**, of which position 6's row and five
+sentences are the whole. The **five declarations of §8.1 for all nine agent classes** — mandate, regime,
+constraints, valuation, funding policy — which are a shape with no content for any class: no consumption
+rule, no labour supply rule, no firm pricing rule, no credit underwriting rule, no portfolio rule, no
+default test, no bank capital values, no cure windows. A **§17.4 specification per committed position**,
+of which roughly thirty are owed and one exists. The **relational table's twenty-one values**. The
+**instrument type vocabulary**, which §18 charges one entry against a section that does not exist.
+**None of this is a detail of implementation. It is the economics, and it is the subject of the title.**
+
+*Numbers and rules.* δ₁'s justification. The split of one insurer-and-pension primitive into two agent
+classes. §7.5's 44-byte against 148-byte instrument row. N4's itemisation. §3.4's identifier census and
+its operation-count derivation. The numéraire's upper bracket. The trailing-statistics position. The
+period-0 grid-placement rule for every venue family other than labour — §13.1.1 supplies one anchor and
+the other nine or more lines have none, so a first clearing would raise a grid defect on almost every
+line. How a fill at positions 13 and 14 becomes an instrument at position 19. The derivation rule for
+Q13 `DerivedMark` instruments, read at position 17.
+
+*Cross-references that resolve to nothing*, each of which is cited as though it carried content:
+**§3.4.4** (the 148-byte instrument row), **§9.6.1** (the grid the numéraire argument exists to place),
+**§15.3.4** (the sensitivity
+sweep), **§17.4** (the definition of done, cited from §8 and Appendix B), **§21.3** (the fourth-axis
+ADR) and **D-7** (the shard-by-row-count rule). (§9.7.3 and §9.7.5, cited as A4's discharge, are
+repointed to §9.7 in this edition.) A documentation check resolving every reference against the heading
+set is a day's work and would have caught all of them.
+
+*Process.* There is **no ADR template, numbering or register**, though this document requires an ADR
+about twenty times and Appendix A's supersession procedure depends on one existing.
 
 ---
 
