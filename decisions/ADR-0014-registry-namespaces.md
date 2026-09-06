@@ -3,7 +3,7 @@ id: ADR-0014
 title: Two registry namespaces — model and capacity
 status: accepted
 date: 2026-09-06
-register-entry: 13
+register-entry: 27
 claim-impact: A3
 guard: the census counts them separately; the read rule (a capacity entry is unreadable by any agent, valuation or economic system) lands with the manifests
 supersedes: none

@@ -1,0 +1,44 @@
+# W5.3 — which files' values are coupled to a decision record, and which are still being built.
+#
+# The rule a `ratified` file carries: **a change to a parsed value must arrive in the same tree as an
+# ADR that names the file.** Not a commit-message trailer — a trailer is prose, and prose is what this
+# whole machinery exists to stop a value from being. An ADR that `registers` the file is a specific
+# document with a guard field, and `check-coupling` refuses the change without it.
+#
+# **`draft` turns the rule off, on purpose.** A schema under initial construction would otherwise
+# produce one ADR per column, and the process would become the throughput limit rather than the
+# record. A draft file names the milestone building it, and that milestone's exit ratifies the file —
+# which is the moment the coupling switches on, once, for everything in it.
+#
+# A comment, a `justification`, a `note` or a `why` is not a parsed value. Those are free at any time,
+# on any file, and they are how a ratified value gets explained without being changed.
+
+[[file]]
+path = "registry/entries.toml"
+state = "draft"
+milestone = "M0"
+note = "The census is hand-drafted against a seed that does not exist yet. M0's exit ratifies it; from M1 every value in it moves under an ADR."
+
+[[file]]
+path = "registry/units.txt"
+state = "draft"
+milestone = "M0"
+note = "W4.3b regenerates this from `domain`'s quantity types in M1, so ratifying it now would ratify a list that is about to be produced by a machine."
+
+[[file]]
+path = "registry/identities.txt"
+state = "ratified"
+milestone = "M0"
+note = "ADR-0013 enumerated these and ADR-0019 has already had to add to them. A definitional identity is exactly the kind of value that must not move quietly — the list is short, it is finished, and every addition since has come with a decision."
+
+[[file]]
+path = "instruments/intrinsic.toml"
+state = "draft"
+milestone = "M0"
+note = "Eight types answering thirteen questions, against a §7.2 that never enumerated its own unit classes. M0's exit ratifies the table; M3 adds types under it."
+
+[[file]]
+path = "instruments/amendments.toml"
+state = "draft"
+milestone = "M0"
+note = "The mechanism/type matrix is sparse and still filling. ADR-0018 settled how a handle is minted; which cells exist is M3's."

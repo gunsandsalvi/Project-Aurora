@@ -486,3 +486,173 @@ fn b1b_rejects_most_stationary_series_and_the_conjunction_never_passes() {
         "B1b's 0.25 band is still not a five-per-cent test:\n{report}"
     );
 }
+
+// ── W5.3's coupling, both halves ────────────────────────────────────────────────────────────────
+//
+// The claim is that a value change is refused on a ratified file and free on an unratified one, so
+// both halves are fixtures. Each builds a real git repository, because the check reads history — a
+// mock would be testing the mock.
+
+/// A scratch repository with `path` committed at `first`, then rewritten to `second` in the working
+/// tree. `state` is what `coupling.toml` declares the file to be.
+fn coupled(name: &str, path: &str, state: &str, first: &str, second: &str) -> std::path::PathBuf {
+    let root = scratch(name);
+    let git = |args: &[&str]| {
+        let ok = std::process::Command::new("git")
+            .arg("-C")
+            .arg(&root)
+            .args(args)
+            .output()
+            .expect("git runs")
+            .status
+            .success();
+        assert!(ok, "git {args:?} failed");
+    };
+    git(&["init", "-q"]);
+    git(&["config", "user.email", "fixture@example.invalid"]);
+    git(&["config", "user.name", "fixture"]);
+    fs::create_dir_all(root.join("decisions")).expect("scratch decisions dir");
+    fs::create_dir_all(root.join(path).parent().expect("path has a parent"))
+        .expect("scratch target dir");
+    fs::write(
+        root.join("decisions/coupling.toml"),
+        format!("[[file]]\npath = \"{path}\"\nstate = \"{state}\"\nmilestone = \"M0\"\n"),
+    )
+    .expect("scratch coupling is writable");
+    fs::write(root.join(path), first).expect("scratch target is writable");
+    git(&["add", "-A"]);
+    git(&["commit", "-q", "-m", "first"]);
+    fs::write(root.join(path), second).expect("scratch target is rewritable");
+    root
+}
+
+#[test]
+fn a_value_change_on_a_ratified_file_without_an_adr_is_refused() {
+    let root = coupled(
+        "coupling-ratified",
+        "registry/entries.toml",
+        "ratified",
+        "[[entry]]\nname = \"a\"\nvalue = 1.0\n",
+        "[[entry]]\nname = \"a\"\nvalue = 2.0\n",
+    );
+    let files = aurora_tools::check_coupling::registered(&root);
+    let findings = aurora_tools::check_coupling::check(&root, &files);
+    let [only] = findings.as_slice() else {
+        panic!("the unauthorised value change is the one finding: {findings:?}")
+    };
+    assert!(
+        only.contains("value=2.0") || only.contains("value=1.0"),
+        "{only}"
+    );
+    assert!(only.contains("no ADR in this tree"), "{only}");
+}
+
+#[test]
+fn the_same_change_on_a_draft_file_is_free() {
+    let root = coupled(
+        "coupling-draft",
+        "registry/entries.toml",
+        "draft",
+        "[[entry]]\nname = \"a\"\nvalue = 1.0\n",
+        "[[entry]]\nname = \"a\"\nvalue = 2.0\n",
+    );
+    let files = aurora_tools::check_coupling::registered(&root);
+    assert!(
+        aurora_tools::check_coupling::check(&root, &files).is_empty(),
+        "a draft file's values move without a decision — that is what draft means"
+    );
+}
+
+#[test]
+fn prose_on_a_ratified_file_is_never_a_value() {
+    let root = coupled(
+        "coupling-prose",
+        "registry/entries.toml",
+        "ratified",
+        "# a comment\n[[entry]]\nname = \"a\"\nvalue = 1.0\njustification = \"because\"\n",
+        "# a different comment\n[[entry]]\nname = \"a\"\nvalue = 1.0\njustification = \"because, at length\"\n",
+    );
+    let files = aurora_tools::check_coupling::registered(&root);
+    assert!(
+        aurora_tools::check_coupling::check(&root, &files).is_empty(),
+        "a justification is how a ratified value gets explained without being changed"
+    );
+}
+
+#[test]
+fn an_adr_naming_the_file_authorises_the_change() {
+    let root = coupled(
+        "coupling-authorised",
+        "registry/entries.toml",
+        "ratified",
+        "[[entry]]\nname = \"a\"\nvalue = 1.0\n",
+        "[[entry]]\nname = \"a\"\nvalue = 2.0\n",
+    );
+    fs::write(
+        root.join("decisions/ADR-0001-x.md"),
+        "---\nid: ADR-0001\nregisters: registry/entries.toml\n---\n\n## Decision\n\nTwo.\n",
+    )
+    .expect("scratch adr is writable");
+    let files = aurora_tools::check_coupling::registered(&root);
+    assert!(
+        aurora_tools::check_coupling::check(&root, &files).is_empty(),
+        "an ADR that names the file and is new in this tree is what the rule asks for"
+    );
+}
+
+// ── W5.4: a hand edit to a generated guard cell does not survive ────────────────────────────────
+
+#[test]
+fn a_hand_edited_guard_cell_is_caught() {
+    let root = scratch("appendix-hand-edit");
+    fs::create_dir_all(root.join("decisions")).expect("scratch decisions dir");
+    fs::write(
+        root.join("decisions/ADR-0001-x.md"),
+        "---\nid: ADR-0001\nregister-entry: 4\nguard: the typed handle\n---\n\n## Decision\n\nFour.\n",
+    )
+    .expect("scratch adr is writable");
+    let table = "| # | Decision | Current value | Guard |\n|---|---|---|---|\n\
+                 | 4 | The write model | three doors | the typed handle (ADR-0001) |\n";
+    fs::write(root.join("PROJECT_AURORA.md"), table).expect("scratch spec is writable");
+
+    let (findings, rows, claimed) = aurora_tools::appendix::check(&root);
+    assert!(
+        findings.is_empty(),
+        "the generated table agrees: {findings:?}"
+    );
+    assert_eq!((rows, claimed), (1, 1));
+
+    // Now edit the cell by hand, the way someone tidying prose would.
+    let edited = table.replace("the typed handle (ADR-0001)", "handles, basically");
+    fs::write(root.join("PROJECT_AURORA.md"), edited).expect("scratch spec is rewritable");
+    let (findings, _, _) = aurora_tools::appendix::check(&root);
+    let [only] = findings.as_slice() else {
+        panic!("the hand edit is the one finding: {findings:?}")
+    };
+    assert!(
+        only.contains("differs from what the decisions say"),
+        "{only}"
+    );
+}
+
+#[test]
+fn an_adr_claiming_a_row_that_does_not_exist_is_caught() {
+    let root = scratch("appendix-missing-row");
+    fs::create_dir_all(root.join("decisions")).expect("scratch decisions dir");
+    fs::write(
+        root.join("decisions/ADR-0001-x.md"),
+        "---\nid: ADR-0001\nregister-entry: 99\nguard: the typed handle\n---\n\n## Decision\n\n.\n",
+    )
+    .expect("scratch adr is writable");
+    fs::write(
+        root.join("PROJECT_AURORA.md"),
+        "| # | Decision | Current value | Guard |\n|---|---|---|---|\n| 4 | m | v | g |\n",
+    )
+    .expect("scratch spec is writable");
+
+    let (findings, _, _) = aurora_tools::appendix::check(&root);
+    let [only] = findings.as_slice() else {
+        panic!("the dangling register-entry is the one finding: {findings:?}")
+    };
+    assert!(only.contains("names no row in Appendix A"), "{only}");
+}

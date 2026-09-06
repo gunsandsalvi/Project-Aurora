@@ -6,8 +6,10 @@
 #![forbid(unsafe_code)]
 
 pub mod adr_new;
+pub mod appendix;
 pub mod burnin;
 pub mod check_adr;
+pub mod check_coupling;
 pub mod check_deps;
 pub mod check_instruments;
 pub mod check_lints;

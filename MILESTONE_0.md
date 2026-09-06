@@ -128,31 +128,6 @@ was refused for the right reason.
 
 ---
 
-### W5 — ADR machinery
-
-*Owner E3. Depends on W1.1.*
-
-The specification requires an ADR about twenty times and defines none. Nothing else in this milestone can
-be *recorded* until this exists.
-
-| | Task | Detail | Days | Done when |
-|---|---|---|---|---|
-| W5.1 | Format and numbering | `decisions/ADR-NNNN-kebab.md`; `tools adr new` allocating from a committed counter, so a collision is a merge conflict and a one-line fix | 2 | two ADRs created on branches collide visibly |
-| W5.3 | Coupling, scoped by maturity | Registered files require an ADR and a `Decision:` trailer when a *parsed value* changes. **While a schema file is under initial construction the coupling is off**, declared per file per milestone, and the milestone exit ratifies the whole file. Otherwise M1 produces one ADR per column and the process becomes the throughput limit | 3 | a value change without an ADR is refused on a ratified file and free on an unratified one |
-| W5.4 | Appendix generation | Appendices A and B generated from front matter; the doc build fails if the committed appendix differs | 2 | a hand edit to Appendix A fails CI |
-
----
-
-### W6 — Falsifiers that need code
-
-*Owner E4. No dependencies beyond W1.1.*
-
-| | Task | Days | Done when |
-|---|---|---|---|
-| W6.2 | **The burn-in conjunction.** B1/B1b/B2/B3 against synthetic AR(1), random walk, mid-window break, diverging ensemble, frozen path; then Monte Carlo ~1,000 synthetic 42-series panels and report the empirical false-pass rate of the conjunction. `0.95^42 ≈ 11.6%` under the true null | 5 | the false-pass rate is measured and a multiplicity correction is specified |
-
----
-
 ### W7 — Falsifiers that need paper
 
 *Owner M, with E4. No dependencies. These are the cheapest evidence in the project.*
@@ -255,26 +230,29 @@ derivation rather than testing whether one exists. **The first gate with stop au
 | **W2** build machinery and CI | **done but for two**, each blocked on the thing it would police: `check-generated` needs a generator (M1), `check-registry` is W4's |
 | **W3** the probe and the way results get back | **the measurements are written and run** (`cargo run --release -p aurora-probe`), and three are already red on the host, which is a floor. What remains is the Android packaging — `cargo-ndk`, the Kotlin shell, the release — and the device run |
 | **W4** the parameter registry | **done but for two**, both deferred with a reason: the generated unit vocabulary needs `domain`'s quantity types (M1), and the `capacity` read rule needs systems to police |
-| **W5** ADR machinery | **part done** — the format and `check-adr` landed with W2; numbering, coupling and appendix generation remain |
-| **W6** falsifiers that need code | **done but for B2/B3's ensemble half.** The seed generator and the burn-in tests are red and pinned; the intrinsic table and the amendment matrix are filled, total, and checked |
+| **W5** ADR machinery | **done.** Format and `check-adr`; the counter (`register.txt` + `adr new`); the coupling (`coupling.toml` + `check-coupling`, ratified against draft); Appendix A's guard column generated from the decisions (`aurora-tools appendix` + `check-register`). Ten negative fixtures across the three |
+| **W6** falsifiers that need code | **done.** The seed generator is red and pinned; all four burn-in tests are measured, and the gate they falsified is recalibrated and guarded (ADR-0019, `aurora-tools gate`); the intrinsic table and the amendment matrix are filled, total, and checked |
 | **W7** falsifiers that need paper | **two of nine done**, and both were computations rather than prose: the memory derivation and the identifier census (`aurora-tools sizing`) |
 
-**Checks running, behind one `aurora-tools verify`:**
-`check-lints` · `check-surface` · `check-deps` · `check-refs` · `check-adr` · `check-registry` ·
-`check-instruments`
+**Checks running, behind one `./gate.sh`:** `check-lints` · `check-surface` · `check-deps` ·
+`check-refs` · `check-adr` · `check-registry` · `check-instruments` · `check-coupling` ·
+`check-register`, all behind `aurora-tools verify`, then `aurora-tools gate` — ADR-0019's guard, which
+re-measures the burn-in tests' realised size on a settled ensemble and fails if one has drifted off
+its nominal.
 
-**The census, published on every build:** 21 model entries — 9 assumed, 10 structural, 2 derived,
+**The census, published on every build:** 23 model entries — 9 assumed, 12 structural, 2 derived,
 0 placeholder — and 4 capacity entries counted separately. No cap (D3); the direction is down.
 
-**The gate is one command:** `./gate.sh` — format, build, clippy `-D warnings`, test, then
-`aurora-tools verify`. CI runs that same file and nothing else, so the thing checked before a commit
-and the thing checked after a push cannot drift.
+**The gate is one command:** `./gate.sh` — format, build, clippy `-D warnings`, test,
+`aurora-tools verify`, `aurora-tools gate`. Ten seconds warm. CI runs that same file and nothing else,
+so the thing checked before a commit and the thing checked after a push cannot drift.
 
-**ADRs taken:** 0001 Rust/crates/Android · 0002 the model wins · 0003 the layer matrix ·
-0004 the arena seam · 0005 the surface/shell split · 0013 the sixteen identities ·
-0014 the registry's two namespaces.
+**ADRs: nineteen allocated, nine written, ten reserved** — the counter says so on every build.
+0001 Rust/crates/Android · 0002 the model wins · 0003 the layer matrix · 0004 the arena seam ·
+0005 the surface/shell split · 0013 the definitional identities · 0014 the registry's two namespaces ·
+0018 amendment handles · 0019 the burn-in gate's calibration and correction.
 
-**Ten findings so far, every one measured rather than reviewed.** `check-lints`' first draft substring-matched and its first run reported *itself*.
+**Fourteen findings so far, every one measured rather than reviewed.** `check-lints`' first draft substring-matched and its first run reported *itself*.
 `check-surface`'s first run flagged one subtraction twice, because `->` is a `-` punct.
 `check-refs` found §17.4 demoted from a heading to bold text by an earlier edit, while three
 citations still pointed at it. `check-registry` rule 3 rejected the first derived entry written
@@ -285,7 +263,19 @@ reproduces under **no** quantization rule, so its count rows were not computed f
 and that cohort shares are invariant across regions by construction, so an axis-3 primitive cannot
 vary on axis 3. `aurora-tools burnin` found that B1b rejects 56% of genuinely stationary series and
 the 42-series conjunction passed **0 of 2,000 panels**, so §15.3's gate as written would classify a
-healthy model as defective.
+healthy model as defective. Adding B2 and B3 made that worse and more precise: a settled ensemble
+passes all four on 0.287 of series, so the panel passes 1.8 × 10⁻²³ of the time. **B2 does not merely
+lack power, it inverts** — at an opening spread of 0.5 it separates a settled ensemble from a random
+walk by +0.27, and at 40 a random walk passes it *every time* while the settled ensemble passes 0.58.
+Its direction of discrimination is set by a quantity the model never chose. Writing ADR-0019's registry
+entries then found that **§16.1's four provenances have no slot for a value produced by a simulation**:
+a permutation quantile is not `assumed`, not `derived`, and `structural` only by charity. And §15.3
+never says which of the `E` series B1 and B1b are evaluated on — its own count of 168 hypotheses is
+what forces the answer. Generating Appendix A's guard column found that **the register had already
+drifted from the decisions**: entry 12 read "per-mechanism minted capabilities" after ADR-0018 decided
+the handle is minted per (mechanism, type), and entry 1 named "conserved columns" where ADR-0001 names
+the single private column. The guard was written twice, by hand, and two copies of a value is what
+§16.1 exists to prevent — applied to prose, nothing was checking it.
 The tenth was found by the process rather than by a check, and it is about the checks: **`verify`
 printed "7 checks ran, 0 failed" on a tree where clippy was reporting a finding, twice**, because
 `verify` never ran clippy and clippy returns zero on a warning. The gate existed as a habit — a list

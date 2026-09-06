@@ -3,9 +3,10 @@ id: ADR-0019
 title: Every critical value in the burn-in gate is a bootstrap quantile, and the correction controls false failure
 status: accepted
 date: 2026-09-06
-register-entry: 13
+register-entry: 30
 claim-impact: A3
 guard: aurora-tools gate — re-measures every calibrated test's realised size on a settled ensemble on every run of the build gate and fails outside [0.02, 0.10] at a nominal 0.05; aurora-tools burnin holds the falsification the correction answers
+registers: registry/identities.txt, registry/entries.toml, PROJECT_AURORA.md §15.3
 supersedes: §15.3's four threshold rows, its E = 16, the 0.503 registry entry, and ADR-0013's SpearmanCritical5Percent identity
 cost: a stationary block bootstrap at every candidate period, ~44M statistic evaluations per gate run, computed outside the engine from the observation store
 alternatives-rejected: Bonferroni or Šidák in the direction §15.3 asks for (tightens tests that are already too tight); recalibrating B2's ratio rather than replacing it (the statistic is wrong, not the number); leaving the thresholds and widening the [260, 520] bracket (a mis-specified test does not become specified by being given more periods)

@@ -2668,28 +2668,35 @@ the model has no expectations mechanism, so "outlook" is currently its recent ex
 ## Appendix A — The decision register
 
 **Every entry carries a named mechanical guard, and a decision that cannot be given one may not be
-entered.** A diff touching a registered value without an ADR is refused. Values here are current;
-what they replaced is in Appendix B.
+entered.** A diff touching a registered value without an ADR is refused (`check-coupling`). Values
+here are current; what they replaced is in Appendix B.
+
+**The guard column is generated.** A row an ADR claims shows that ADR's own `guard` field, verbatim
+and tagged with its number; `aurora-tools appendix` writes it and `check-register` fails when the
+committed table and the decisions disagree. It was written by hand twice — once in the ADR, once
+here — and the two had already drifted: entry 12 read *"per-mechanism minted capabilities"* after
+ADR-0018 decided the handle is minted per **(mechanism, type)**. A row with no ADR keeps its
+hand-written guard, and the check publishes how many such rows remain.
 
 | # | Decision | Current value | Guard |
 |---|---|---|---|
 | 0 | **The six model rules** | M1–M6 (§1.1). They are the project's requirements; everything mechanical serves them | a mechanism conflicting with a rule is restated, not the rule |
-| 1 | Language, runtime and delivery | **Rust, one crate per layer, delivered as an Android application: native engine plus a thin user interface** (D2) | the crate graph; `#![forbid(unsafe_code)]`; private fields on newtypes and conserved columns |
+| 1 | Language, runtime and delivery | **Rust, one crate per layer, delivered as an Android application: native engine plus a thin user interface** (D2) | the crate graph; #![forbid(unsafe_code)]; private fields on newtypes and on the conserved column (ADR-0001) |
 | 2 | Integer width, units, numéraire | **`i64` conserved quantities, overflow panics**; one unit class per asset class; `S = 2 × 10¹¹`, `structural`, upper bracket owed (§5.3) | the type; the unit-class table; the registry check |
 | 3 | Rounding | three rules and no fourth | a rounding decision outside them is a review-checklist item |
 | 4 | The write model | three doors, nine operations | typed handles; a tenth is an ADR |
 | 5 | Rehypothecation depth | 3 | the pledge door |
 | 6 | Counter-accounts | four families, four owners, ten pairs per region, `Real` only | the class law at the door; the minted capability |
-| 7 | Workload | weekly ticks, 1,560-tick runs, burn-in floor 260 / ceiling 520; 550,638 entities; 37 venues; 3,119,665 calls a tick (derivation owed, §3.4) | N3 as a requirement; N2a, N2b, N4 as nightly targets that bend before the model does (D1) |
+| 7 | Workload | weekly ticks, 1,560-tick runs, burn-in floor 260 / ceiling 520; 550,638 entities; 37 venues; 3,119,665 calls a tick (derivation owed, §3.4) | §3.3 splits requirements from targets; no milestone may be brought into budget by reducing the agent population or coarsening a cadence (ADR-0002) |
 | 8 | Journal retention | two ticks, 7,200,000 rows in two segments, 345.6 MB | exhaustion raises; the high-water series |
 | 9 | Observation store | fourteen families, 624 declared, hard cap 2,048 under sub-caps | the sub-cap at declaration |
 | 10 | Intrinsic questions | thirteen, at two levels | a missing answer does not compile |
 | 11 | Regimes | seven, three relational questions, 21 answers per type | declared count, column distinctness, two-cell separation |
-| 12 | Amendment | eight mechanisms, five owners, no general handle | per-mechanism minted capabilities |
+| 12 | Amendment | eight mechanisms, five owners, no general handle | check-instruments — every mechanism declares the types it applies to, and a mechanism naming an undeclared type fails; the mint takes the pair (ADR-0018) |
 | 13 | Opening primitives | §13.1's list. **No cap; the assumed count and its trend are published and pushed down** (D3) | the A3 build check's seven rules; the published census; the dead-entry check |
 | 14 | Budget allocation | two stages, per line, no intra-stage reallocation | the committed order |
 | 15 | Simultaneity | per fact, not per position; one named crossing | the tick stamp; the manifest/order check |
-| 16 | Layering | eleven layers, generated composition root, 120-line shim | the import check; a hand edit fails the build |
+| 16 | Layering | eleven layers, generated composition root, 120-line shim | the Cargo dependency graph; a crate that is not a dependency cannot be named (ADR-0003); tools check-lints — the only `allow` of `unsafe_code` in the tree is the declared seam, and it is capped at 60 non-blank lines (ADR-0004); tools check-surface — no binary arithmetic punct in `surface`, tokenised; `shell` cannot name `world` (ADR-0003) (ADR-0005) |
 | 17 | Row lifecycle | permanent identifiers, impermanent residency, quiescence-gated retirement | no retirement sweep may exist; slots have no integer-yielding method |
 | 18 | Venues and lines | 37 venues, 190 structural lines, 1,276 instantiated, cap 4,096 | the cap at venue registration |
 | 19 | Region and currency | one region per venue, FX the sole exception, no world price | the venue registry |
@@ -2704,10 +2711,10 @@ what they replaced is in Appendix B.
 | 24 | Decision outputs | `plans` and `intents` as world tables, ≈121 MB fixed at init | no decision system allocates a result object |
 | 25 | The acceleration seam | W1 = 8–10, W2 = 12–13; 64 shards; sequential ledger; one construction site | a second boundary is an ADR |
 | 26 | The period trace | rows touched is a series; duration is `NonDeterministic` and never digested | the type |
-| 27 | The A3 build check | eight fields, **seven rules**; `assumed` never a level and never region-scoped; an unread entry fails | the build |
+| 27 | The A3 build check | eight fields, **seven rules**; `assumed` never a level and never region-scoped; an unread entry fails | check-registry rule 4 — a `structural` entry naming anything else fails the build (ADR-0013); the census counts them separately; the read rule (a capacity entry is unreadable by any agent, valuation or economic system) lands with the manifests (ADR-0014) |
 | 28 | Structural asymmetry | three axes, `Z`, three orderings, δ = 0.35 / 0.20 / 0.15; **rank 1 takes the smallest loading**; every per-region value `derived` | no per-region `assumed` entry compiles |
 | 29 | Policy rate | difference rule with a Wicksellian anchor; `a, b, c, K` = 1.5, 0.5, 0.10, 104; `π* = 0` structural; no rate before tick 104 | the registry; the posted-column owner |
-| 30 | The burn-in gate | 42 series, W = 104, **E = 40**, four tests, every critical value a quantile of its own null, `α = 1 − 0.95^(1/168)`, `burnInPeriod ∈ [260, 520]` | `aurora-tools gate` re-measures each test's realised size on a settled ensemble and fails outside [0.02, 0.10] |
+| 30 | The burn-in gate | 42 series, W = 104, **E = 40**, four tests, every critical value a quantile of its own null, `α = 1 − 0.95^(1/168)`, `burnInPeriod ∈ [260, 520]` | aurora-tools gate — re-measures every calibrated test's realised size on a settled ensemble on every run of the build gate and fails outside [0.02, 0.10] at a nominal 0.05; aurora-tools burnin holds the falsification the correction answers (ADR-0019) |
 | 31 | A4 enforcement | total mappings, non-null issuers, `Real`-only counter-accounts, no sentinel | four things unwritable |
 | 32 | Cross-region closure | no rest of world; four exact per-currency identities; the matrix is a report | the identities are integer; the total is displayed as a literal zero |
 

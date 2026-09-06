@@ -6,15 +6,15 @@
 use std::process::ExitCode;
 
 use aurora_tools::{
-    adr_new, check_adr, check_deps, check_instruments, check_lints, check_refs, check_registry,
-    check_surface,
+    adr_new, appendix, check_adr, check_coupling, check_deps, check_instruments, check_lints,
+    check_refs, check_registry, check_surface,
 };
 
 fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
     let Some(cmd) = args.next() else {
         eprintln!(
-            "usage: aurora-tools <verify|check-lints|check-surface|check-deps|check-refs|check-adr|check-registry|check-instruments|gate|adr new|seedgen|burnin|sizing>"
+            "usage: aurora-tools <verify|check-lints|check-surface|check-deps|check-refs|check-coupling|check-adr|check-registry|check-instruments|check-register|appendix|gate|adr new|seedgen|burnin|sizing>"
         );
         return ExitCode::FAILURE;
     };
@@ -25,11 +25,14 @@ fn main() -> ExitCode {
     match cmd.as_str() {
         "check-lints" => check_lints::run(&root),
         "check-surface" => check_surface::run(&root),
+        "check-coupling" => check_coupling::run(&root),
         "check-deps" => check_deps::run(&root),
         "check-refs" => check_refs::run(&root),
         "check-adr" => check_adr::run(&root),
         "check-registry" => check_registry::run(&root),
         "check-instruments" => check_instruments::run(&root),
+        "check-register" => appendix::run(&root),
+        "appendix" => appendix::write(&root),
         "adr" => {
             if args.next().as_deref() == Some("new") {
                 let title = args.next();
@@ -74,7 +77,7 @@ fn verify(root: &std::path::Path) -> ExitCode {
     /// A check: its name, and the function that runs it and reports.
     type Check = (&'static str, fn(&std::path::Path) -> ExitCode);
 
-    let checks: [Check; 7] = [
+    let checks: [Check; 9] = [
         ("check-lints", check_lints::run),
         ("check-surface", check_surface::run),
         ("check-deps", check_deps::run),
@@ -82,6 +85,8 @@ fn verify(root: &std::path::Path) -> ExitCode {
         ("check-adr", check_adr::run),
         ("check-registry", check_registry::run),
         ("check-instruments", check_instruments::run),
+        ("check-coupling", check_coupling::run),
+        ("check-register", appendix::run),
     ];
     let mut failed = Vec::new();
     for (name, run) in checks {
