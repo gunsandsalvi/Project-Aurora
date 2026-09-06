@@ -20,7 +20,7 @@ none is a schedule with a name on it.
 | what would make us stop | §6 |
 | what this costs | §7 |
 | the first milestone in executable detail | `MILESTONE_0.md` |
-| **what has to be in the model at all** | **`MODEL_SCOPE.md` — the breadth target** |
+| what has to be in the model at all | `PROJECT_AURORA.md` §2.3, the surface |
 
 **This plan supersedes §19's phase table** wherever the two differ. §19 is kept in the specification
 because its gates are cited from elsewhere; it is a summary of this.
@@ -61,8 +61,8 @@ per tick" is the project's central assertion. It should be a green test running 
 a third of the way in — not a promise redeemed at the end. Everything after that point is a substitution
 into a system that is already running and already closed.
 
-**5. Decompose the economics; do not schedule it as one bar.** `MODEL_SCOPE.md` is what it consists of,
-and reading it is the fastest way to see why one bar was never going to hold. The specification contains the machine
+**5. Decompose the economics; do not schedule it as one bar.** §2.3's surface is what it consists of, and
+reading it is the fastest way to see why one bar was never going to hold. The specification contains the machine
 and not the model: one production section of five sentences, no content for any of the thirty-five agent
 declarations, roughly thirty per-position specifications owed and one written. Every candidate plan that
 treated this as a single milestone under-sized it by two to three times. It is four milestones here, each
@@ -82,6 +82,7 @@ M5  Twenty-One Positions, Empty
 M6  The First Franc               ── G2 ──►  the circuit closes; workload re-derived
 M7  The Deciding Tick
 M8  Credit, Default And The Estate
+M8b The Elected Parliament
 M9  Property, Equity And The Rest
 M10 Four Regions Trading
 M11 Thirty Years At Full Class    ── G3 ──►  CONTINUE/STOP on the economics
@@ -191,12 +192,24 @@ entity reaches `resolved` holding exactly zero of every claim it issued.
 Instruments as data, and enough of them to finish the conformance suite.
 
 **Contents** — the instrument vocabulary §18 charges for and §7 never writes; the thirteen intrinsic
-answers as a total mapping over seven opening types (currency claim, deposit line, sovereign bond,
-secured term loan, employment contract, goods unit, residual equity); the three relational questions
-across seven regimes, compressed to a base weight times a per-regime severity; `register` and every
-raise it owes; schedules as two constructors and one interpreter; `amend` with four delta constructors,
-eight mechanisms and eight minted handles; the due-tick index and its two bucket families; the seven
-option-terms tables, each naming the index its event test fires from.
+answers as a total mapping over the opening types (currency claim, deposit line, sovereign bond, secured
+term loan, employment contract, goods unit, **listed and private equity** — §8.7 makes those two types,
+not one); the three relational questions across seven regimes, compressed to a base weight times a
+per-regime severity; `register` and every raise it owes; schedules as two constructors and one
+interpreter; `amend` with four delta constructors, eight mechanisms and eight minted handles; the
+due-tick index and its two bucket families; the seven option-terms tables, each naming the index its
+event test fires from.
+
+**The vocabulary is sized against §2.3, not against the conformance suite.** The suite needs seven types;
+the model needs bills, commercial paper, repo, covered bonds, convertibles, contingent claims and the
+rest, and the facts tables must be shaped so those are rows rather than edits. **§18.1's two worked
+examples are this milestone's real acceptance test**: a covered bond and a convertible must each cost one
+vocabulary entry, one intrinsic row, one relational row per regime and one option row against a terms
+table that already exists — with **zero agent edits**. If either costs more, the facts tables are wrong
+and this is where that is found, not at M9.
+
+**Decides** — covenants and acceleration: an option family under §7.6, a ninth `amend` mechanism, or a
+fourteenth intrinsic question (§2.3, and §18 prices the third as the expensive one).
 
 **Why here** — the specification puts instruments in Phase 2 and then says in §15.1 that the conformance
 suite needs a sovereign instrument type in Phase 1a. It noticed the contradiction and left the phase
@@ -223,6 +236,12 @@ question fails to compile for every existing type until each is decided.
 the crossing solver; rule-two allocation before the walk; rationing from an offset of `tick mod n`; the
 two-pointer settlement walk; and the period-0 reservation anchor for **every** venue family, not only
 labour.
+
+**The line taxonomy is sized against §2.3.** Repo, interbank unsecured, bills and commercial paper,
+commodities as a read of the goods line, securities lending, insurance and trade credit are all *lines*
+in the registry — a registry row and no code, under §18 — and the 4,096-line cap is checked against the
+real count rather than against §9.5's current census. **A dealer submits on both sides of a line**
+(§8.8), so the walk is exercised with a participant in both ordered lists from the first property test.
 
 **Why here** — `markets` depends only on `domain` and `kernel`. It can be built, property-tested and
 optimised against synthetic submissions before a world exists, and it is the largest block of economic
@@ -307,11 +326,17 @@ which the specification already schedules for G2 and which now has genuine conte
 
 The scripted intents of M6 are replaced by agents that decide.
 
-**Contents** — the five-declaration interface as a total mapping per class; traits drawn rather than
-stored; the single-walk constraint evaluator; the valuation interface returning a minted reservation;
-staggering with the phase drawn from its own stream; the two-stage budget allocator; and the first four
-agent classes written in full — **household, large firm, bank, government** — with the remaining five
-declared absent with their reasons.
+**Contents** — the five-declaration interface as a total mapping per class; **declaration 4 returning a
+reservation per side**, so a dealer's two-sided quote needs no interface change later (§8.8); traits drawn
+rather than stored, including the political disposition §21 needs; the single-walk constraint evaluator;
+staggering with the phase drawn from its own stream; the two-stage budget allocator; and the first five
+agent classes written in full — **household, firm, bank, government, dealer** — with the rest declared
+absent with their reasons.
+
+**The dealer is written here and not later**, because it is the class that makes a price move for a
+reason other than a binding constraint, and every clearing measurement taken after this point is
+different depending on whether it exists. Its width is a read of its own funding, capital, risk aversion
+and inventory — never a stated spread.
 
 **Why here** — this is the first milestone whose content the specification does not contain. §8.1 gives
 the shape of an agent and no content for any class: no consumption rule, no labour supply rule, no firm
@@ -335,9 +360,13 @@ aggregate demand, tested by a spectrum with no peak at the cadence.
 §3.1's first functional requirement, end to end.
 
 **Contents** — the household and corporate credit lines; underwriting as a constraint rather than a
-rule; the bank capital regime with its values and its cure window; arrears, default and the three
-amendment mechanisms credit owns; default testing at position 18 against real valuations; the estate
-waterfall exercised by real failures; the issuer freeze and the payment-continuity problem it creates.
+rule; the bank capital regime **as a read of §21's parliament rather than a constant**; arrears, default
+and the three amendment mechanisms credit owns; covenants and acceleration, in whichever shape M3 chose;
+provisions distinct from realised loss; default testing at position 18 against real valuations; the
+estate waterfall exercised by real failures, with **trade creditors ranked**; foreclosure returning a
+dwelling to supply; lending standards that tighten as reads; bank equity issuance and a subordinated
+layer to bail in; deposit pricing against a fund alternative; the issuer freeze and the payment-continuity
+problem it creates.
 
 **Why here** — credit is where the specification's machinery was designed to be tested and where the
 assumption count grows fastest, so it is the first honest reading of M3's cost.
@@ -355,14 +384,62 @@ cascading region is declared an accepted modelled outcome. It must not be discov
 
 ---
 
+### M8b — The Elected Parliament
+
+> **Question: can fiscal and regulatory policy be produced by the model rather than set in it?**
+
+*Inserted after M8, and it keeps the number it was born with rather than renumbering what follows —
+a step's id is its identity, not its rank.*
+
+**Contents** — the parties as platforms on three axes (§21.1); the household's vote as a read of its own
+rows plus its drawn disposition (§21.2); the founding election at tick 0 and the 208-period cadence
+thereafter; seat allocation by §6.3 rule two; the median seat as the policy in force; and the conversion
+of the government's declarations from stated parameters to **reads of the parliament** — the tax rates and
+their progressivity, the spending level and composition, the bank capital floor and cure window, and the
+loan-to-value and debt-service limits.
+
+**Why here, and why not earlier.** It needs households that decide (M7) and the regulatory constants it
+destroys (M8). **It must not come earlier**, and the reason is a rule the predecessor project paid to
+learn: *a shape parameter stands in for a missing mechanism, and deleting it before the mechanism exists
+makes the model wrong rather than more bottom-up.* M6's government spends on stated fiscal parameters
+because it has to spend before anything else can happen; this milestone is where those parameters are
+deleted **and** their mechanism built, in one step. That pairing is the only sequencing the design allows.
+
+**Why it is worth its own bar.** It is the only milestone that **removes more priors than it adds.** The
+tax rate, the capital floor, the loan-to-value limit and the transfer parameters were each going to be an
+`assumed` entry standing where a mechanism belongs; a parliament that households elected replaces the lot
+with three platform vectors and a seat count. Under M3 that is the best trade in the plan.
+
+**Exits when** a household's vote is a function of no state it does not already hold — a stored confidence
+index fails the check; no `assumed` entry with a `region:` scope exists among the platforms; seat
+allocation is bit-identical at one shard and at sixty-four; **the four regions' parliaments differ**, and
+the difference is traceable to their households rather than to any per-region value; and the fiscal and
+regulatory constants M6 and M8 carried have no writer other than §21's policy vector.
+
+**Defers** — coalition bargaining, confidence votes, early elections, party entry and exit, and
+differential turnout. A government cannot fall in this edition, and §21 says so.
+
+**Size** — 25–35 engineer-weeks.
+
+---
+
 ### M9 — Property, Equity And The Rest
 
 > **Question: do the remaining sectors add as declared insertions, as A2 and §18 promise?**
 
-**Contents** — property and tenancy; installed capital and its separate resale line; depreciation;
-equity, dividends and distributions; funds and liability-matched institutions; demography at position 1;
-collateral and margin at 16; the remaining four agent classes; the mark rule for `DerivedMark`
-instruments, which nothing currently specifies.
+**Contents** — property and tenancy; installed capital and its separate resale line; plant vintages and
+depreciation by kind; inventory at cost with lower-of-cost-and-market; product line entry and exit; M&A
+with funding and acceptance; equity, dividends and distributions; funds and liability-matched
+institutions; insurance; trade credit and invoices; demography at position 1; collateral and margin at 16;
+the remaining three agent classes; the mark rule for `DerivedMark` instruments, which nothing currently
+specifies and which private equity is the flagship consumer of.
+
+**Plus the three rows §2.3 marks `new`, which are this milestone's real weight:** the **derivative
+contract** — a bilateral instrument with a reference and variation margin, which §7.6's embedded options
+are not — and the **clearing house** that novates and holds it; and the **securitisation vehicle**, which
+*issues* against a pool where §6.5's trustee only *holds*. **Margin must be a read of the reference's own
+realised move**: a stated margin rate cannot rise when it matters, which deletes procyclicality, and
+procyclicality is the contagion mechanism.
 
 **Why here** — if A2 and §18's change-cost table are true, this milestone is repetitive rather than
 inventive. If it is not repetitive, the change-cost table is wrong, and that is worth finding out under
@@ -380,8 +457,11 @@ requirements 1–3 still pass.
 
 > **Question: does A4 hold when it is finally load-bearing?**
 
-**Contents** — the six FX lines and the funding stage they clear in; cross-region trade; reserves as a
-read view; the four exact per-currency closure identities; the triangular residuals as declared series.
+**Contents** — the six FX lines and the funding stage they clear in; cross-region trade; **FX forwards,
+swaps and the cross-currency basis** — and a forward whose rate carries an interest differential, since
+one that is spot moved by a basis is not a forward and cannot be checked against parity; reserves as a
+read view; the four exact per-currency closure identities; **the balance of payments as a read of the
+transactions, never a stored field**; the triangular residuals as declared series.
 
 **Why here** — A4 is structurally true from M6, but trivially so while nothing crosses a border. This is
 where it is first tested against a mechanism that could break it, and where §9.2's forgone intra-stage
@@ -406,8 +486,9 @@ decision.
 
 **Contents** — the full scale class on the device; the acceleration seam, if the measurements say it is
 needed; the out-of-engine analysis harness; sixteen-seed ensembles; the burn-in gate's four tests with
-the multiplicity correction the specification does not have; the nightly sensitivity sweep; the surface
-and its named readers; the closure panel.
+the multiplicity correction §15.3 now requires; the nightly sensitivity sweep; the surface and its named
+readers; the closure panel; **a separate PPI**, and the curves beyond the sovereign — secured,
+swap-spread, credit by rating, commodity, cross-currency basis.
 
 **Why here, and why the seam is last** — §12.3 says parallelism is a 1.0× assumption and the engine must
 be correct and within budget single-threaded. A seam built earlier has no sequential baseline to prove
@@ -463,11 +544,13 @@ Sources are `PROJECT_AURORA.md` unless stated.*
 | The production specification | Appendix B *Owed* | **M6** |
 | The five declarations for seven agent classes | §8.1 — a shape with no content | **M7**, **M9** |
 | ~~SME and Large firm: two classes or one?~~ **Decided: one `Firm` class; tier by block pressure, listing by decision, the two independent (§8.7).** What remains is economics: the listing requirement's ratios and their brackets, and the funding-policy rule that makes a firm want to list | §8.4, §8.7 *Owed* | **M7**, with the firm declarations |
-| **Is a dealer an agent class, or is quoting two-sided a behaviour any agent may have?** Aurora has no market-maker, so every participant is an end investor and a price cannot move because somebody disagrees — which M6 does not allow. Needs §8.1 declaration 4 or §9.1's submission shapes to express a spread rather than one reservation | `MODEL_SCOPE.md` §3.3 | **M7** |
-| **Covenants and acceleration**: an option family under §7.6, a ninth `amend` mechanism, or a fourteenth intrinsic question | `MODEL_SCOPE.md` §2.3 | **M3** |
-| **The derivative contract shape and a clearing house.** §7.6 gives options embedded in an instrument, not a bilateral contract with a reference and variation margin. Margin must respond to the reference's own realised move, or procyclicality — the contagion mechanism — is deleted | `MODEL_SCOPE.md` §3.1 | **M9** |
-| **The securitisation vehicle.** §6.5's trustee *holds* for a class of holders; an SPV *issues* against a pool | `MODEL_SCOPE.md` §3.2 | **M9** |
-| **Is freight in scope at all?** A network with capacity per route is genuinely new structure. Under R20 the options are to model it or declare it out of scope on the surface | `MODEL_SCOPE.md` §3.6 | **M9** |
+| ~~Is a dealer an agent class?~~ **Decided: yes (§8.8).** It differs on mandate and on valuation — two reservations, not one — and needs no change to §9.1, since a dealer is a participant twice. What remains is its width's content | §8.8 *Owed* | **M7** |
+| The party platforms, the party and seat counts, the disposition dispersion | §21 *Owed* | **M8b** |
+| Whether a household's vote reads a forward expectation — the model has no expectations mechanism, so "outlook" is currently recent experience | §21.5 *Owed* | **M8b** |
+| **Covenants and acceleration**: an option family under §7.6, a ninth `amend` mechanism, or a fourteenth intrinsic question | §2.3 | **M3** |
+| **The derivative contract shape and a clearing house.** §7.6 gives options embedded in an instrument, not a bilateral contract with a reference and variation margin. Margin must respond to the reference's own realised move, or procyclicality — the contagion mechanism — is deleted | §2.3, Appendix C 25 | **M9** |
+| **The securitisation vehicle.** §6.5's trustee *holds* for a class of holders; an SPV *issues* against a pool | §2.3 | **M9** |
+| **Is freight in scope at all?** A network with capacity per route is genuinely new structure. Under R20 the options are to model it or declare it out of scope on the surface | §2.3 | **M9** |
 | ~30 per-position §17.4 specifications, 1 written | *silently missing* | **M6**–**M10** |
 | The trait declaration set | *silently missing* | **M7** |
 | The bank capital regime's values and cure window | *silently missing* | **M8** |
@@ -554,17 +637,19 @@ arrives at roughly the halfway point rather than at the finish.
 | M6 The First Franc | 45–60 |
 | M7 The Deciding Tick | 70–100 |
 | M8 Credit, Default And The Estate | 60–85 |
+| M8b The Elected Parliament | 25–35 |
 | M9 Property, Equity And The Rest | 70–100 |
 | M10 Four Regions Trading | 45–65 |
 | M11 Thirty Years At Full Class | 60–90 |
-| **Total** | **605–840** |
+| **Total** | **630–875** |
 
-**That is 12–17 engineer-years; at four engineers, roughly three to four calendar years.**
+**That is 13–18 engineer-years; at four engineers, roughly three to four calendar years.**
 
-**`MODEL_SCOPE.md` changes this table and the change is not yet made.** M7–M10 were sized against
-"the economics" as an idea; the scope document is what the economics consists of, and it is substantially
-larger than those four bars were estimated against. **The re-derivation is owed at G2**, where the first
-real counts exist, and until then the figures below should be read as a floor rather than an estimate.
+**§2.3's surface changes this table and the change is not yet fully made.** M7–M10 were sized against
+"the economics" as an idea; §2.3 is what the economics consists of, and it is larger than those bars were
+estimated against — the three rows it marks `new` (derivatives with a clearing house, securitisation
+vehicles, freight) are each a real build inside M9. **The re-derivation is owed at G2**, where the first
+real counts exist, and until then these figures are a floor rather than an estimate.
 
 **Where the uncertainty is.** M0 through M6 are estimated against a specification that describes them,
 and the range there is the ordinary one. M7 through M10 are estimated against a specification that does

@@ -120,6 +120,47 @@ application: a native engine with a thin user interface** (D2).
 - **Anything above the tick.** Intra-week timing, order-book microstructure and settlement lags
   shorter than a period are not represented.
 
+### 2.3 The surface the model must reach
+
+*This is the breadth target. §2.1 says what kind of thing is in scope; this says what has to be in it.*
+**Status** is the cost under §18: `structural` — this document already carries it; `additive` — instrument
+rows, line-registry rows or an agent declaration, at §18's stated price; `new` — needs a new agent class,
+venue family, counter-account family, or a changed decision.
+
+| Markets | | Institutions | | Mechanisms | |
+|---|---|---|---|---|---|
+| Goods, per sub-unit, per-lot | structural | Households | structural | Default as a dated event | structural |
+| Retail consumption | structural | Firms, listed and unlisted | structural | Estate, waterfall, ranked claims | structural |
+| Labour, by occupation | structural | Banks | structural | Seniority that changes the payout | structural |
+| Property, tenancy, floor area | structural | Central banks | structural | Foreclosure into supply | structural |
+| Installed capital resale | structural | Governments | structural | Lending standards that tighten | structural |
+| Sovereign, across tenors | structural | Funds — mutual, money, hedge, ETF, buy-out | structural | Cost of funds entering the loan price | structural |
+| Corporate and household credit | structural | Liability-matched institutions | structural | Investment against the firm's own hurdle | structural |
+| Equity, on a listing rule | structural | **Dealers** | **new** (§8.8) | Plant vintages, depreciation by kind | structural |
+| Money market, overnight | structural | Prime brokers | additive | Inventory at cost, lower of cost and market | additive |
+| FX spot, six pairs | structural | **Clearing house** | **new** | Covenants, acceleration | additive |
+| Repo and secured funding | additive | **Securitisation vehicles** | **new** | Restructuring, exchange offers | additive |
+| Interbank unsecured | additive | Rating agencies, or no party at all | additive | Provisions distinct from realised loss | additive |
+| Commodities, a read of the goods line | additive | | | Bank equity issuance, a bail-in layer | additive |
+| Bills and commercial paper | additive | | | Deposit pricing against a fund alternative | additive |
+| Securities lending | additive | | | Administered rates with a quantity response | additive |
+| **Derivatives: swaps, CDS, futures, options** | **new** | | | Sovereign default and exchange offers | additive |
+| **Securitisation: pools, tranches, waterfalls** | **new** | | | Product line entry and exit | additive |
+| Insurance | additive | | | M&A with funding and acceptance | additive |
+| Trade credit, invoices, factoring | additive | | | Inheritance; occupational retraining | additive |
+| M&A | additive | | | Balance of payments, as a read | structural |
+| **Freight and lanes** | **new**, and see below | | | FX forwards, swaps, cross-currency basis | additive |
+| **The political system** | **new** (§21) | | | A separate PPI; curves beyond the sovereign | additive |
+
+**Most of it is additive, and that is the whole point of A2.** A new instrument is one vocabulary entry,
+one intrinsic row, one relational row per regime and **zero agent edits** (§18). The rows marked `new`
+are the ones that cost real structure, and each is written up where it belongs: dealers at §8.8, the
+political system at §21, derivatives and clearing at §18's owed list.
+
+**Freight is the one row where the honest answer may be "out of scope".** A network with capacity per
+route is a structure this model does not have — it prices things, not distances. Under R20 the choices
+are to model it or to declare it out of scope on the surface, and there is no third.
+
 ## 3. Requirements
 
 ### 3.1 Functional
@@ -990,10 +1031,11 @@ here.**
 | Firm — listed tier | 440 opening, 1,000 declared | `corporate` | 1 tick | 1,024 B |
 | Bank | 56 | `bank-prudential` | 1 tick | 1,024 B |
 | Fund | 54 | `fund-unconstrained` | 1 tick | 1,024 B |
+| Dealer | 24 | `bank-prudential` | 1 tick | 1,024 B |
 | Liability-matched institution | 40 | `liability-matched` | 1 tick | 1,024 B |
 | Government | 4 | `sovereign-fiscal` | declared meeting cadence | 1,024 B |
 | Central bank | 4 | `central-bank` | declared meeting cadence | 1,024 B |
-| | **550,598** | | | **96.2 MB** |
+| | **550,622** | | | **96.2 MB** |
 
 Plus **40 counter-account rows**, 10 per region, which are entities but decide nothing and are
 never retired: 550,638 rows live at tick 0.
@@ -1114,7 +1156,7 @@ A *tier* is how many holding slots a row needs — storage. *Listed* is whether 
 a venue — economics. They correlate and they are not the same, and tying them together makes **a large
 private firm inexpressible**: a leveraged buy-out, which takes a listed company private without shrinking
 it, would force a firm into a sixteen-slot block it cannot fit. Private equity is in scope
-(`MODEL_SCOPE.md` §2.2), so the two facts are separate.
+(§2.3), so the two facts are separate.
 
 | Fact | What moves it | What it governs |
 |---|---|---|
@@ -1185,6 +1227,46 @@ the firms needing sixty-four positions are the ones with something to decide eve
 want to list. They are economics and they are written with the firm's five declarations, not before.
 
 ---
+
+### 8.8 The dealer
+
+**Every other agent in this document is an end investor.** It holds a thing because it wants the thing.
+That leaves the model with no participant that takes a position *because it disagrees with the price* —
+and a price that cannot move because somebody thinks it is wrong is not a formed price, which M6 does not
+allow. A market of hedgers clears at a level set by whose constraint binds this week, and in a week when
+none binds the book does not open at all.
+
+**A dealer is a class, on §8.4's own test**, because it differs on two of the five declarations:
+
+| | How a dealer differs |
+|---|---|
+| **Mandate** | it holds inventory in the lines it makes, and its target position is flat. An end investor holds for a return; a dealer holds in order to intermediate, and wants to be rid of it |
+| **Valuation** | **it forms two reservations, a bid and an ask.** Every other class forms one |
+
+Constraints and funding policy differ in degree rather than in kind, and regime is `bank-prudential`,
+because what binds a dealer's inventory is capital against a traded book.
+
+**It needs no change to §9.1.** A dealer submits a buy schedule and a sell schedule on the same line, so
+it appears in both of the two-pointer walk's ordered lists. The clearing interface already accepts a
+reservation and a size from each participant; a dealer is simply a participant twice. What generalises is
+§8.1's declaration 4, which returns a reservation **per side** rather than one — for every other class the
+two are the same number or one side is absent.
+
+**The spread is not a parameter.** It is what the dealer's own rows say: the cost of funding the inventory
+it would take on, its capital charge against that inventory, its drawn risk aversion, and **its current
+position** — a dealer long the line quotes lower on both sides to shed. A stated spread would be exactly
+the shape §16.1 exists to refuse.
+
+**Inventory must cost something, or a dealer never sheds it.** Its position is funded at position 9–11
+like anybody else's and carries capital under its regime, so carrying is a real charge on a real book. A
+desk that carries for free has no reason to quote a price that moves.
+
+*Accepted cost.* Twenty-four dealers across four regions is thin. Market-making concentration is a
+property of the opening rather than an outcome of entry, on the same terms §8.4 accepts for firms — and
+with the same escape, since a dealer is one module and one row (§8.3).
+
+*Owed.* The two-sided declaration's content: how the width responds to inventory, to volatility and to
+the dealer's own funding cost. Written with the other declarations.
 
 ## 9. Markets
 
@@ -1275,7 +1357,7 @@ shard unit where the position is parallelisable, and `—` where it is not.
 | 4 | **Obligation payment** — the `PerContract` walk, standing bucket first: wages, rents, amortisation | endowment | every tick | schedules; `plans` prior-run; ledger-live | — | payment |
 | 5 | **Depreciation** — into `Wear:` | endowment | every tick | schedules; ledger-live | — | depreciation |
 | 6 | **Production** — inputs and hours consumed into `Consumption:`, output issued from `Production:` | endowment | every tick | `plans` prior-run; ledger-live | — | production |
-| 7 | **Policy** — the central bank and fiscal rules | decision | monetary 13, fiscal 52, phase `regionIndex mod cadence`; skipped when no region meets | prior-run-close marks | — | monetary policy, fiscal policy |
+| 7 | **Policy** — the central bank, the fiscal rules, and the election | decision | monetary 13, fiscal 52, **election 208** (§21), phase `regionIndex mod cadence` for the first two and `regionIndex × 52` for the election; skipped when no region meets | prior-run-close marks; for the election, households' own rows | — | monetary policy, fiscal policy, elections |
 | 8 | **Valuation and constraints** — the tick's re-planning cohort; all institutions every tick | decision | every tick | prior-run-close marks; `policy.rate` prior-run; own `plans` | row span | valuation |
 | 9 | **Funding allocation** — target currency composition; allocation across **the 6 FX and 4 money-market lines, and no others** | decision | every tick | prior-run-close marks; `plans`; ledger-live | row span | funding |
 | 10 | **Funding clearing** — those ten lines | clearing | every tick | this tick's `intents` | line | clearing |
@@ -1841,7 +1923,7 @@ smallest region on axis 1.
 | 2 — technology | how a region turns inputs into output | input–output coefficients, depreciation rate per capital class, hour productivity | 0.20 | 1.71× |
 | 3 — preference | what a region's households want and can supply | cohort shares, labour endowment hours, intertemporal share, labour-supply elasticity | 0.15 | 1.49× |
 
-A fourth axis is an ADR under §21.3.
+A fourth axis is an ADR.
 
 #### The generator's output
 
@@ -2352,6 +2434,30 @@ and it may not drop a column to fit a screen. The rows that matter most:
 | **A tenth ledger operation** | **ADR**, a row in this table, a case in §15.1, a restatement of §6.1a |
 | **A fifth region** | **ADR before it is anything else.** It reopens A4 |
 
+### 18.1 Two worked examples, because the table is the promise
+
+*A covered bond and a convertible are the two changes most often asked for, and both are already
+anticipated by §7.6's seven option families. Neither touches an agent, a venue or the ledger.*
+
+**A covered bond.** One vocabulary entry; one intrinsic row of thirteen answers (`LiabilityOf`, `Dated`,
+`PerUnit`, `{ secured: true, rank: preferred, shortfallRank: senior }` for the dual recourse §7.2 calls
+the ordinary answer); one relational row across seven regimes; one `instrument_options` row pointing at
+the **existing** `coverPooled` terms table; and the cover pool itself is lien rows whose beneficiary is a
+trustee entity, which §6.5 already provides. **Files touched: the vocabulary, the two facts tables, and a
+terms row. Zero agent edits, zero ledger edits, zero venue edits.**
+
+**A convertible.** The same, with `{ secured: false, rank: subordinated }`, an option row against the
+existing `convertible` terms table, and the conversion firing from that family's declared index at
+position 19 — the door every claim is already issued through. **Zero agent edits.**
+
+**What makes this true is not the table; it is A2.** An agent receives *facts* and never a type code, so
+there is no site at which a new type could require an edit. **If either of these examples ever costs more
+than the rows above, that is a defect in the facts tables** — a bug report about §7.2 and §7.3 — and not a
+reason to write a special case.
+
+*The change that is genuinely expensive stays expensive, and should:* a new **question** about instruments
+is one column across every type and breaks every type until each is decided. That asymmetry is the design.
+
 
 ---
 
@@ -2435,6 +2541,106 @@ elsewhere, and each mitigation is a mechanism rather than a promise.
 
 ---
 
+## 21. The political system
+
+**§13.4 makes the policy *rate* an output of the world's own realised return. Fiscal and regulatory policy
+have no such rule, and without one they are constants** — a tax rate that never moves, a capital floor
+nobody chose, a loan-to-value limit that no code path writes. Under M6 that is a set of phenomena built in
+rather than produced, and they are among the most consequential in the model.
+
+**This section makes them outcomes.** It is deliberately the simplest thing that can do that.
+
+### 21.1 A party is a platform
+
+**A party is a point in a small policy space**, and its position is a legitimate primitive: A3 admits
+POLICY — what an institution chooses — where it refuses an equilibrium. The axes are the fewest that
+produce distinguishable behaviour:
+
+| Axis | What it moves |
+|---|---|
+| **Size of the state** | the tax take and the spending level, as shares of output |
+| **Redistribution** | how progressive the take is, and who receives the transfer |
+| **Regulatory stance** | how tight the bank capital floor, the loan-to-value and the debt-service limits are |
+
+A position is `assumed`, `ratio`-dimensioned, with a bracket. **The party set is world scope** — the same
+platforms stand in every region — because §13.3 rule 2 refuses a region-scoped `assumed` value, and
+because the interesting claim is the one that follows: **regional political difference is produced by the
+regions' households differing, never asserted.** A region turns left because its households did.
+
+### 21.2 The vote is one household, reading its own rows
+
+**Every household votes for itself** (M1). At the election tick it compares each platform to its own
+position, and everything it reads is a row it already has:
+
+| What it reads | What it bears on |
+|---|---|
+| its income, and where that sits in its own region's distribution | who gains and who pays under redistribution |
+| whether it holds a live employment contract | exposure to the labour market |
+| its debt service against its income | exposure to the regulatory stance, and to rates |
+| its net worth and whether it owns its dwelling | exposure to taxes on wealth, and to housing policy |
+| the change in its own real income over the past year, and what it has paid for goods | **confidence** |
+
+**Confidence is a read, never a stored index.** A confidence column would be a second representation of
+what the household's own rows already say, and §4.3 forbids it. What the household feels about the economy
+is what happened to *it*.
+
+**One drawn trait — political disposition — separates two households the rows place identically.** It is
+drawn from its own stream (§8.5), so it costs no bytes, survives a save without being saved, and is
+uncorrelated with every other identifier-derived property.
+
+*Turnout is universal in this edition.* Differential turnout is a real political mechanism and it is
+additive: it becomes a decision the household takes, from the same rows.
+
+### 21.3 Seats, by a rule that already exists
+
+**A fixed seat count per region, world scope.** Seats are allocated across parties **by §6.3 rule two** —
+quantize the total, then allocate cumulative-proportionally in ascending party identifier. That is the
+same rule that allocates a coupon across holders and a world total across regions: exact, shard-invariant,
+and it needs no new machinery at all.
+
+**The median seat sets policy.** On each axis, the policy in force is the position of the median seat when
+the chamber is ordered by that axis. One rule, no coalition arithmetic, no formateur, no weights, and no
+priors beyond the platforms themselves.
+
+*Accepted cost, and it is a real one.* There is no bargaining, no confidence vote, no early election and
+no government that can fall. A parliament is a distribution of seats and the policy is its median, which
+is a claim about outcomes rather than a model of politics. The alternative — a coalition rule — is a
+mechanism with its own priors, and it earns them only if the median is shown to be doing something wrong.
+
+### 21.4 What it governs, and the priors it destroys
+
+The government's five declarations **read the policy vector** rather than carrying constants. The
+consumers are the ones that would otherwise be the most consequential `assumed` entries in the model:
+
+- the tax rates and their progressivity, and the level and composition of spending;
+- the **bank capital floor** and the cure window (§8.1 declaration 5);
+- the **loan-to-value and debt-service limits** on household credit;
+- the transfer and pension parameters.
+
+**Every one of those was going to be a stated number.** Making them reads of a parliament that households
+elected converts priors into outcomes — M3 and M6 at once — and it is the strongest argument for this
+section: it is not an addition to the model so much as a *removal* of the numbers that would otherwise
+stand where a mechanism belongs.
+
+### 21.5 Cadence and position
+
+**Every 208 periods — four years.** The election runs at **position 7**, which already carries monetary
+and fiscal policy and now carries a third owner, so the committed order gains no position.
+
+**A founding election runs at tick 0 in every region**, and thereafter region `r` votes at
+`r × 52 + 208k`, so the four vote a year apart and the world always has both a fresh mandate and a stale
+one. The founding election is decided almost entirely by the drawn disposition, because a household at
+tick 0 has no economic history to read — **which is an outcome of the draw, not a seeded composition**,
+and is why no opening parliament appears in §13.1. This is derived from the region identifier and carries no economic content.
+§8.6's prohibition on `id mod cadence` is about *agents* and does not apply: a national election date is
+supposed to be a function of the nation, exactly as §13.4's committee is.
+
+*Owed.* The platform values and their brackets; the number of parties and of seats; the disposition
+trait's dispersion; and whether a household's vote reads a forward expectation as well as its own history —
+the model has no expectations mechanism, so "outlook" is currently its recent experience.
+
+---
+
 # Appendices
 
 ---
@@ -2468,9 +2674,11 @@ what they replaced is in Appendix B.
 | 18 | Venues and lines | 37 venues, 190 structural lines, 1,276 instantiated, cap 4,096 | the cap at venue registration |
 | 19 | Region and currency | one region per venue, FX the sole exception, no world price | the venue registry |
 | 20 | Submission shapes | two: schedule and price-taking, 64 log-spaced buckets | one clearing interface |
-| 21 | Agent inventory | **seven classes**, `classFacts` mapping class to (regime, count) and cadence to (class, tier); **five declarations, total per class**; two classes differing on none of the five are one class | a class naming no regime, or declaring four items, does not compile |
+| 21 | Agent inventory | **eight classes**, `classFacts` mapping class to (regime, count) and cadence to (class, tier); **five declarations, total per class**; two classes differing on none of the five are one class | a class naming no regime, or declaring four items, does not compile |
 | 22 | Agent state budget | 160 B household, 256 B unlisted firm, 1,024 B listed firm and institution, 96.2 MB | asserted at schema build |
 | 22a | Holdings slot | **24 B, field list published in §3.4**; encumbrance derived from lien rows, not stored | asserted at schema build |
+| 21a | The dealer | one class, `bank-prudential`, forming **two reservations**; the spread is a read of its own funding, capital, risk aversion and inventory, never a stated width | §8.1 declaration 4 returns a reservation per side |
+| 21b | The political system | parties as platforms on three axes, world scope; one household one vote from its own rows; seats by §6.3 rule two; **the median seat sets policy**; 208-period cadence at position 7 | no region-scoped `assumed` platform compiles; the fiscal and regulatory constants have no other writer |
 | 22b | Firm tiers | **one `Firm` class, two tiers**; listed tier capacity 1,000, `structural`, re-derived from the first long run | exhaustion raises; the high-water series (§8.7) |
 | 23 | Staggering | 13 / 4 / 1; phase from a dedicated stream, never `id mod C`; six triggers, one minted handle each | the manifest fails the N3 check if a trigger's index is a scan |
 | 24 | Decision outputs | `plans` and `intents` as world tables, ≈121 MB fixed at init | no decision system allocates a result object |
@@ -2538,6 +2746,9 @@ nothing reads failing the build. **The cap was never what made A3 true; the rule
 | The trailing-statistics system | **owed a position** | §13.4 requires it, §9.4's twenty-one positions do not contain it |
 | Insurer and Pension fund | **merged into one class, `Liability-matched institution`** — nine agent classes became eight | They differed on no column §8.4 carries and on no declaration of §8.1. What differs is the liabilities they issued, which A2 makes instrument data. The owed rule for splitting 40 into 22 and 18 is not needed, because nothing is split |
 | SME and Large firm | **merged into one class `Firm` with two tiers, and a promotion path** (§8.7) — seven agent classes | Two classes fixed the firm size distribution at the opening for the whole run, which M6 makes a phenomenon asserted rather than produced. What separated them was capital-market access, which §8.7 makes something a firm *does*. Tier is a fact, not a class: §8.4's "class is not a block" licenses two block widths in one class rather than forbidding them |
+| The scope of the model | **§2.3, merged in from a separate scope document** | Breadth was recorded in a third file and a third file drifts. §2 is where scope lives, so the surface lives there, and `IMPLEMENTATION.md` sequences it |
+| The dealer | **a new agent class, §8.8** — eight classes | Every other agent was an end investor, so nothing took a position because it disagreed with a price. A market of hedgers clears at whoever's constraint binds, and in a week when none binds the book does not open. M6 does not allow a price that cannot move because somebody thinks it is wrong. It differs on mandate and on valuation — two reservations, not one — so §8.4's test admits it |
+| Fiscal and regulatory policy | **an outcome of an elected parliament, §21** | §13.4 made the policy *rate* an output and left the tax rate, the capital floor and the loan-to-value limit as constants nobody chose. Those are among the most consequential numbers in the model and M6 requires them to be produced. Households vote from their own rows, seats allocate by §6.3 rule two, and the median seat sets policy — which destroys more `assumed` entries than it creates |
 | The listed tier's capacity | **1,000, `structural`, exhaustion raises** | Giving every firm the 64-slot block would cost roughly 38 MB of agent rows and 2.4 M slots to serve a population that is 1% listed. The tier is the cheap answer, and its capacity is re-derived from the first long run's promotion rate rather than guessed at now |
 
 #### Answers derived from the model rules, not decided afresh
@@ -2582,7 +2793,9 @@ of which roughly thirty are owed and one exists. The **relational table's twenty
 **instrument type vocabulary**, which §18 charges one entry against a section that does not exist.
 **None of this is a detail of implementation. It is the economics, and it is the subject of the title.**
 
-*Numbers and rules.* δ₁'s justification. §7.5's 44-byte against 148-byte instrument row. N4's itemisation. §3.4's identifier census and
+*Numbers and rules.* The party platforms, the party and seat counts, and the political disposition's
+dispersion (§21). The dealer's two-sided width (§8.8). δ₁'s justification. §7.5's 44-byte against
+148-byte instrument row. N4's itemisation. §3.4's identifier census and
 its operation-count derivation. The numéraire's upper bracket. The trailing-statistics position. The
 period-0 grid-placement rule for every venue family other than labour — §13.1.1 supplies one anchor and
 the other nine or more lines have none, so a first clearing would raise a grid defect on almost every
@@ -2625,6 +2838,12 @@ When something goes wrong it is usually one of these wearing a costume.
 | 20 | a phenomenon needing an outside, faked inside | model it, or declare it out of scope. An invented producer is a mechanism nobody specified |
 | 21 | a world-summing pass added as a diagnostic | tier 4 is empty by design and a proposal to open it is an ADR |
 | 22 | a bug converted into a plausible number | defects raise; modelled outcomes are values in the type |
+| **23** | **a loss *rate* standing in for a default *event*** — debt extinguished by subtraction, with no borrower, no date, no cash and no recovery | default is a modelled outcome with a date, an estate and a ranked queue (§6.7) |
+| **24** | **a market of hedgers** — every participant in a book is closing a regulatory gap, so the price is a function of whose constraint binds and never of a view | the dealer forms two reservations and takes a position because it disagrees (§8.8) |
+| **25** | **margin as a stated rate**, so it cannot rise when it matters — which deletes procyclicality, and procyclicality *is* the contagion mechanism | a margin that is a read of the reference's own realised move (owed, §18) |
+| **26** | **a recipe in money rather than in units** — inputs as a share of revenue, so a price doubling halves the physical draw, which is the strongest substitution assumption there is and is invisible at the call site | technology is physical: what a process takes in units (§13.1.2) |
+| **27** | **nothing is ever forced to sell**, so no shock propagates through a price | the door's preconditions and §6.7's resolution, which must actually run |
+| **28** | **a beta measured against a random walk**, because the index everything reads was seeded with generated history | every index is a read of cleared prints (§4.4, §14) |
 
 ---
 
