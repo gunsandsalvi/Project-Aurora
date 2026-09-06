@@ -139,3 +139,94 @@ fn arithmetic_in_a_comment_or_string_is_not_a_finding() {
         "a grep would flag both of these; the lexer does not: {findings:?}"
     );
 }
+
+#[test]
+fn a_new_dangling_citation_is_caught() {
+    let root = scratch("dangling-new");
+    fs::write(
+        root.join("PROJECT_AURORA.md"),
+        "## 1. What this is\n\nSee §1 for the claims, and §99.9 for the thing nobody wrote.\n",
+    )
+    .expect("scratch doc is writable");
+    fs::create_dir_all(root.join("decisions")).expect("scratch decisions dir");
+    fs::write(root.join("decisions/dangling-refs.baseline"), "# empty\n")
+        .expect("scratch baseline is writable");
+
+    let (findings, _, _, owed) = aurora_tools::check_refs::check(&root);
+    assert_eq!(owed, 0, "the baseline is empty");
+    let [only] = findings.as_slice() else {
+        panic!("§1 resolves and §99.9 does not: {findings:?}")
+    };
+    assert!(
+        only.contains("99.9"),
+        "the finding names the citation: {only}"
+    );
+    assert!(
+        only.contains("baseline"),
+        "and says why it is a defect now: {only}"
+    );
+}
+
+#[test]
+fn a_baseline_entry_that_now_resolves_must_come_off() {
+    // The other half of the ratchet. Without it the list goes stale and stops meaning anything.
+    let root = scratch("dangling-fixed");
+    fs::write(
+        root.join("PROJECT_AURORA.md"),
+        "## 7. Instruments\n\n### 7.1 The vocabulary\n\nCited at §7.1, and it now exists.\n",
+    )
+    .expect("scratch doc is writable");
+    fs::create_dir_all(root.join("decisions")).expect("scratch decisions dir");
+    fs::write(
+        root.join("decisions/dangling-refs.baseline"),
+        "7.1  the vocabulary. M3\n",
+    )
+    .expect("scratch baseline is writable");
+
+    let (findings, _, _, owed) = aurora_tools::check_refs::check(&root);
+    assert_eq!(owed, 1);
+    let [only] = findings.as_slice() else {
+        panic!("the resolved baseline entry is reported: {findings:?}")
+    };
+    assert!(only.contains("now resolves"), "{only}");
+    assert!(
+        only.contains("the vocabulary. M3"),
+        "and names who owed it: {only}"
+    );
+}
+
+#[test]
+fn an_adr_without_a_guard_is_caught() {
+    let root = scratch("adr-no-guard");
+    fs::create_dir_all(root.join("decisions")).expect("scratch decisions dir");
+    let mut front = String::from("---\n");
+    for f in [
+        "id: ADR-0001",
+        "title: t",
+        "status: accepted",
+        "date: 2026-01-01",
+        "register-entry: 1",
+        "claim-impact: none",
+        "guard:",
+        "supersedes: none",
+        "cost: none",
+        "alternatives-rejected: none",
+        "re-derivations: none",
+    ] {
+        front.push_str(f);
+        front.push('\n');
+    }
+    front.push_str("---\n\n## Decision\n\nSomething.\n");
+    fs::write(root.join("decisions/ADR-0001-x.md"), front).expect("scratch adr is writable");
+
+    let (findings, count) = aurora_tools::check_adr::check(&root);
+    assert_eq!(count, 1);
+    let [only] = findings.as_slice() else {
+        panic!("the empty guard is the one finding: {findings:?}")
+    };
+    assert!(only.contains("guard"), "{only}");
+    assert!(
+        only.contains("same as absent"),
+        "and says why an empty field is not a field: {only}"
+    );
+}

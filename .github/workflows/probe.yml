@@ -1,0 +1,25 @@
+# The device probe (M0/W3, founding decision D4). Builds the Android APK and attaches it to a
+# release, so the owner installs it, taps Run, and copies one JSON document back.
+#
+# NOT YET WIRED: the Rust core, the JNI entry point and the Kotlin shell are W3, which is open.
+# This file exists so the delivery path is decided and reviewed before the thing it delivers is
+# written — the pipeline is the long pole, and discovering it in week five is what this avoids.
+name: probe
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['probe-v*']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Not yet wired
+        run: |
+          echo "W3 is open. This workflow builds nothing until the probe crate exists."
+          echo "Planned: cargo-ndk -> aarch64-linux-android cdylib -> Kotlin shell -> signed debug APK"
+          echo "         -> attached to a GitHub Release for sideloading."
+          exit 0

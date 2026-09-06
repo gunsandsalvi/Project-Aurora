@@ -1,0 +1,12 @@
+# Sections cited by this project's documents that do not yet exist.
+#
+# This is a RATCHET, not an exemption list. `aurora-tools check-refs` fails on any citation whose
+# section is missing and NOT listed here, and it fails again when a listed section is written and the
+# line is not removed. The list may shrink and may never grow: a new dangling citation is a defect at
+# the point it is written, which is the only point at which it is cheap to fix.
+#
+# Each line: the section id, then who owes it.
+3.4.4    the 148-byte instrument row. Owed with the §7.5 row-width decision (ADR-0009, M0/W7.9)
+7.1      the instrument vocabulary. §18 charges one entry against a section that does not exist. M3
+9.6.1    the grid the period-0 reservation anchor places. §13.1.1's whole argument points here. M4
+15.3.4   the sensitivity sweep. §15.3 describes it; the numbered subsection was never written. M11

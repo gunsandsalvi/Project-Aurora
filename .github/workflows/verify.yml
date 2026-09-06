@@ -1,0 +1,42 @@
+# The gate. Rule: mid-milestone these are the only things that run, they are seconds, and they are
+# green before every commit. A budget is published because a gate nobody can afford stops being run.
+name: verify
+
+on:
+  push:
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8   # the published budget; a gate that grows past it is a defect, not a wait
+    steps:
+      - uses: actions/checkout@v4
+
+      # rust-toolchain.toml pins the version; this action honours it.
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Format
+        run: cargo fmt --all -- --check
+
+      - name: Build
+        run: cargo build --workspace --locked
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+      - name: Test
+        run: cargo test --workspace --locked
+
+      # The checks the compiler cannot make. Each prints its rule inventory and its exemption count,
+      # and the count must read zero — §17's empty exemption list is only a claim if something counts it.
+      - name: Checks
+        run: cargo run -q -p aurora-tools -- verify

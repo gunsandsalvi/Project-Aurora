@@ -11,8 +11,9 @@
 with written results, and nineteen ADRs.
 
 **Landed so far:** the workspace and its twelve crates; the layer matrix, proved by a committed fixture;
-the lint floor; the `surface`/`shell` split; `check-lints` and `check-surface`, each with negative
-fixtures; ADRs 0001–0004. See §9 of the git log for what each commit did.
+the lint floor; the `surface`/`shell` split; five checks — `check-lints`, `check-surface`, `check-deps`,
+`check-refs`, `check-adr` — each with negative fixtures, behind one `verify` command; the dangling-ref
+ratchet; CI. ADRs 0001–0005. The git log says what each commit did.
 
 ---
 
@@ -65,16 +66,12 @@ the paper falsifiers need no device at all.
 
 ### W2 — Build machinery and CI
 
-*Owner E1. Depends on W1.1.*
+*Owner E1. Two checks remain, and each is blocked on the thing it would police.*
 
 | | Task | Detail | Days | Done when |
 |---|---|---|---|---|
-| W2.1 | Toolchain pin | `rust-toolchain.toml`, exact version; `Cargo.lock` committed; `cargo-deny` for licences and duplicate crates | 1 | a second version of any transitive dependency fails CI |
-| W2.2 | Zero-dependency assertion | `domain`, `world` and `ledger` carry no third-party dependencies (§17), asserted over the resolved graph rather than over the manifest | 1 | adding a dependency to `domain` fails CI |
-| W2.3 | `tools` checks — the four still owed | `check-generated`, `check-registry`, `check-adr`, `check-refs`. `check-lints` and `check-surface` landed with W1, each with its negative fixtures. Every check prints its rule inventory and an exemption count, which must read zero | 3 | all six run in CI in under two minutes and print `exemptions: 0` |
-| W2.4 | `check-generated` | every generator runs into a temp directory and the output is compared byte-for-byte with what is committed; each generated file carries an `@generated` header with its input hash | 2 | a hand edit to a generated file fails CI |
-| W2.5 | `check-refs` | resolves every `§x.y` in the Markdown against the heading set. **Eight references currently resolve to nothing** (§3.4.4, §9.6.1, §15.3.4, §21.3, D-7 and others) | 1 | the check runs, reports the eight, and CI fails on a *new* one |
-| W2.6 | CI workflows | `verify` (build, test, six checks, ≤ 8 min) on every push; `probe` (build the APK, attach to a draft release) on tag | 3 | a push produces a green `verify`; a tag produces an installable APK |
+| W2.4 | `check-generated` | every generator runs into a temp directory and the output is compared byte-for-byte with what is committed; each generated file carries an `@generated` header with its input hash. **Blocked: there are no generators until M1's column schema.** Written when the first one is | 2 | a hand edit to a generated file fails CI |
+| W2.7 | `check-registry` | the seven rules of §16.1, each with its own compile-fail fixture. **Belongs with W4**, which builds the registry it checks | — | folded into W4.5 |
 
 ---
 
@@ -137,7 +134,6 @@ be *recorded* until this exists.
 | | Task | Detail | Days | Done when |
 |---|---|---|---|---|
 | W5.1 | Format and numbering | `decisions/ADR-NNNN-kebab.md`; `tools adr new` allocating from a committed counter, so a collision is a merge conflict and a one-line fix | 2 | two ADRs created on branches collide visibly |
-| W5.2 | Front matter, checked | `id, title, status, date, register-entry, claim-impact, guard, supersedes, cost, alternatives-rejected, re-derivations`. **An ADR with no `guard` fails** — Appendix A's own rule, made mechanical | 2 | an ADR without a guard fails `check-adr` |
 | W5.3 | Coupling, scoped by maturity | Registered files require an ADR and a `Decision:` trailer when a *parsed value* changes. **While a schema file is under initial construction the coupling is off**, declared per file per milestone, and the milestone exit ratifies the whole file. Otherwise M1 produces one ADR per column and the process becomes the throughput limit | 3 | a value change without an ADR is refused on a ratified file and free on an unratified one |
 | W5.4 | Appendix generation | Appendices A and B generated from front matter; the doc build fails if the committed appendix differs | 2 | a hand edit to Appendix A fails CI |
 
@@ -202,12 +198,9 @@ Enumerated, because "roughly eighteen ADRs" in an exit criterion is not a criter
 Mechanically checkable. No "or restate by ADR"; no "reported" where "passes" is meant; nothing that
 passes because the tree is empty.
 
-3. `domain`, `world` and `ledger` resolve to zero third-party dependencies. Asserted over the resolved
-   graph.
 4. **Each of the registry's seven rules has a compile-fail fixture that fails for its own stated reason
    and no other.** Seven fixtures, seven distinct messages.
 5. `check-generated` fails on a hand edit to any generated file.
-6. `check-refs` reports the eight currently-dangling references and fails CI on a ninth.
 7. An ADR without a `guard` field fails `check-adr`. A parsed-value change to a *ratified* registered
    file without a `Decision:` trailer is refused; the same change to an unratified file is not.
 8. Appendices A and B regenerate from ADR front matter, and the doc build fails when the committed
@@ -225,7 +218,6 @@ passes because the tree is empty.
 14. The intrinsic facts table compiles with all thirteen answers for all seven opening types, and
     deleting one fails to compile.
 15. All nineteen ADRs are accepted, each naming a mechanical guard.
-16. `verify` runs green in under eight minutes and every check prints `exemptions: 0`.
 17. **No file exists under the eight engine crates' `src/` other than `lib.rs`** — and
     `kernel/src/layer_probe.rs`, which is compiled only under `--cfg aurora_layer_probe` and must fail.
     The constraint of §1, as a check.

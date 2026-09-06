@@ -2405,7 +2405,9 @@ than managed.
 **Naming.** A reader that returns a magnitude is named for the magnitude; a reader that returns a
 signed balance is named for the balance. Units are in the name where two units could be confused.
 
-**17.4 Definition of done for a system.** Its specification is written first; its manifest
+### 17.4 Definition of done for a system
+
+Its specification is written first; its manifest
 declares exactly what it reads and writes; its capabilities are minted and no wider; its numbers are
 registry entries; its outputs are declared series; it has a conformance case or a stated reason it
 needs none; and this document still describes what it does.
@@ -2802,13 +2804,12 @@ the other nine or more lines have none, so a first clearing would raise a grid d
 line. How a fill at positions 13 and 14 becomes an instrument at position 19. The derivation rule for
 Q13 `DerivedMark` instruments, read at position 17.
 
-*Cross-references that resolve to nothing*, each of which is cited as though it carried content:
-**§3.4.4** (the 148-byte instrument row), **§9.6.1** (the grid the numéraire argument exists to place),
-**§15.3.4** (the sensitivity
-sweep), **§17.4** (the definition of done, cited from §8 and Appendix B), **§21.3** (the fourth-axis
-ADR) and **D-7** (the shard-by-row-count rule). (§9.7.3 and §9.7.5, cited as A4's discharge, are
-repointed to §9.7 in this edition.) A documentation check resolving every reference against the heading
-set is a day's work and would have caught all of them.
+*Cross-references that resolve to nothing.* Named here without the section mark, because naming a
+broken citation is not making one: **3.4.4** (the 148-byte instrument row), **9.6.1** (the grid the
+numéraire argument exists to place), **15.3.4** (the sensitivity sweep) and **D-7** (the shard-by-row-count
+rule). Repointed in this edition: 9.7.3 and 9.7.5 to §9.7, and 21.3 dropped, since §21 now exists and
+means something else. 17.4 was demoted to bold text by an earlier edit and is a heading again.
+**`aurora-tools check-refs` is what found this list**, and it holds a baseline that may only shrink.
 
 *Process.* There is **no ADR template, numbering or register**, though this document requires an ADR
 about twenty times and Appendix A's supersession procedure depends on one existing.
