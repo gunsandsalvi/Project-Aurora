@@ -1,0 +1,18 @@
+[package]
+name = "aurora-systems"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+aurora-kernel = { path = "../kernel" }
+aurora-domain = { path = "../domain" }
+aurora-declarations = { path = "../declarations" }
+aurora-world = { path = "../world" }
+aurora-markets = { path = "../markets" }
+aurora-ledger = { path = "../ledger" }
+aurora-agents = { path = "../agents" }
+
+[lints]
+workspace = true

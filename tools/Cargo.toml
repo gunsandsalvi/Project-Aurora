@@ -1,0 +1,38 @@
+[package]
+name = "aurora-tools"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+# `tools` is not in the layer graph (ADR-0003). It is build and check machinery, it ships in no
+# artifact, and it may name anything it inspects.
+
+[lib]
+name = "aurora_tools"
+path = "src/lib.rs"
+
+[[bin]]
+name = "aurora-tools"
+path = "src/main.rs"
+
+[dependencies]
+proc-macro2 = { version = "1", features = ["span-locations"] }
+
+[dev-dependencies]
+trybuild = "1"
+
+# `tools` is not a layer (ADR-0003): it is build machinery, it ships in no artifact, and the engine's
+# lint table does not apply to it. This is a project boundary, stated here, and not an exemption
+# inside the engine's list — §17's empty exemption list is about the engine, and stays empty.
+# What is kept: unsafe stays forbidden, and documentation stays required.
+# What is dropped: `expect_used`, because in a build tool an `expect` with a message IS raising with
+# context (§16.2), and the alternative is error plumbing that obscures the check being made.
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+must_use_candidate = "allow"
+indexing_slicing = "deny"

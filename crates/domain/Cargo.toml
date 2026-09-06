@@ -1,0 +1,12 @@
+[package]
+name = "aurora-domain"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+aurora-kernel = { path = "../kernel" }
+
+[lints]
+workspace = true

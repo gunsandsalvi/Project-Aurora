@@ -1,0 +1,38 @@
+# Project Aurora — the eleven layers of §4 as eleven crates.
+# The permitted edges are ADR-0003's matrix, enforced by Cargo: a crate that is not a
+# dependency cannot be named. There is no exemption list because there is no checker to exempt.
+
+[workspace]
+resolver = "3"
+members = ["crates/*", "tools"]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.94"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+# `aurora_layer_probe` compiles crates/kernel/src/layer_probe.rs, which must NOT compile.
+# tools/tests/layer_refusal.rs is what builds it and asserts the failure.
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(aurora_layer_probe)'] }
+missing_docs = "warn"
+unused_qualifications = "warn"
+elided_lifetimes_in_paths = "warn"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+# §16.2: a defect raises with full context. These are the shapes that hide one.
+unwrap_used = "deny"
+expect_used = "deny"
+indexing_slicing = "deny"
+float_cmp = "deny"
+# §11: no ambient state, no wall clock below composition/host.
+mutable_key_type = "deny"
+# §5.4 / §16.2: a modelled outcome is a value in the type, never a default.
+or_fun_call = "deny"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"
