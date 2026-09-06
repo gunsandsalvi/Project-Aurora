@@ -180,7 +180,7 @@ be *recorded* until this exists.
 | | Task | Days | Done when |
 |---|---|---|---|
 | W7.1 | **The memory derivation.** One row per world table, capacity × width, summed against N4. Currently ~705 MB of the 1,488.3 MB is unaccounted and its largest term is the instrument row width §7.5 leaves unsettled | 4 | a table that sums, with every capacity a `capacity` registry entry carrying its arithmetic |
-| W7.2 | **The tick-0 hand trace.** Walk the committed order for ticks 0 and 1 with §13.1's opening and list what each of the 21 positions can actually do. This is what showed the world cannot start: all money is with the governments, no employment contract exists, and §9.6.2's payroll precondition sends every firm into resolution at tick 1 | 3 | a written trace, and a named bootstrap requirement for M6 |
+| W7.2 | **The tick-0 hand trace.** Walk the committed order for ticks 0–4 against **§13.6**, which now derives the bootstrap: no firm bids at tick 0 because §9.2 budgets against settled balances, the government is the only agent with one, and it spends by hiring on the labour line. The trace confirms the derivation position by position and settles the one thing §13.6 leaves open — who holds the capital and dwellings position 6 sources at tick 0 | 2 | a written trace for ticks 0–4, and a derived holding rule for the opening stocks |
 | W7.3 | **The identifier census.** Per identity space, live and ever-issued over 1,560 ticks. §3.4's ≈971,000 against §5.2's implied ≈12,450,000 is a factor of thirteen and it sizes the directory, the digest walk and the save | 2 | one reconciled figure per space |
 | W7.4 | **The position workload table.** Twenty-one rows of operation counts summing to a published total, clearing's sort cost separated from operation-call cost. §12's targets are decomposed against this and it does not exist | 3 | the table sums to a published total |
 | W7.5 | **The journal row layout.** Field list for `move` and for `exchange` against 48 B. An `exchange` needs two parties, two assets, two quantities, two rates, a reason code and an actor | 1 | a published packing, or a published width |
@@ -277,12 +277,10 @@ performance figures would be a gate that cannot fire, which is worse than a gate
 | Storage `seqWriteMiBs` < 200 | Checkpointing at cadence 64 is not affordable; ADR-0016 takes dirty-region incremental checkpointing |
 | W7.1's derivation exceeds the measured ceiling | The instrument row A/B (ADR-0009) is decided by memory rather than by speed, and §3.4's slot capacities are re-derived before M1 allocates anything |
 
-**The one thing G0 can genuinely stop.** If W7.2's hand trace shows there is *no* sequence of modelled
-operations that moves the first franc from a government to a household without an unmodelled transfer,
-then the opening world as specified cannot start, and A4 is satisfied on paper only. That is a design
-failure discovered for three days of a modeller's time rather than at M6 for sixty engineer-weeks. It
-does not stop the project so much as suspend it until §13 gains a bootstrap — but it is the one finding
-here that must be resolved before M1 begins rather than recorded and carried.
+**G0 no longer carries a stop finding, and that is a result rather than a gap.** The candidate stop —
+that no modelled sequence moves the first unit of money from a government to a household — was resolved
+by derivation from the model rules before this milestone starts: §13.6 now carries it. W7.2 confirms the
+derivation rather than testing whether one exists. **The first gate with stop authority is G1a.**
 
 ---
 

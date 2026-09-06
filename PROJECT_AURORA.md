@@ -1263,8 +1263,14 @@ A household posts price-taking on each **active** consumption line, and which li
 staggered by good and identifier: active when `(id + g) mod cadence(g) == 0`, cadence 1 for the two
 perishable goods and 4 for the other four. **Expected active lines per household per tick: 3.**
 
-**Households may not hold consumption goods.** This is a party-class eligibility rule using
-machinery that already exists. The retail fill is **one `exchange`** whose money leg runs household
+**Households may not hold consumption goods**, and **this needs no eligibility rule at all**. Q10's four
+answers — any, institutional, issuer-restricted, sovereign — cannot express "not a household", and
+adding a fifth would be §18's most expensive change: one column across every instrument type, breaking
+each until it is decided. It is unnecessary, because **the household is never credited in the first
+place**: the retail exchange delivers its goods leg to the buyer's declared sink, so no holding is ever
+created for the door to refuse. The rule is enforced by where the leg lands, not by who may hold what,
+and the property to test is that a household's block contains no consumption good at any intermediate
+point. The retail fill is **one `exchange`** whose money leg runs household
 → seller and whose **goods leg is delivered to the buyer's declared sink, `Consumption:<good>` of
 the buyer's region**, because eligibility forbids the buyer from holding it. One journal row names
 buyer, seller, both assets and both quantities, so the buyer is the named economic recipient and
@@ -1628,12 +1634,30 @@ modelling question answered by arithmetic about a budget was never answered on i
 decides how much structure an economy has by counting rows is not serving M2, and this section is the
 place the previous edition recorded it happening.
 
-**What must now be decided, on the model's terms:** how many production sub-units the opening carries.
-The arguments are about the economics and not about the count. In favour of more: with one composite
-good there is no relative price between goods, no input–output structure, no sector-specific shock, and
-inter-firm trade is trade in a single homogeneous thing — which makes §9.5's twenty-seven goods lines per
-region meaningless and much of the trade motive with it. In favour of fewer: each sub-unit costs
-coefficients that are genuinely assumed, and M3 counts them.
+**The model rules decide this, and they decide it against one.** Three of them bear on it directly:
+
+- **M6 — emergence, not assertion.** §13.3 makes technology one of the three axes that produce regional
+  difference. With a single composite sub-unit, axis 2 scales one number, so no region can be *better at
+  one thing and worse at another*: comparative advantage is not expressible, and the trade the model is
+  supposed to produce would have to be asserted instead.
+- **M2 — realistic in mechanism.** With one good there is no relative price between goods, no
+  input–output structure, no intermediate input, and no sector-specific shock. Inter-firm trade becomes
+  trade in a single homogeneous thing, which makes §9.5's goods lines and much of §9.6.3's retail
+  staggering meaningless.
+- **M3 — minimum priors.** Each sub-unit costs coefficients that are genuinely assumed, so the answer is
+  not twenty-seven either. M3 asks for the fewest that support the mechanisms above, not the fewest
+  representable.
+
+**The criterion, therefore, and not a number typed in:** the opening carries the smallest set of
+production sub-units for which (a) at least two are tradeable, so comparative advantage is expressible
+under axis 2; (b) at least one is an intermediate input to another, so an input–output structure exists;
+and (c) at least one is consumed by households, so the retail line has content. **Three sub-units meet
+all three; one meets none.** Whether more than three earn their coefficients is decided per sub-unit, by
+naming the mechanism each one buys — which is the standard §16.1 now applies to every entry.
+
+*Accepted cost.* Three is a floor derived from expressibility, not a claim about any real economy, and
+it is the kind of number M3 will keep pressure on. §9.5's twenty-seven goods lines per region are
+withdrawn and the line census is re-derived from the sub-unit count.
 
 **§9.5 and this section currently contradict each other** — twenty-seven goods lines per region against
 one composite sub-unit — and the contradiction is load-bearing: it changes the line census, the retail
@@ -1828,6 +1852,58 @@ series digest, so a reporting change does not force a state re-baseline.
 
 ---
 
+### 13.6 How the world starts
+
+*This section was owed. It is not a new decision: it is derived from M1–M6 and from machinery §9.2 and
+§6.2 already specify, and the derivation is given so it can be checked rather than believed.*
+
+**The problem it answers.** At the close of tick 0 the four governments hold the entire money stock
+(§13.2), no employment contract exists, and §9.6.2 says a firm that cannot make payroll delivers no
+hours and fails to settle. Read quickly, that says every firm enters resolution at tick 1 and the world
+cannot start.
+
+**It does not, and the reason is already in §9.2.** Stage-2 spending is allocated *per line, against
+balances that are now facts*. **A firm with no balance has a zero budget on every line, including
+labour, so it does not bid.** No firm hires at tick 0, so no firm owes a wage at tick 1, so no firm
+fails. The apparent deadlock was an artefact of assuming an agent can bid without a budget, which the
+two-stage allocator exists to prevent.
+
+**What follows is then forced.** At tick 0 exactly one class of agent has a settled balance, so exactly
+one can allocate to any line: the government. **The government is the first spender, and it must be**,
+which is why §19's ordering of the economic content — money, then credit, then equity, then the public
+sector — is inverted in `IMPLEMENTATION.md`. It is not fourth; it is the only source from which the
+first unit of money can reach anybody.
+
+**It spends through the ordinary door.** The government submits on the labour line at position 13 like
+any other employer, the fills become employment contracts at position 19, it pays wages at position 4
+of tick 1, and the hours it receives are consumed into `Consumption:labour-<class>` — a counter-account
+family §6.2 already permits to touch labour hours. **No new mechanism, no new operation, no seeded
+contract, and no transfer without a counterparty.** Public services are the hours the state buys and
+consumes, which is what M2 asks of it: a mechanism rather than an accounting convention.
+
+**The circuit then closes by itself:**
+
+| Tick | What becomes possible, and why |
+|---|---|
+| 0 | Position 6 sources the opening capital and dwellings from `Production:` (§6.2). Only the government has a balance, so only the government allocates. It hires; contracts issue at 19 |
+| 1 | It pays wages at position 4; hours are delivered and consumed. **Households hold money for the first time.** Banks issue equity at 19 |
+| 2 | Households have budgets: they buy bank equity, and **banks acquire the regulatory capital §8.1 requires before they can lend** |
+| 3 | Banks lend; a loan is a deposit moved out of the bank, which goes equally negative (R-1). **Firms hold money for the first time**, so they can now budget for labour |
+| 4 | Firms hire, pay, and produce. Output reaches the retail line, and the household wage becomes household consumption |
+
+**Nothing is seeded and nothing is created.** Every step is a `move` or an `exchange` between two
+modelled parties, and the money that circulates is the money §13.2 derived. The world takes about four
+periods to become fully occupied, and that is a modelled outcome rather than a warm-up: it is what an
+economy with no financial instruments and no employment does when it starts.
+
+*Accepted cost.* The first few periods are unlike any later period — one employer, no output, no
+credit — so no series is meaningful before the circuit closes. This is why §15.3's burn-in floor is
+260 and not zero, and the opening transient is now a named reason for it rather than a margin.
+
+*Owed, and still owed.* Position 6 sources the opening capital and dwellings, and **no section says who
+holds them.** M4 requires modelled holders and M3 forbids a per-region assumed allocation, so the
+holding must be derived — but the rule is not written. It is the last thing between this section and a
+world that starts.
 
 ---
 
@@ -1955,8 +2031,16 @@ observation store. **No engine handle reads them.**
 `0.503` is the two-sided 5% critical value of Spearman's ρ at n = 16 — a property of a
 distribution, which is arithmetic, registered `structural`.
 
+**A multiplicity correction is required, and M2 is what requires it.** Four tests across 42 series is
+168 hypotheses; at a nominal 5% each, the conjunction passes roughly 11.6% of the time on a world that
+is *not* settled. A gate that fires on noise one time in nine is not measuring whether the model has
+settled — it is measuring whether 168 tests happened to agree — and M2 asks that the machinery be right
+rather than that it produce an acceptable-looking answer. The correction is declared with the panel, its
+family-wise error rate is stated, and it is validated against synthetic series with known properties
+before any engine output is judged by it.
+
 **`burnInPeriod` is the first period `P` with `260 ≤ P ≤ 520` at which all four pass on all 42
-series.** It is in the run manifest, the surface refuses to present any earlier period as a result,
+series, under the declared correction.** It is in the run manifest, the surface refuses to present any earlier period as a result,
 and it is part of the digest's metadata.
 
 - **The floor is 260 and is derived:** no policy rate exists before period 104 and its anchor window
@@ -2342,6 +2426,20 @@ nothing reads failing the build. **The cap was never what made A3 true; the rule
 | N4's 1,488.3 MB | **unresolved, and named as such** | the itemisation was never published and the named components leave roughly 705 MB unaccounted, whose largest term is the instrument row width §7.5 declares unsettled |
 | §3.4's identifier census | **unresolved, and named as such** | ≈ 971,000 ever issued against §5.2's implied ≈ 12,450,000 is a factor of thirteen, and it sizes the directory, the digest walk and the save |
 | The trailing-statistics system | **owed a position** | §13.4 requires it, §9.4's twenty-one positions do not contain it |
+
+#### Answers derived from the model rules, not decided afresh
+
+*M1–M6 already determined these. They are written in with their derivations so the reasoning can be
+checked; none of them is a new choice.*
+
+| Question | Answer | Derived from |
+|---|---|---|
+| How does the world start, when the governments hold all the money and no contract exists? | **§13.6.** No firm bids at tick 0, because §9.2 budgets stage-2 spending against settled balances and a firm has none. The government is the only agent that can allocate, so it is the first spender, and it spends by hiring on the ordinary labour line and consuming the hours. The circuit closes in about four periods with no new mechanism | M4 (no unmodelled transfer), M2 (a mechanism, not a convention), and machinery §9.2 and §6.2 already carry |
+| One composite production sub-unit or twenty-seven? | **Neither. A floor of three**, from expressibility: two tradeable so comparative advantage exists under axis 2, one intermediate so an input–output structure exists, one consumed so retail has content | M6 (regional difference must be produced), M2 (relative prices must exist), M3 (fewest that support the mechanism) |
+| How is "a household may not hold a consumption good" enforced, given Q10 cannot say it? | **It needs no rule.** The retail exchange delivers its goods leg to the buyer's declared sink, so no holding is created for the door to refuse. Q10 gains no fifth answer and §18's most expensive change is avoided | M2, plus §9.6.3's existing sink |
+| Should the burn-in gate carry a multiplicity correction? | **Yes, and it is required rather than advisable.** 168 hypotheses at a nominal 5% pass together ~11.6% of the time on an unsettled world | M2 — a gate that fires on noise measures agreement among tests, not the model |
+| What justifies δ₁, δ₂, δ₃? | **A mechanism inside the model, named**, never a resemblance to an observed economy. §13.3 already states the standard; M2 is why it is the standard | M2 |
+| How is the insurer/pension count of 40 split? | **One world-scope assumed ratio with a bracket, split by §6.3 rule two.** Not two counts, and never a per-region count | M3 (one entry, not eight), A3 rule 2 |
 | The institutional census: banks, funds, insurers-and-pension-funds | **56 / 54 / 40** | The seed carried 120 / 240 / 80 while the entity census, the agent inventory and the workload decision carried 56 / 54 / 22 + 18. The layout, the arena sizing, the block widths and the entity budget are all derived from the second set, and it is the set with an argument attached |
 | Every published per-region vector | **withdrawn; §13.3's derived table replaces them** | The published household row descended while every other axis-1 primitive in the same table ascended, so one axis was being read in two directions; and no household vector printed anywhere was the formula's output |
 | `Z`'s index direction | **rank 1 takes the smallest loading** | The only reading reproducing the axis-1 share row, both multiplier rows and the sign of ρ(P₂,P₃) |

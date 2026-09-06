@@ -437,7 +437,7 @@ Sources are `PROJECT_AURORA.md` unless stated.*
 | The 44 B versus 148 B instrument row | §7.5 *Unresolved* | **M0** decides on paper; M3 confirms |
 | Transcendental bit-identity, CI against device | §11 | **M0** (probe) |
 | Household block occupancy against ten slots | §3.4 | **M0** (paper) |
-| The tick-0 bootstrap: how the first franc moves | *silently missing* | **M0** traces it; **M6** builds it |
+| ~~The tick-0 bootstrap~~ **Derived: §13.6** | was *silently missing* | **M6** builds it; M0 no longer traces it |
 | ADR template, numbering and register | *silently missing* | **M0** |
 | The numéraire's upper bracket | §5.3 *Owed* | **M1** |
 | Retirement queue capacity against drain interval | §5.5 | **M1** |
@@ -447,27 +447,28 @@ Sources are `PROJECT_AURORA.md` unless stated.*
 | Escrow entity retirement at resolution close | *silently missing* | **M2** |
 | The instrument type vocabulary (§7.1 does not exist) | §18 charges for it | **M3** |
 | The relational table's 21 values | §7.3 *Owed* | **M3** |
-| Q10 cannot express "not a household" | §9.6.3 | **M3** |
+| ~~Q10 cannot express "not a household"~~ **Derived: no rule needed** — the goods leg lands in the sink | §9.6.3 | closed |
 | The amendment permission matrix, 7 types × 8 mechanisms | *silently missing* | **M3** |
-| Technology: one composite sub-unit or twenty-seven | §13.1.2, reopened by D3 | **M4** |
-| §9.5's 27 goods lines against §13.1.2 | contradiction | **M4** |
+| ~~Technology: one or twenty-seven~~ **Derived: a floor of three** | §13.1.2 | **M4** confirms the count above the floor |
+| §9.5's 27 goods lines — **withdrawn**; the census re-derives from the sub-unit count | resolved by the above | **M4** |
 | The period-0 grid anchor for every non-labour venue | §13.1.1, cites a missing §9.6.1 | **M4** |
 | §13.3's four non-reproducing count vectors | measured, red | **M4** |
 | The trailing-statistics system has no position | §13.4 | **M5** |
 | How a fill at 13/14 becomes an instrument at 19 | *silently missing* | **M5** |
 | `regimeOf(venue)` is undefined for 33 of 37 venues | §7.3 | **M5** |
-| The fiscal rule | *silently missing* | **M6** |
+| The fiscal rule, including the tick-0 headcount decision §13.6 requires | *silently missing* | **M6** |
+| **Who holds the opening capital and dwellings** sourced at position 6 of tick 0 | *silently missing*, surfaced by §13.6 | **M6** |
 | The production specification | Appendix B *Owed* | **M6** |
 | The five declarations for nine agent classes | §8.1 — a shape with no content | **M7**, **M9** |
 | ~30 per-position §17.4 specifications, 1 written | *silently missing* | **M6**–**M10** |
 | The trait declaration set | *silently missing* | **M7** |
 | The bank capital regime's values and cure window | *silently missing* | **M8** |
 | Issuer-freeze payment continuity | *silently missing* | **M8** |
-| The insurer / pension split of 40 | §8.4 *Owed* | **M9** |
+| The insurer / pension split of 40 — **derived: one world ratio, split by rule two**, never two counts | §8.4 *Owed* | **M9** picks the value |
 | §8.2's withdrawn accumulator and the price-change rule | §8.2 *Owed* | **M9** |
 | The `DerivedMark` derivation rule | §7.2 Q13 | **M9** |
-| δ₁ = 0.35 has no in-model justification | §13.3 *What is owed* | **M11** |
-| Burn-in multiplicity: 42-series conjunction | measured at ~11.6% false pass | **M0** measures, **M11** applies |
+| δ₁ = 0.35 — **derived: justified by a named in-model mechanism or not at all** | §13.3 *What is owed* | **M11** names it |
+| Burn-in multiplicity — **derived: a correction is required**, its form and error rate to be declared | ~11.6% false pass under the null | **M0** declares, **M11** applies |
 | Observation family 13: 21 × 64 exceeds its sub-cap | §14 | **M5** |
 | Observation family 9: 60 series against 224 identities | §14 | **M6** |
 | Eight dangling cross-references | §3.4.4, §9.6.1, §15.3.4, §21.3, D-7 | **M0** |
@@ -508,9 +509,12 @@ narrows this list considerably.
 2. **A2 is false in practice (G1b).** If adding the seventh instrument type requires touching an agent,
    the facts tables are not doing their job and every later milestone's cost estimate is wrong by an
    unknown factor.
-3. **The world cannot start (M6).** If no sequence of modelled operations gets the first franc from a
-   government to a household without an unmodelled transfer, the opening is unspecifiable and A4 is
-   being satisfied on paper only.
+3. ~~**The world cannot start.**~~ **Retired.** The model rules settled it: §9.2 budgets stage-2
+   spending against balances that are facts, so no firm bids at tick 0 and no firm fails at tick 1. The
+   government is the only agent with a balance and therefore the first spender, and it spends through
+   the ordinary labour line. **`PROJECT_AURORA.md` §13.6 now carries the derivation.** What survives of
+   this condition is narrower and belongs to M6: *if the circuit does not close within the burn-in floor
+   of 260 periods*, the opening is not merely slow but wrong.
 4. **The loop does not close once it carries content (G2, M10).** Sectoral net lending not exactly zero,
    with the reader exonerated, means a flow has an unmodelled counterparty.
 5. **The burn-in gate cannot pass (G3).** Reaching period 520 without a pass is the specification's own
