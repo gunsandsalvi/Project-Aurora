@@ -180,27 +180,24 @@ Enumerated, because "roughly eighteen ADRs" in an exit criterion is not a criter
 Mechanically checkable. No "or restate by ADR"; no "reported" where "passes" is meant; nothing that
 passes because the tree is empty.
 
-5. `check-generated` fails on a hand edit to any generated file.
-7. An ADR without a `guard` field fails `check-adr`. A parsed-value change to a *ratified* registered
-   file without a `Decision:` trailer is refused; the same change to an unratified file is not.
-8. Appendices A and B regenerate from ADR front matter, and the doc build fails when the committed
-   appendix differs.
-9. **The probe has run on the owner's device and returned a complete JSON document conforming to
-   `aurora.probe/1`**, with no field null.
-10. The transcendental comparison is decided: `identical` is `true` or `false`, and ADR-0015 records
-    which and what follows.
-11. W7.1's memory derivation sums, table by table, and every capacity in it is a `capacity` registry
-    entry carrying its arithmetic.
-12. The seed generator's output is committed beside §13.3's published table with every row marked
-    reproduces or does not.
-13. The burn-in conjunction's empirical false-pass rate is a measured number, and ADR-0019 specifies the
-    correction.
-14. The intrinsic facts table compiles with all thirteen answers for all seven opening types, and
-    deleting one fails to compile.
-15. All nineteen ADRs are accepted, each naming a mechanical guard.
-17. **No file exists under the eight engine crates' `src/` other than `lib.rs`** — and
-    `kernel/src/layer_probe.rs`, which is compiled only under `--cfg aurora_layer_probe` and must fail.
-    The constraint of §1, as a check.
+**Four are met and stay met**, each by a check in `./gate.sh` with a negative fixture behind it.
+**Two are blocked on the device.** **Two were rewritten** because what was built is not what they
+described, and §1a says the constraint wins over the draft. **One is blocked on M1**, which is where
+the thing it polices arrives.
+
+| | Criterion | State |
+|---|---|---|
+| 5 | `check-generated` fails on a hand edit to any generated file | **blocked on M1.** There is no generator until M1's column schema; the check is written with the first one |
+| 7 | An ADR without a `guard` fails `check-adr`, and a parsed-value change to a *ratified* registered file is refused where the same change to a draft file is free | **met** — `check-adr` and `check-coupling`, six fixtures. **Rewritten**: the coupling is to an ADR that `registers:` the file, not to a `Decision:` commit trailer. A trailer is prose, and prose is what this machinery exists to stop a value from being |
+| 8 | Appendix A's guard column regenerates from ADR front matter and the build fails when the committed table differs | **met** — `aurora-tools appendix` and `check-register`, two fixtures. **Rewritten**: Appendix B is a narrative supersession log for an *edition*, not a per-decision table, and generating it would replace an argument with a dump. Appendix A's guard column is the part that was written twice by hand, and it had already drifted |
+| 9 | The probe has returned a complete `aurora.probe/1` document from the owner's device, no field null | **blocked on the device.** The document is emitted, the APK is built and the pipeline is green end to end |
+| 10 | The transcendental comparison is decided and ADR-0015 records what follows | **blocked on the device.** The host half is measured: `ln` hashes to `b5d414b87dd05ab7`, `exp` to `a493d8dc7d53c03e` |
+| 11 | The memory derivation sums table by table, and every capacity in it is a registry entry carrying its arithmetic | **partly met.** Eleven of sixteen rows are derived and the directory and instruments rows are now computed rather than owed; five remain owed and each names what it needs. The capacity entries exist and are counted separately, but they are `structural` rather than expressions — see the register |
+| 12 | The seed generator's output is committed beside §13.3's table, every row marked reproduces or does not | **met** — `aurora-tools seedgen`, and the answer is that the continuous half reproduces exactly and the integer half reproduces under no rule |
+| 13 | The burn-in conjunction's false-pass rate is measured and ADR-0019 specifies the correction | **met**, and the measurement inverted the question: the risk is false *failure*, and ADR-0019's correction runs the other way |
+| 14 | Every opening type answers all thirteen questions, and removing one fails the build | **met** — `check-instruments`, eight types × thirteen questions, each answer from its own closed set. **Rewritten**: the table is data checked by a tool rather than a type that compiles, because M0 writes no engine code (§1a, and W4's same correction) |
+| 15 | All nineteen ADRs are accepted, each naming a mechanical guard | **seventeen of nineteen.** 0015 and 0016 are the two the device decides |
+| 17 | No file under an engine crate's `src/` but `lib.rs` and the layer probe — §1's constraint, as a check | **met** — `check-lints` rule 5, three fixtures. It was the last criterion without a check, on the milestone's defining constraint |
 
 ---
 
@@ -236,8 +233,8 @@ derivation rather than testing whether one exists. **The first gate with stop au
 | Workstream | State |
 |---|---|
 | **W1** the workspace that refuses | **done** — 12 crates, the layer matrix proved by a committed fixture, the lint floor, the `surface`/`shell` split |
-| **W2** build machinery and CI | **done but for two**, each blocked on the thing it would police: `check-generated` needs a generator (M1), `check-registry` is W4's |
-| **W3** the probe and the way results get back | **built, and waiting on hardware.** The probe emits one `aurora.probe/1` document; the cross-compile, the shell APK and the release workflow are written. **The only step left is the owner installing it and pasting the JSON back** |
+| **W2** build machinery and CI | **done but for one**: `check-generated` needs a generator, and the first one is M1's column schema |
+| **W3** the probe and the way results get back | **built, released, and waiting on hardware.** The pipeline is green end to end — the cross-compile produces a real `ELF 64-bit LSB pie executable, ARM aarch64`, Gradle packages a 1.03 MB APK, and it is attached to **[probe-v0.1](https://github.com/gunsandsalvi/Project-Aurora/releases/tag/probe-v0.1)**. **The only step left is the owner installing it and pasting the JSON back** |
 | **W4** the parameter registry | **done but for two**, both deferred with a reason: the generated unit vocabulary needs `domain`'s quantity types (M1), and the `capacity` read rule needs systems to police |
 | **W5** ADR machinery | **done.** Format and `check-adr`; the counter (`register.txt` + `adr new`); the coupling (`coupling.toml` + `check-coupling`, ratified against draft); Appendix A's guard column generated from the decisions (`aurora-tools appendix` + `check-register`). Ten negative fixtures across the three |
 | **W6** falsifiers that need code | **done.** The seed generator is red and pinned; all four burn-in tests are measured, and the gate they falsified is recalibrated and guarded (ADR-0019, `aurora-tools gate`); the intrinsic table and the amendment matrix are filled, total, and checked |
@@ -261,12 +258,18 @@ nominal in either direction. A check that cannot fail is not a check.
 `aurora-tools verify`, `aurora-tools gate`. Ten seconds warm. CI runs that same file and nothing else,
 so the thing checked before a commit and the thing checked after a push cannot drift.
 
-**ADRs: nineteen allocated, nine written, ten reserved** — the counter says so on every build.
-0001 Rust/crates/Android · 0002 the model wins · 0003 the layer matrix · 0004 the arena seam ·
-0005 the surface/shell split · 0013 the definitional identities · 0014 the registry's two namespaces ·
-0018 amendment handles · 0019 the burn-in gate's calibration and correction.
+**ADRs: nineteen allocated, seventeen written, two reserved** — the counter says so on every build,
+and the two that remain are the two the device decides: **0015** (the transcendental comparison) and
+**0016** (checkpoint cadence, which turns on the measured write throughput).
 
-**Thirty findings so far, every one measured rather than reviewed.** `check-lints`' first draft substring-matched and its first run reported *itself*.
+0001 Rust/crates/Android · 0002 the model wins · 0003 the layer matrix · 0004 the arena seam ·
+0005 the surface/shell split · 0006 `i64` and overflow panics · 0007 the 24-byte holdings slot ·
+0008 the 48-byte journal row · 0009 the 80-byte instrument row · 0010 the identifier census ·
+0011 sixty-four shards · 0012 the thread-shareable arena · 0013 the definitional identities ·
+0014 the registry's two namespaces · 0017 the retirement queue · 0018 amendment handles ·
+0019 the burn-in gate's calibration and correction.
+
+**Thirty-three findings so far, every one measured rather than reviewed.** `check-lints`' first draft substring-matched and its first run reported *itself*.
 `check-surface`'s first run flagged one subtraction twice, because `->` is a `-` punct.
 `check-refs` found §17.4 demoted from a heading to bold text by an earlier edit, while three
 citations still pointed at it. `check-registry` rule 3 rejected the first derived entry written
@@ -349,6 +352,14 @@ regulatory levels are the parliament's — **the political system is a registry 
 why it was added. And one of the six assumed entries has no source anywhere: **nothing says who is
 refused when credit is rationed.** §6.3 covers rounding, §9.2 allocates, §9.3 clears; rationing is
 where a credit model's behaviour lives.
+Three more came from writing the last ADRs, and each was found by the guard the ADR needed rather
+than by reading. **Appendix A #2's "overflow panics" was not true**: `overflow-checks` defaults to off
+in release, so the panic A1 leans on existed only in the build nobody ships. **§5.5's retirement queue
+overflows at about tick 12** — 65,536 entries, drained at a position that runs every fifty-second
+tick, against 5,653 retirements a tick; the capacity is right and the interval was wrong, and §5.5 and
+Appendix B had already contradicted each other about which position drains it. And **exit criterion
+17, the milestone's defining constraint, had no check at all** — "no engine code" was a rule everyone
+was keeping and nothing was enforcing.
 The tenth was found by the process rather than by a check, and it is about the checks: **`verify`
 printed "7 checks ran, 0 failed" on a tree where clippy was reporting a finding, twice**, because
 `verify` never ran clippy and clippy returns zero on a warning. The gate existed as a habit — a list

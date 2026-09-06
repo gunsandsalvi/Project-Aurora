@@ -70,9 +70,11 @@ fn a_string_that_spells_the_attribute_is_not_a_finding() {
 #[test]
 fn an_undeclared_unsafe_seam_is_caught() {
     let root = scratch("stray-seam");
-    crate_at(&root, "world", "//! fine\n#![forbid(unsafe_code)]\n");
+    // `composition` rather than an engine crate: the seam rule and §1's no-engine-code rule would
+    // both fire on the same file, and a fixture that trips two rules proves neither.
+    crate_at(&root, "composition", "//! fine\n#![forbid(unsafe_code)]\n");
     fs::write(
-        root.join("crates/world/src/sneaky.rs"),
+        root.join("crates/composition/src/sneaky.rs"),
         "#[allow(unsafe_code)]\npub fn f() {}\n",
     )
     .expect("scratch file is writable");
@@ -718,5 +720,56 @@ fn a_comment_naming_refcell_is_not_a_finding() {
     assert!(
         findings.is_empty(),
         "prose naming the type is not a use of it: {findings:?}"
+    );
+}
+
+// ── §1's constraint, as a check (exit criterion 17) ──────────────────────────────────────────────
+
+#[test]
+fn engine_code_beside_lib_rs_is_caught() {
+    let root = scratch("lints-engine-code");
+    crate_at(&root, "ledger", "#![forbid(unsafe_code)]\n");
+    fs::write(
+        root.join("crates/ledger/src/holdings.rs"),
+        "pub struct Holdings;\n",
+    )
+    .expect("scratch engine file is writable");
+
+    let (findings, _, _, _) = aurora_tools::check_lints::check(&root);
+    let [only] = findings.as_slice() else {
+        panic!("the engine file is the one finding: {findings:?}")
+    };
+    assert!(only.contains("crates/ledger/src/holdings.rs"), "{only}");
+    assert!(only.contains("engine code in M0"), "{only}");
+}
+
+#[test]
+fn the_layer_probe_is_not_engine_code() {
+    let root = scratch("lints-layer-probe");
+    crate_at(&root, "kernel", "#![forbid(unsafe_code)]\n");
+    fs::write(
+        root.join("crates/kernel/src/layer_probe.rs"),
+        "// compiled only under --cfg aurora_layer_probe, and must fail\n",
+    )
+    .expect("scratch probe file is writable");
+
+    let (findings, _, _, _) = aurora_tools::check_lints::check(&root);
+    assert!(
+        findings.is_empty(),
+        "the fixture that proves the matrix is not the thing the matrix forbids: {findings:?}"
+    );
+}
+
+#[test]
+fn a_file_in_a_non_engine_crate_is_free() {
+    let root = scratch("lints-non-engine");
+    crate_at(&root, "surface", "#![forbid(unsafe_code)]\n");
+    fs::write(root.join("crates/surface/src/view.rs"), "pub struct V;\n")
+        .expect("scratch surface file is writable");
+
+    let (findings, _, _, _) = aurora_tools::check_lints::check(&root);
+    assert!(
+        findings.is_empty(),
+        "§1 names eight engine crates, and `surface` is not one: {findings:?}"
     );
 }

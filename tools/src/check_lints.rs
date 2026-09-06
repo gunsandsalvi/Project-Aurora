@@ -14,6 +14,16 @@ use std::process::ExitCode;
 const ARENA_SEAM: &str = "crates/kernel/src/arena_seam.rs";
 const SEAM_LINE_CAP: usize = 60;
 
+/// The eight crates §1 forbids implementing in M0. `declarations`, `composition`, `surface` and
+/// `shell` are the other four of the twelve and are not engine.
+const ENGINE: [&str; 8] = [
+    "kernel", "domain", "world", "ledger", "markets", "agents", "systems", "runtime",
+];
+
+/// The one file that may exist beside `lib.rs` in an engine crate: the layer-matrix fixture, which is
+/// compiled only under `--cfg aurora_layer_probe` and **must fail to compile** (ADR-0003).
+const LAYER_PROBE: &str = "crates/kernel/src/layer_probe.rs";
+
 /// Run the check and print its report; the exit status is the process's.
 pub fn run(root: &Path) -> ExitCode {
     let (failures, crates_checked, files, seams) = check(root);
@@ -27,6 +37,9 @@ pub fn run(root: &Path) -> ExitCode {
     println!("  rule: the release profile keeps overflow checks on (Appendix A #2, ADR-0006)");
     println!(
         "  rule: no shared-mutability primitive in a layer crate — the arena is thread-shareable (ADR-0012)"
+    );
+    println!(
+        "  rule: no file under an engine crate's src/ but lib.rs and the layer probe — §1's constraint, as a check"
     );
     println!("  exemptions: 0");
     report(&failures)
@@ -101,6 +114,7 @@ pub fn check(root: &Path) -> (Vec<String>, usize, usize, usize) {
 
     failures.extend(profile(root));
     failures.extend(shared_mutability(&files, root));
+    failures.extend(no_engine_code(&files, root));
 
     (failures, crates_checked, files.len(), seams.len())
 }
@@ -134,6 +148,41 @@ fn profile(root: &Path) -> Vec<String> {
                 .to_owned(),
         ]
     }
+}
+
+/// §1's constraint, as a check: **no engine code is written in M0.**
+///
+/// Exit criterion 17 requires this and it is the milestone's defining rule — the one thing that, if it
+/// slips, turns a workspace milestone into a build milestone with no harness. It is checkable on an
+/// empty tree and it stays checkable, which is why criterion 17 asks for it "from week 1".
+///
+/// The exception is `crates/kernel/src/layer_probe.rs`, which exists to prove ADR-0003's matrix by
+/// failing to compile. It is not engine code; it is the fixture that proves engine code cannot be
+/// written across a layer boundary.
+fn no_engine_code(files: &[std::path::PathBuf], root: &Path) -> Vec<String> {
+    let mut findings = Vec::new();
+    for file in files {
+        let Ok(rel) = file.strip_prefix(root) else {
+            continue;
+        };
+        let path = rel.to_string_lossy().replace('\\', "/");
+        let Some(rest) = path.strip_prefix("crates/") else {
+            continue;
+        };
+        let Some((krate, inside)) = rest.split_once('/') else {
+            continue;
+        };
+        if !ENGINE.contains(&krate) || !inside.starts_with("src/") {
+            continue;
+        }
+        if inside == "src/lib.rs" || path == LAYER_PROBE {
+            continue;
+        }
+        findings.push(format!(
+            "{path}: engine code in M0. §1 permits `lib.rs` and the layer probe, and nothing else"
+        ));
+    }
+    findings
 }
 
 /// ADR-0012: the arena is thread-shareable from the start, run single-threaded until M11.
