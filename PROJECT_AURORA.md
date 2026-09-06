@@ -249,8 +249,12 @@ sweeps affordable, and a result quoted from either is a result about a different
 Every budget in this document is derived from this section, and the arena is sized from it.
 
 **Entities: 550,638 at tick 0** — 550,598 deciding, plus 40 counter-account rows. Counts by class
-are in §8.4; the regional split is in §13.3. Identifiers ever issued by tick 1,560: ≈ 971,000, and
-none is reused.
+are in §8.4; the regional split is in §13.3. **Identifiers ever issued by tick 1,560: ≈ 15,700,000**,
+and none is reused. The previous figure of ≈ 971,000 was below the opening entity count plus one
+generation of employment contracts alone — 350,000 live contracts at a six-year mean term issue about
+1.75 M identifiers over thirty years without a single loan, tenancy or bond. `aurora-tools sizing`
+counts the spaces bottom up; several of its mean lives are still owed, so the figure is an order of
+magnitude rather than a number, and the directory is sized at 60.0 MiB from it.
 
 **Holdings are blocks, and the table does not grow.** Each party class has a declared slot capacity,
 allocated once:
@@ -268,8 +272,24 @@ allocated once:
 | Counter-account | 64 | 40 | 2,560 |
 | | | | **7,177,280 slots, 24 B each, 172.3 MB** |
 
-Blocks are sized for the tail, not the mean, because **exhaustion is a halt**: a mean household
-occupies about three of its ten slots once the negative side of what it issued is counted.
+Blocks are sized for the tail, not the mean, because **exhaustion is a halt**. Written out against the
+eight opening types (`aurora-tools sizing`), a mean household occupies **five** of its ten slots once
+the negative side of what it borrowed is counted — currency, a deposit line, a loan, an employment
+contract and a goods line.
+
+**The tail needs seventeen, and ten does not hold it.** The term that decides the block is
+`GoodsUnit`, which is one line *per sector* and §9.5 has seven: a household that holds a goods stock
+between operations needs seven goods slots, and one that consumes inside the tick that bought needs
+one. Without a goods stock the tail is exactly ten — the declared capacity, with nothing spare, on a
+block whose entire justification is headroom. **Seven slots per household is 84.0 MB**, and nothing in
+§9 says which it is. The question is open and it is named in the register; the capacity is re-derived
+in M1 when the schema is written, not now.
+
+The enumeration also covers only the eight opening types. §5.2's census counts 250,000 live tenancies
+against no tenancy instrument type, and §8.4's liability-matched institution issues pension and
+insurance claims that have no type either. Each is at least one more slot on the households holding one,
+at 12.0 MB per slot. **Ten is the only capacity in the table that is not a power of two**, which is what
+a figure reached by looking at a mean looks like.
 
 **The slot is 24 bytes and its field list is published here**, because a width printed without a schema
 is a number that cannot be checked: asset `i32` (4), quantity `i64` (8), balance-tick integral `i64` (8),
@@ -308,9 +328,13 @@ A twenty-one-row table of operation counts summing to a published total — with
 accumulate cost separated from operation-call cost — is what §12's targets are decomposed against, and
 it does not yet exist.
 
-*Owed.* §3.4's ≈ 971,000 identifiers ever issued and §5.2's 47.5 MiB directory at 4 bytes an identifier
-imply ≈ 12,450,000. The two differ by a factor of thirteen. The directory's size, the digest's
-identifier-order walk and the save all depend on which is right.
+*Settled.* The identifier census is counted bottom up in `aurora-tools sizing`: **15,732,835 ever
+issued**, a 60.0 MiB directory at 4 bytes each. §3.4's ≈ 971,000 was wrong by a factor of about
+sixteen, and §5.2's 47.5 MiB implied ≈ 12,450,000, which lands in the right order. *Still owed* are the
+mean lives the census assumes — six years for an employment contract, four for a tenancy, ten for
+household credit, five for a corporate facility, one margin cycle for a lien. Those are assumptions
+standing in for mechanisms that do not exist yet, and each is replaced by the milestone that builds the
+instrument.
 
 ## 4. Layers
 
@@ -523,8 +547,11 @@ door has no method belonging to another, and no widening function exists anywher
 conserved one — the mint is typed and no such overload exists**.
 
 - **`exchange` is indivisible at the type level.** Its two legs are not separately callable, and it
-  writes one journal row carrying both assets, both quantities, the cleared rate and the realised
-  rate.
+  writes one journal row carrying both assets, both quantities and **the cleared rate**. The realised
+  rate is not a field: it is `quantityReceived / quantityGiven`, exactly, and the pair in the row *is*
+  it at full precision, where a stored copy would be that value rounded a second time (ADR-0008). The
+  cleared rate is a different quantity and is stored — when a line rations it is not a function of this
+  row's own quantities, and the difference between the two rates is the rationing.
 - **`move` remains one-sided**, for flows that genuinely are: taxes, transfers, dividends,
   endowment, consumption, an estate distribution.
 - **A tenth operation is an ADR**, plus a row in the change-cost table, a case in the conformance
@@ -2688,7 +2715,7 @@ hand-written guard, and the check publishes how many such rows remain.
 | 5 | Rehypothecation depth | 3 | the pledge door |
 | 6 | Counter-accounts | four families, four owners, ten pairs per region, `Real` only | the class law at the door; the minted capability |
 | 7 | Workload | weekly ticks, 1,560-tick runs, burn-in floor 260 / ceiling 520; 550,638 entities; 37 venues; 3,119,665 calls a tick (derivation owed, §3.4) | §3.3 splits requirements from targets; no milestone may be brought into budget by reducing the agent population or coarsening a cadence (ADR-0002) |
-| 8 | Journal retention | two ticks, 7,200,000 rows in two segments, 345.6 MB | exhaustion raises; the high-water series |
+| 8 | Journal retention | two ticks, 7,200,000 rows in two segments, 345.6 MB | aurora-tools sizing — the row width is summed from the field list and the ring from the width, so a field added without a decision changes a published number (ADR-0008) |
 | 9 | Observation store | fourteen families, 624 declared, hard cap 2,048 under sub-caps | the sub-cap at declaration |
 | 10 | Intrinsic questions | thirteen, at two levels | a missing answer does not compile |
 | 11 | Regimes | seven, three relational questions, 21 answers per type | declared count, column distinctness, two-cell separation |
@@ -2764,12 +2791,14 @@ nothing reads failing the build. **The cap was never what made A3 true; the rule
 | What changed | To | Why |
 |---|---|---|
 | A1's part 2 | **the conserved column is private to the `ledger` crate**, replacing "exactly one writer in the whole source tree, checked in CI" | The old form was false. Relocation, the zeroed-entry tail shift and slot canonicalisation all write the quantity column; a CI check would have needed exemptions on its first run. The crate boundary is true, is the compiler's, and covers writers nobody has thought of |
+| The household block | **ten slots, and named as not holding the enumerated tail** | Written out against the eight opening types, the tail is seventeen and the mean five. Whether it is ten or seventeen turns on whether a household holds a goods stock, which is worth 84.0 MB and which nothing in §9 answers. The capacity is re-derived in M1 with the schema |
+| The journal row | **48 B, field list published; the realised rate is not a field** | §6.4 asked for both rates and both do not fit — 53 B padding to 56, a 403.2 MB ring. The realised rate is `quantityReceived / quantityGiven` exactly, so the pair in the row is it at full precision and a stored copy is that value rounded twice (ADR-0008) |
 | The holdings slot | **24 B, with its field list published** | 20 B could not hold what §6.11 requires — asset, quantity and integral exhaust it with no tick column — so it was an unsourced constant the rest of the document contradicted |
 | §11's transcendental ban | **widened from samplers to any path reaching a digested value** | §13.4's output gap computed `log(output)` inside the engine and was read by a decision, slipping the letter of a rule it violated in substance. `ŷ` is now a ratio |
 | §13.4's `ŷ` | `(output_t − μ_K) / μ_K` | dimensionless, needs no transcendental, and says the same thing about the gap |
 | §13.1.2's technology | **reopened** | its stated reason was the assumption cap, and the cap is gone. §9.5's twenty-seven goods lines and one composite sub-unit still contradict each other and the contradiction is now to be settled on the economics |
 | N4's 1,488.3 MB | **unresolved, and named as such** | the itemisation was never published and the named components leave roughly 705 MB unaccounted, whose largest term is the instrument row width §7.5 declares unsettled |
-| §3.4's identifier census | **unresolved, and named as such** | ≈ 971,000 ever issued against §5.2's implied ≈ 12,450,000 is a factor of thirteen, and it sizes the directory, the digest walk and the save |
+| §3.4's identifier census | **15,732,835 ever issued**, counted bottom up per identity space; the directory is 60.0 MiB | ≈ 971,000 was below the opening entity count plus one generation of employment contracts. The mean lives the census assumes are still owed, and each is replaced by the milestone that builds the instrument |
 | The trailing-statistics system | **owed a position** | §13.4 requires it, §9.4's twenty-one positions do not contain it |
 | Insurer and Pension fund | **merged into one class, `Liability-matched institution`** — nine agent classes became eight | They differed on no column §8.4 carries and on no declaration of §8.1. What differs is the liabilities they issued, which A2 makes instrument data. The owed rule for splitting 40 into 22 and 18 is not needed, because nothing is split |
 | SME and Large firm | **merged into one class `Firm` with two tiers, and a promotion path** (§8.7) — seven agent classes | Two classes fixed the firm size distribution at the opening for the whole run, which M6 makes a phenomenon asserted rather than produced. What separated them was capital-market access, which §8.7 makes something a firm *does*. Tier is a fact, not a class: §8.4's "class is not a block" licenses two block widths in one class rather than forbidding them |

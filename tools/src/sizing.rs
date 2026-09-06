@@ -330,7 +330,302 @@ fn identifiers() -> String {
     out
 }
 
+/// One field of the journal row: its name, its type, its width, and why it is that wide.
+struct Field {
+    name: &'static str,
+    kind: &'static str,
+    bytes: usize,
+    why: &'static str,
+}
+
+/// §6.6's 48-byte journal row, derived field by field (W7.5).
+///
+/// The row must accommodate `exchange`, which is the widest of the nine operations: §6.4 requires it
+/// to name two parties, two assets, two quantities, the cleared rate, the realised rate, a reason code
+/// and an actor. Written out, that does not fit — and the field that does not fit is the one that
+/// should never have been stored.
+fn journal() -> String {
+    let mut out = String::new();
+    let _ = writeln!(out, "\n§6.6 — the journal row, derived field by field\n");
+
+    let fields = [
+        Field {
+            name: "quantityGiven",
+            kind: "i64",
+            bytes: 8,
+            why: "a conserved quantity is i64 and overflow panics (Appendix A #2)",
+        },
+        Field {
+            name: "quantityReceived",
+            kind: "i64",
+            bytes: 8,
+            why: "zero on a one-sided operation; equal and opposite is not assumed",
+        },
+        Field {
+            name: "clearedRate",
+            kind: "i64, fixed point at S",
+            bytes: 8,
+            why: "a rate spans several orders either side of one; 32 bits cannot carry it at S",
+        },
+        Field {
+            name: "from",
+            kind: "EntityId (u32)",
+            bytes: 4,
+            why: "15,732,835 identifiers ever issued needs more than 24 bits",
+        },
+        Field {
+            name: "to",
+            kind: "EntityId (u32)",
+            bytes: 4,
+            why: "as above",
+        },
+        Field {
+            name: "assetGiven",
+            kind: "InstrumentId (u32)",
+            bytes: 4,
+            why: "as above",
+        },
+        Field {
+            name: "assetReceived",
+            kind: "InstrumentId (u32)",
+            bytes: 4,
+            why: "equal to assetGiven on a move; the row has one shape",
+        },
+        Field {
+            name: "tick",
+            kind: "u16",
+            bytes: 2,
+            why: "1,560 < 65,536; the row is self-describing when saved, and §9.3 reads a prior close",
+        },
+        Field {
+            name: "op",
+            kind: "u8",
+            bytes: 1,
+            why: "nine operations (Appendix A #4)",
+        },
+        Field {
+            name: "reason",
+            kind: "u8",
+            bytes: 1,
+            why: "§6.6",
+        },
+        Field {
+            name: "actor",
+            kind: "u8",
+            bytes: 1,
+            why: "from the minted handle, never an argument (§6.6)",
+        },
+    ];
+    let _ = writeln!(
+        out,
+        "  field                type                     B  why"
+    );
+    let mut total = 0usize;
+    for f in &fields {
+        total += f.bytes;
+        let _ = writeln!(
+            out,
+            "  {:<19}  {:<22} {:>3}  {}",
+            f.name, f.kind, f.bytes, f.why
+        );
+    }
+    // The widest field is i64, so the struct aligns to 8.
+    let align = 8;
+    let padding = (align - total % align) % align;
+    let width = total + padding;
+    let _ = writeln!(
+        out,
+        "  {:<19}  {:<22} {:>3}  alignment to the widest field, i64",
+        "(padding)", "", padding
+    );
+    let _ = writeln!(out, "  {:<19}  {:<22} {:>3}", "TOTAL", "", width);
+
+    out.push_str(&journal_finding(width));
+    out
+}
+
+/// One line a household can hold at once: the instrument type, how many lines of it, and why.
+struct Occupancy {
+    kind: &'static str,
+    mean: usize,
+    tail: usize,
+    why: &'static str,
+}
+
+/// §3.4's ten-slot household block, against what a household can simultaneously hold (W7.6).
+///
+/// A slot is one `(holder, asset)` holding, and under R-1 a claim exists only as its issuer's negative
+/// balance — so a household's own borrowing occupies its slots as surely as its deposits do. The
+/// question is therefore not how many *types* a household touches but how many *lines*, and the answer
+/// is a sum over the eight opening types rather than a count of them.
+fn household_block() -> String {
+    let mut out = String::new();
+    let _ = writeln!(
+        out,
+        "\n\u{a7}3.4 — the household block, against what one household can hold at once\n"
+    );
+
+    let lines = [
+        Occupancy {
+            kind: "CurrencyClaim",
+            mean: 1,
+            tail: 1,
+            why: "its own region's currency",
+        },
+        Occupancy {
+            kind: "DepositLine",
+            mean: 1,
+            tail: 2,
+            why: "\u{a7}7.7: one line per ISSUER, so an account at a second bank is a second slot",
+        },
+        Occupancy {
+            kind: "SecuredTermLoan",
+            mean: 1,
+            tail: 2,
+            why: "negative, by R-1. 300,000 household credit lines over 500,000 households (\u{a7}5.2), so two is inside the tail",
+        },
+        Occupancy {
+            kind: "EmploymentContract",
+            mean: 1,
+            tail: 2,
+            why: "350,000 live over 500,000 households; a two-earner household holds two",
+        },
+        Occupancy {
+            kind: "SovereignBond",
+            mean: 0,
+            tail: 1,
+            why: "four tenors per region are directly holdable; a household holding one is not excluded",
+        },
+        Occupancy {
+            kind: "ListedEquity",
+            mean: 0,
+            tail: 1,
+            why: "1,000 lines, held directly rather than through a fund",
+        },
+        Occupancy {
+            kind: "PrivateEquity",
+            mean: 0,
+            tail: 1,
+            why: "50,000 unlisted firms over 500,000 households: one in ten owns one",
+        },
+        Occupancy {
+            kind: "GoodsUnit",
+            mean: 1,
+            tail: 7,
+            why: "ONE PER SECTOR, and \u{a7}9.5 has seven. This is the term that decides the block",
+        },
+    ];
+    let _ = writeln!(out, "  type                  mean   tail  why");
+    let (mut mean, mut tail) = (0usize, 0usize);
+    for l in &lines {
+        mean += l.mean;
+        tail += l.tail;
+        let _ = writeln!(
+            out,
+            "  {:<20} {:>5}  {:>5}  {}",
+            l.kind, l.mean, l.tail, l.why
+        );
+    }
+    let _ = writeln!(out, "  {:<20} {mean:>5}  {tail:>5}", "TOTAL");
+    out.push_str(&household_finding(mean, tail));
+    out
+}
+
+/// What the enumeration costs, at the capacities that could hold it.
+fn household_finding(mean: usize, tail: usize) -> String {
+    let mut out = String::new();
+    let households = 500_000usize;
+    let slot = 24usize;
+    let declared = 10usize;
+    #[allow(clippy::cast_precision_loss)]
+    let mb = |slots: usize| (households * slots * slot) as f64 / 1e6;
+    let without_goods = tail - 7;
+
+    for line in [
+        String::new(),
+        format!("  \u{a7}3.4 declares {declared} slots. The mean household needs {mean}, which is \u{a7}3.4's own"),
+        "  \"about three of its ten\" and is not the question: \u{a7}3.4 says blocks are sized for the TAIL,".to_owned(),
+        "  not the mean, BECAUSE EXHAUSTION IS A HALT.".to_owned(),
+        String::new(),
+        format!("  The tail needs {tail}. Without a goods stock it needs {without_goods} \u{2014} which is {declared}"),
+        "  exactly, with nothing spare, on a block whose whole justification is headroom.".to_owned(),
+        String::new(),
+        "  capacity   slots      MB   holds".to_owned(),
+    ] {
+        let _ = writeln!(out, "{line}");
+    }
+    for (capacity, holds) in [
+        (10usize, "the mean; not the tail, with or without goods"),
+        (16, "the tail without a goods stock, with 6 spare"),
+        (20, "the tail with goods in 3 sectors"),
+        (
+            32,
+            "the full tail, and the next two instrument types M9 adds",
+        ),
+    ] {
+        let _ = writeln!(
+            out,
+            "  {capacity:>8}  {:>6}  {:>6.1}  {holds}",
+            households * capacity,
+            mb(capacity)
+        );
+    }
+
+    for line in [
+        String::new(),
+        "  FINDING. The block turns on ONE UNSETTLED QUESTION: does a household hold a goods stock".to_owned(),
+        "  between operations, or is a purchase consumed inside the same tick that bought it? Seven".to_owned(),
+        "  sectors means the answer is worth 7 slots per household, and 7 slots per household is".to_owned(),
+        format!("  {:.1} MB \u{2014} more than the entire holdings table costs today. Nothing in \u{a7}9 answers it.", mb(7)),
+        String::new(),
+        "  And the enumeration is over the EIGHT OPENING TYPES ONLY. \u{a7}5.2's identifier census counts".to_owned(),
+        "  250,000 live tenancies, and there is no tenancy instrument type; the pension and insurance".to_owned(),
+        "  claims \u{a7}8.4's liability-matched institution issues have no type either. Each is at least one".to_owned(),
+        format!("  more slot on the households that hold one, and at {:.1} MB per slot the block cannot", mb(1)),
+        "  absorb them silently.".to_owned(),
+        String::new(),
+        "  Ten is not a derived figure. It is the only block capacity in \u{a7}3.4's table that is not a".to_owned(),
+        "  power of two, which is what a number reached by looking at a mean looks like.".to_owned(),
+    ] {
+        let _ = writeln!(out, "{line}");
+    }
+    out
+}
+
 /// Both derivations, as one report.
 pub fn report() -> String {
-    format!("{}{}", memory(), identifiers())
+    format!(
+        "{}{}{}{}",
+        memory(),
+        identifiers(),
+        journal(),
+        household_block()
+    )
+}
+
+/// What the 48 buys, and what §6.4 asked for that does not fit.
+fn journal_finding(width: usize) -> String {
+    let mut out = String::new();
+    let ring = 7_200_000usize;
+    #[allow(clippy::cast_precision_loss)]
+    let mb = |b: usize| b as f64 / 1e6;
+    let with_realised = width + 8;
+    for line in [
+        String::new(),
+        format!("  The ring is {ring} rows: {:.1} MB at {width} B, which is \u{a7}6.6's figure.", mb(ring * width)),
+        String::new(),
+        "  FINDING. It fits only because the REALISED RATE IS NOT STORED. \u{a7}6.4 says the row carries".to_owned(),
+        "  \"the cleared rate and the realised rate\"; both, written out, come to 53 B and pad to".to_owned(),
+        format!("  {with_realised} B \u{2014} a ring of {:.1} MB, {:.1} MB more.", mb(ring * with_realised), mb(ring * (with_realised - width))),
+        String::new(),
+        "  And it should not be stored, on the specification's own principle. The realised rate is".to_owned(),
+        "  quantityReceived / quantityGiven, exactly, by definition \u{2014} the pair IS the realised rate,".to_owned(),
+        "  at full precision, while a stored copy is that value rounded once more under \u{a7}6.3. Two".to_owned(),
+        "  copies of one value is the failure \u{a7}16.1 exists to prevent; nothing was applying it to the".to_owned(),
+        "  journal. The CLEARED rate is different and is stored: it is the venue's price, which is not".to_owned(),
+        "  a function of this row's own quantities when a line rations.".to_owned(),
+    ] {
+        let _ = writeln!(out, "{line}");
+    }
+    out
 }
