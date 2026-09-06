@@ -61,7 +61,7 @@ a third of the way in — not a promise redeemed at the end. Everything after th
 into a system that is already running and already closed.
 
 **5. Decompose the economics; do not schedule it as one bar.** The specification contains the machine
-and not the model: one production section of five sentences, no content for any of the forty-five agent
+and not the model: one production section of five sentences, no content for any of the forty agent
 declarations, roughly thirty per-position specifications owed and one written. Every candidate plan that
 treated this as a single milestone under-sized it by two to three times. It is four milestones here, each
 with its own gate and its own draw on the assumption count.
@@ -358,15 +358,15 @@ cascading region is declared an accepted modelled outcome. It must not be discov
 > **Question: do the remaining sectors add as declared insertions, as A2 and §18 promise?**
 
 **Contents** — property and tenancy; installed capital and its separate resale line; depreciation;
-equity, dividends and distributions; funds, insurers and pension funds; demography at position 1;
-collateral and margin at 16; the remaining five agent classes; the mark rule for `DerivedMark`
+equity, dividends and distributions; funds and liability-matched institutions; demography at position 1;
+collateral and margin at 16; the remaining four agent classes; the mark rule for `DerivedMark`
 instruments, which nothing currently specifies.
 
 **Why here** — if A2 and §18's change-cost table are true, this milestone is repetitive rather than
 inventive. If it is not repetitive, the change-cost table is wrong, and that is worth finding out under
 controlled conditions rather than at the end.
 
-**Exits when** all nine agent classes carry content; the change-cost table's claims are measured against
+**Exits when** all eight agent classes carry content; the change-cost table's claims are measured against
 the diffs this milestone actually produced and the table is corrected where it was wrong; and §3.1's
 requirements 1–3 still pass.
 
@@ -459,12 +459,12 @@ Sources are `PROJECT_AURORA.md` unless stated.*
 | The fiscal rule, including the tick-0 headcount decision §13.6 requires | *silently missing* | **M6** |
 | **Who holds the opening capital and dwellings** sourced at position 6 of tick 0 | *silently missing*, surfaced by §13.6 | **M6** |
 | The production specification | Appendix B *Owed* | **M6** |
-| The five declarations for nine agent classes | §8.1 — a shape with no content | **M7**, **M9** |
+| The five declarations for eight agent classes | §8.1 — a shape with no content | **M7**, **M9** |
 | ~30 per-position §17.4 specifications, 1 written | *silently missing* | **M6**–**M10** |
 | The trait declaration set | *silently missing* | **M7** |
 | The bank capital regime's values and cure window | *silently missing* | **M8** |
 | Issuer-freeze payment continuity | *silently missing* | **M8** |
-| The insurer / pension split of 40 — **derived: one world ratio, split by rule two**, never two counts | §8.4 *Owed* | **M9** picks the value |
+| ~~The insurer / pension split of 40~~ **Derived: not split.** One class of 40; eight agent classes, not nine | §8.4 *Owed* | closed |
 | §8.2's withdrawn accumulator and the price-change rule | §8.2 *Owed* | **M9** |
 | The `DerivedMark` derivation rule | §7.2 Q13 | **M9** |
 | δ₁ = 0.35 — **derived: justified by a named in-model mechanism or not at all** | §13.3 *What is owed* | **M11** names it |
@@ -555,7 +555,7 @@ arrives at roughly the halfway point rather than at the finish.
 
 **Where the uncertainty is.** M0 through M6 are estimated against a specification that describes them,
 and the range there is the ordinary one. M7 through M10 are estimated against a specification that does
-*not* contain them — no production section, no content for forty-five declarations, roughly thirty
+*not* contain them — no production section, no content for forty declarations, roughly thirty
 per-position specifications owed and one written — and those four milestones are 245–350 of the total.
 **The honest statement is that the second half of this plan is an estimate of work that has not been
 specified**, and the first thing M7 does is find out how wrong it is by writing four agent classes and

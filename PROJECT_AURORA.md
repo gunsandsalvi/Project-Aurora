@@ -221,8 +221,7 @@ allocated once:
 | Large firm | 64 | 440 | 28,160 |
 | Bank | 16,384 | 56 | 917,504 |
 | Fund | 4,096 | 54 | 221,184 |
-| Insurer | 4,096 | 22 | 90,112 |
-| Pension fund | 4,096 | 18 | 73,728 |
+| Liability-matched institution | 4,096 | 40 | 163,840 |
 | Government | 1,024 | 4 | 4,096 |
 | Central bank | 1,024 | 4 | 4,096 |
 | Counter-account | 64 | 40 | 2,560 |
@@ -991,8 +990,7 @@ here.**
 | Large firm | 440 | `corporate` | 1 tick | 1,024 B |
 | Bank | 56 | `bank-prudential` | 1 tick | 1,024 B |
 | Fund | 54 | `fund-unconstrained` | 1 tick | 1,024 B |
-| Insurer | 22 | `liability-matched` | 1 tick | 1,024 B |
-| Pension fund | 18 | `liability-matched` | 1 tick | 1,024 B |
+| Liability-matched institution | 40 | `liability-matched` | 1 tick | 1,024 B |
 | Government | 4 | `sovereign-fiscal` | declared meeting cadence | 1,024 B |
 | Central bank | 4 | `central-bank` | declared meeting cadence | 1,024 B |
 | | **550,598** | | | **95.6 MB** |
@@ -1000,9 +998,29 @@ here.**
 Plus **40 counter-account rows**, 10 per region, which are entities but decide nothing and are
 never retired: 550,638 rows live at tick 0.
 
-Three things this settles: **class is not regime** (nine classes, seven regimes); **class is not
+Four things this settles: **class is not regime** (eight classes, seven regimes); **class is not
 cadence** (cadence is a cost decision and lives here, so changing it is a one-row diff); **class is
-not a block** (block is a schema fact with a hard cap asserted at schema build).
+not a block** (block is a schema fact with a hard cap asserted at schema build); and **class is not an
+institutional label.**
+
+**The fourth is why insurers and pension funds are one class here and were two in the previous edition.**
+They shared a regime, a cadence and a block — every column this table carries — and nobody had named a
+declaration of §8.1 on which they differ. What differs is the *liabilities they have issued*: an
+insurer's are contingent claims crystallised by an event, a pension fund's are dated annuities. **Under
+A2 that is a difference between instruments, and an instrument is data.** A class existing to carry it
+would be encoding instrument behaviour in an agent, which is the thing A2 is for.
+
+§7.3 already states the principle for regimes — *a regime exists because a class of agent is bound
+differently; if two regimes never differ on any answer they are one regime* — and it generalises: **if
+two classes never differ on any of the five declarations, they are one class.** The name follows §7.3's
+other rule, that a binding is named for what binds it and never for an institution, because naming a
+class after an institution invites a second class for the second institution — which is how this one
+arose.
+
+*Cheap to reverse, and it was expensive to keep.* If a genuine difference in mandate, constraints,
+valuation or funding policy is found, §8.3 prices the split at one module and one row in this table, with
+zero edits anywhere else. Keeping the split cost an assumed prior to divide 40 into 22 and 18 that bought
+nothing, and §13.1 never carried it — the seed has always had one primitive for the pair.
 
 **Representative agents are abolished.** A row is one household. There is no scaling factor between
 a model household and anything outside the model, because there is nothing outside the model.
@@ -1011,8 +1029,8 @@ a model household and anything outside the model, because there is nothing outsi
 sub-units it must supply — so concentration is a property of the opening rather than an outcome of
 entry, and entry dynamics among large firms are effectively absent at this scale.
 
-*Owed.* One seed primitive covers insurers and pension funds together and there is no rule splitting
-40 into 22 and 18. It must be settled before either class is written.
+*Settled, where the previous edition owed a rule.* One seed primitive covers the pair, and no rule
+splitting 40 into 22 and 18 is needed, because there is nothing to split: the class is the pair.
 
 ### 8.5 What a row is
 
@@ -1543,7 +1561,7 @@ assumption.
 | Sector count | count | world | structural | 7 |
 | Household count | count | axis 1 | assumed | 500,000 |
 | Large-firm count | count | axis 1 | assumed | 440 |
-| Bank / fund / insurer-and-pension / SME counts | count | axis 1 | assumed | 56 / 54 / 40 / 50,000 |
+| Bank / fund / liability-matched / SME counts | count | axis 1 | assumed | 56 / 54 / 40 / 50,000 |
 | Cohort shares | ratio | axis 3 | assumed | 0.22, 0.38, 0.27, 0.13 |
 | Labour endowment per household | hour | axis 3 | assumed | 40 |
 | Capital units | count | axis 1 | assumed | 20,000,000 |
@@ -1748,7 +1766,7 @@ source tree where a region's population can be typed.
 | Large firms | 64 | 89 | 121 | 166 | **440** |
 | Banks | 8 | 11 | 15 | 22 | **56** |
 | Funds | 7 | 11 | 15 | 21 | **54** |
-| Insurers and pension funds | 5 | 8 | 11 | 16 | **40** |
+| Liability-matched institutions | 5 | 8 | 11 | 16 | **40** |
 | Capital units | 2,943,040 | 4,024,871 | 5,504,371 | 7,527,718 | **20,000,000** |
 | Dwellings | 66,218 | 90,560 | 123,848 | 169,374 | **450,000** |
 | Land, m² | 5.886×10⁹ | 8.050×10⁹ | 1.101×10¹⁰ | 1.506×10¹⁰ | **4.0×10¹⁰** |
@@ -2359,7 +2377,7 @@ what they replaced is in Appendix B.
 | 18 | Venues and lines | 37 venues, 190 structural lines, 1,276 instantiated, cap 4,096 | the cap at venue registration |
 | 19 | Region and currency | one region per venue, FX the sole exception, no world price | the venue registry |
 | 20 | Submission shapes | two: schedule and price-taking, 64 log-spaced buckets | one clearing interface |
-| 21 | Agent inventory | nine classes, one total mapping to (regime, cadence, count); **five declarations, total per class** | a class naming no regime, or declaring four items, does not compile |
+| 21 | Agent inventory | **eight classes**, one total mapping to (regime, cadence, count); **five declarations, total per class**; two classes differing on none of the five are one class | a class naming no regime, or declaring four items, does not compile |
 | 22 | Agent state budget | 160 B household, 256 B SME, 1,024 B institution, 95.6 MB | asserted at schema build |
 | 22a | Holdings slot | **24 B, field list published in §3.4**; encumbrance derived from lien rows, not stored | asserted at schema build |
 | 23 | Staggering | 13 / 4 / 1; phase from a dedicated stream, never `id mod C`; six triggers, one minted handle each | the manifest fails the N3 check if a trigger's index is a scan |
@@ -2426,6 +2444,7 @@ nothing reads failing the build. **The cap was never what made A3 true; the rule
 | N4's 1,488.3 MB | **unresolved, and named as such** | the itemisation was never published and the named components leave roughly 705 MB unaccounted, whose largest term is the instrument row width §7.5 declares unsettled |
 | §3.4's identifier census | **unresolved, and named as such** | ≈ 971,000 ever issued against §5.2's implied ≈ 12,450,000 is a factor of thirteen, and it sizes the directory, the digest walk and the save |
 | The trailing-statistics system | **owed a position** | §13.4 requires it, §9.4's twenty-one positions do not contain it |
+| Insurer and Pension fund | **merged into one class, `Liability-matched institution`** — eight agent classes, not nine | They differed on no column §8.4 carries and on no declaration of §8.1. What differs is the liabilities they issued, which A2 makes instrument data. The owed rule for splitting 40 into 22 and 18 is not needed, because nothing is split |
 
 #### Answers derived from the model rules, not decided afresh
 
@@ -2439,7 +2458,7 @@ checked; none of them is a new choice.*
 | How is "a household may not hold a consumption good" enforced, given Q10 cannot say it? | **It needs no rule.** The retail exchange delivers its goods leg to the buyer's declared sink, so no holding is created for the door to refuse. Q10 gains no fifth answer and §18's most expensive change is avoided | M2, plus §9.6.3's existing sink |
 | Should the burn-in gate carry a multiplicity correction? | **Yes, and it is required rather than advisable.** 168 hypotheses at a nominal 5% pass together ~11.6% of the time on an unsettled world | M2 — a gate that fires on noise measures agreement among tests, not the model |
 | What justifies δ₁, δ₂, δ₃? | **A mechanism inside the model, named**, never a resemblance to an observed economy. §13.3 already states the standard; M2 is why it is the standard | M2 |
-| How is the insurer/pension count of 40 split? | **One world-scope assumed ratio with a bracket, split by §6.3 rule two.** Not two counts, and never a per-region count | M3 (one entry, not eight), A3 rule 2 |
+| How is the insurer/pension count of 40 split? | **It is not split.** The two shared regime, cadence and block, and no §8.1 declaration was ever named on which they differ; what differs is the liabilities they issued, which under A2 is instrument data. **One class of 40, and eight classes rather than nine.** Cheap to reintroduce under §8.3 if a declaration is found | A2 (instrument behaviour does not live in an agent), M3 (the splitting prior bought nothing), §7.3's naming rule generalised |
 | The institutional census: banks, funds, insurers-and-pension-funds | **56 / 54 / 40** | The seed carried 120 / 240 / 80 while the entity census, the agent inventory and the workload decision carried 56 / 54 / 22 + 18. The layout, the arena sizing, the block widths and the entity budget are all derived from the second set, and it is the set with an argument attached |
 | Every published per-region vector | **withdrawn; §13.3's derived table replaces them** | The published household row descended while every other axis-1 primitive in the same table ascended, so one axis was being read in two directions; and no household vector printed anywhere was the formula's output |
 | `Z`'s index direction | **rank 1 takes the smallest loading** | The only reading reproducing the axis-1 share row, both multiplier rows and the sign of ρ(P₂,P₃) |
@@ -2461,7 +2480,7 @@ costs. It is settled by measurement on the target device and is an entry criteri
 **Owed**, and this list is the honest measure of what the document does not yet contain:
 
 *Model content, which is most of it.* A **production section**, of which position 6's row and five
-sentences are the whole. The **five declarations of §8.1 for all nine agent classes** — mandate, regime,
+sentences are the whole. The **five declarations of §8.1 for all eight agent classes** — mandate, regime,
 constraints, valuation, funding policy — which are a shape with no content for any class: no consumption
 rule, no labour supply rule, no firm pricing rule, no credit underwriting rule, no portfolio rule, no
 default test, no bank capital values, no cure windows. A **§17.4 specification per committed position**,
@@ -2469,8 +2488,7 @@ of which roughly thirty are owed and one exists. The **relational table's twenty
 **instrument type vocabulary**, which §18 charges one entry against a section that does not exist.
 **None of this is a detail of implementation. It is the economics, and it is the subject of the title.**
 
-*Numbers and rules.* δ₁'s justification. The split of one insurer-and-pension primitive into two agent
-classes. §7.5's 44-byte against 148-byte instrument row. N4's itemisation. §3.4's identifier census and
+*Numbers and rules.* δ₁'s justification. §7.5's 44-byte against 148-byte instrument row. N4's itemisation. §3.4's identifier census and
 its operation-count derivation. The numéraire's upper bracket. The trailing-statistics position. The
 period-0 grid-placement rule for every venue family other than labour — §13.1.1 supplies one anchor and
 the other nine or more lines have none, so a first clearing would raise a grid defect on almost every
