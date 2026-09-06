@@ -218,6 +218,8 @@ fn an_adr_without_a_guard_is_caught() {
     }
     front.push_str("---\n\n## Decision\n\nSomething.\n");
     fs::write(root.join("decisions/ADR-0001-x.md"), front).expect("scratch adr is writable");
+    fs::write(root.join("decisions/register.txt"), "0001 x\n")
+        .expect("scratch register is writable");
 
     let (findings, count) = aurora_tools::check_adr::check(&root);
     assert_eq!(count, 1);
@@ -229,6 +231,96 @@ fn an_adr_without_a_guard_is_caught() {
         only.contains("same as absent"),
         "and says why an empty field is not a field: {only}"
     );
+}
+
+// ── the counter's three rules, one fixture each ─────────────────────────────────────────────────
+//
+// W5.1's claim is that a collision becomes a merge conflict rather than a duplicate decision. That
+// only holds if the register and the directory are checked against each other, so each way they can
+// disagree fails here for its own reason.
+
+/// A complete ADR under `id`, named `ADR-<file_id>-<slug>.md`, in a fresh scratch root.
+fn adr_fixture(
+    name: &str,
+    id: &str,
+    file_id: &str,
+    slug: &str,
+    register: &str,
+) -> std::path::PathBuf {
+    let root = scratch(name);
+    fs::create_dir_all(root.join("decisions")).expect("scratch decisions dir");
+    let mut front = String::from("---\n");
+    for f in [
+        format!("id: {id}"),
+        "title: t".to_owned(),
+        "status: accepted".to_owned(),
+        "date: 2026-01-01".to_owned(),
+        "register-entry: 1".to_owned(),
+        "claim-impact: none".to_owned(),
+        "guard: check-adr".to_owned(),
+        "supersedes: none".to_owned(),
+        "cost: none".to_owned(),
+        "alternatives-rejected: none".to_owned(),
+        "re-derivations: none".to_owned(),
+    ] {
+        front.push_str(&f);
+        front.push('\n');
+    }
+    front.push_str("---\n\n## Decision\n\nSomething.\n");
+    fs::write(
+        root.join(format!("decisions/ADR-{file_id}-{slug}.md")),
+        front,
+    )
+    .expect("scratch adr is writable");
+    fs::write(root.join("decisions/register.txt"), register).expect("scratch register is writable");
+    root
+}
+
+#[test]
+fn a_number_allocated_outside_the_counter_is_caught() {
+    let root = adr_fixture("adr-unallocated", "ADR-0007", "0007", "x", "0001 a\n");
+    let (findings, _) = aurora_tools::check_adr::check(&root);
+    let [only] = findings.as_slice() else {
+        panic!("the unallocated number is the one finding: {findings:?}")
+    };
+    assert!(only.contains("allocated outside the counter"), "{only}");
+}
+
+#[test]
+fn a_slug_disagreeing_with_the_register_is_caught() {
+    let root = adr_fixture(
+        "adr-wrong-slug",
+        "ADR-0001",
+        "0001",
+        "elsewhere",
+        "0001 here\n",
+    );
+    let (findings, _) = aurora_tools::check_adr::check(&root);
+    let [only] = findings.as_slice() else {
+        panic!("the slug disagreement is the one finding: {findings:?}")
+    };
+    assert!(only.contains("`here`, not `elsewhere`"), "{only}");
+}
+
+#[test]
+fn a_filename_disagreeing_with_its_own_id_is_caught() {
+    let root = adr_fixture("adr-wrong-id", "ADR-0002", "0001", "x", "0001 x\n");
+    let (findings, _) = aurora_tools::check_adr::check(&root);
+    let [only] = findings.as_slice() else {
+        panic!("the id disagreement is the one finding: {findings:?}")
+    };
+    assert!(only.contains("front matter says `ADR-0002`"), "{only}");
+    assert!(only.contains("filename says ADR-0001"), "{only}");
+}
+
+#[test]
+fn a_number_allocated_twice_is_caught() {
+    let root = adr_fixture("adr-twice", "ADR-0001", "0001", "x", "0001 x\n0001 y\n");
+    let (findings, _) = aurora_tools::check_adr::check(&root);
+    let [only] = findings.as_slice() else {
+        panic!("the duplicate allocation is the one finding: {findings:?}")
+    };
+    assert!(only.contains("the counter must ascend"), "{only}");
 }
 
 // ── the registry's seven rules, one fixture each ────────────────────────────────────────────────

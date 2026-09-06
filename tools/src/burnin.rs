@@ -28,7 +28,7 @@ fn draw(seed: u64, stream: u64, index: u64) -> u64 {
 
 /// A uniform in [0, 1), exactly representable.
 #[allow(clippy::cast_precision_loss)]
-fn unit(seed: u64, stream: u64, index: u64) -> f64 {
+pub fn unit(seed: u64, stream: u64, index: u64) -> f64 {
     (draw(seed, stream, index) >> 11) as f64 * (1.0 / 9_007_199_254_740_992.0)
 }
 
@@ -37,7 +37,7 @@ fn unit(seed: u64, stream: u64, index: u64) -> f64 {
 /// §11 admits no `log`, `exp` or `cos`, which rules out Box–Muller; this needs none of them. It is a
 /// crude normal and it is entirely adequate here, where the question is about a test's behaviour and
 /// not about the tail of a distribution.
-fn normal(seed: u64, stream: u64, index: u64) -> f64 {
+pub fn normal(seed: u64, stream: u64, index: u64) -> f64 {
     (0..12)
         .map(|k| unit(seed, stream, index * 12 + k))
         .sum::<f64>()
@@ -49,13 +49,34 @@ const W: usize = 104;
 /// The ensemble §15.3 declares.
 const E: usize = 16;
 
+/// The trailing window B2 takes its mean over.
+const TRAIL: usize = 52;
+/// B3's critical value: the two-sided 5% point of Spearman's rho at n = 16, registered `structural`.
+const RHO_CRIT: f64 = 0.503;
+
 /// The four verdicts on one series.
+///
+/// Four booleans is exactly what §15.3 defines, so the shape is the specification's rather than a
+/// missing enumeration: the tests are conjoined, not alternative.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Clone, Copy)]
 pub struct Verdict {
     /// B1 — no drift.
     pub b1: bool,
     /// B1b — no regime shift.
     pub b1b: bool,
+    /// B2 — the ensemble mixed.
+    pub b2: bool,
+    /// B3 — the opening is forgotten.
+    pub b3: bool,
+}
+
+impl Verdict {
+    /// All four, which is what §15.3 requires of every series at `burnInPeriod`.
+    #[must_use]
+    pub fn all(self) -> bool {
+        self.b1 && self.b1b && self.b2 && self.b3
+    }
 }
 
 /// B1: the OLS slope over the window, judged against the mean or the standard deviation.
@@ -118,6 +139,119 @@ fn b1b(series: &[f64]) -> bool {
     means_close && ratio <= 2.0
 }
 
+/// The standard deviation of a set of values, over `n` rather than `n − 1`.
+///
+/// B2 is a ratio of two of these at the same `n`, so the choice of denominator cancels; over `n` is
+/// used because it is what the rest of this module uses.
+fn sd(values: &[f64]) -> f64 {
+    if values.is_empty() {
+        return 0.0;
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let n = values.len() as f64;
+    let mean = values.iter().sum::<f64>() / n;
+    (values.iter().map(|v| (v - mean).powi(2)).sum::<f64>() / n).sqrt()
+}
+
+/// The mean of the `TRAIL` periods ending at `at`, inclusive; `None` if the history is too short.
+fn trailing_mean(series: &[f64], at: usize) -> Option<f64> {
+    let start = at.checked_sub(TRAIL - 1)?;
+    let slice = series.get(start..=at)?;
+    #[allow(clippy::cast_precision_loss)]
+    let n = slice.len() as f64;
+    Some(slice.iter().sum::<f64>() / n)
+}
+
+/// B2: the cross-seed spread of the trailing-52 mean, at the end of the window over at its start.
+///
+/// This is the one test of the four that reads the ensemble rather than a path, and it is the reason
+/// `E = 16` exists at all: a single seed cannot say whether the spread across seeds has stopped
+/// changing.
+fn b2(ensemble: &[Vec<f64>], gate: usize) -> bool {
+    let Some(start) = gate.checked_sub(W - 1) else {
+        return false;
+    };
+    let (mut at_start, mut at_end) = (Vec::new(), Vec::new());
+    for series in ensemble {
+        let (Some(a), Some(b)) = (trailing_mean(series, start), trailing_mean(series, gate)) else {
+            return false;
+        };
+        at_start.push(a);
+        at_end.push(b);
+    }
+    let (s0, s1) = (sd(&at_start), sd(&at_end));
+    if s0 <= 0.0 {
+        // No spread at the opening is not a settled ensemble, it is one seed repeated.
+        return false;
+    }
+    let r = s1 / s0;
+    (0.80..=1.25).contains(&r)
+}
+
+/// B3: Spearman's rho across seeds between the period-0 value and the value at the gate.
+fn b3(ensemble: &[Vec<f64>], gate: usize) -> bool {
+    let (mut opening, mut current) = (Vec::new(), Vec::new());
+    for series in ensemble {
+        let (Some(a), Some(b)) = (series.first(), series.get(gate)) else {
+            return false;
+        };
+        opening.push(*a);
+        current.push(*b);
+    }
+    spearman_of(&opening, &current).abs() <= RHO_CRIT
+}
+
+/// Spearman's rho: Pearson's correlation on ranks, with ties averaged.
+pub fn spearman_of(a: &[f64], b: &[f64]) -> f64 {
+    if a.len() != b.len() || a.len() < 2 {
+        return 0.0;
+    }
+    let (ra, rb) = (ranks(a), ranks(b));
+    #[allow(clippy::cast_precision_loss)]
+    let n = ra.len() as f64;
+    let (ma, mb) = (ra.iter().sum::<f64>() / n, rb.iter().sum::<f64>() / n);
+    let mut num = 0.0;
+    let (mut da, mut db) = (0.0, 0.0);
+    for (x, y) in ra.iter().zip(rb.iter()) {
+        num += (x - ma) * (y - mb);
+        da += (x - ma).powi(2);
+        db += (y - mb).powi(2);
+    }
+    if da <= 0.0 || db <= 0.0 {
+        return 0.0;
+    }
+    num / (da * db).sqrt()
+}
+
+/// Ranks, one-based, with tied values sharing the average of the ranks they span.
+fn ranks(values: &[f64]) -> Vec<f64> {
+    let mut order: Vec<usize> = (0..values.len()).collect();
+    order.sort_by(|&i, &j| match (values.get(i), values.get(j)) {
+        (Some(x), Some(y)) => x.partial_cmp(y).unwrap_or(core::cmp::Ordering::Equal),
+        _ => core::cmp::Ordering::Equal,
+    });
+    let mut out = vec![0.0; values.len()];
+    let mut i = 0;
+    while i < order.len() {
+        let mut j = i + 1;
+        while let (Some(&oi), Some(&oj)) = (order.get(i), order.get(j))
+            && let (Some(x), Some(y)) = (values.get(oi), values.get(oj))
+            && (x - y).abs() <= 0.0
+        {
+            j += 1;
+        }
+        #[allow(clippy::cast_precision_loss)]
+        let shared = ((i + j - 1) as f64) / 2.0 + 1.0;
+        for &o in order.get(i..j).unwrap_or_default() {
+            if let Some(slot) = out.get_mut(o) {
+                *slot = shared;
+            }
+        }
+        i = j;
+    }
+    out
+}
+
 /// One stationary AR(1) series: the shape §15.3's flagged series are supposed to have by the gate.
 fn ar1(seed: u64, stream: u64, n: usize, phi: f64) -> Vec<f64> {
     let mut out = Vec::with_capacity(n);
@@ -151,6 +285,191 @@ fn broken(seed: u64, stream: u64, n: usize) -> Vec<f64> {
         .enumerate()
         .map(|(i, x)| if i >= n / 2 { x + 5.0 } else { x })
         .collect()
+}
+
+/// How wide the ensemble's openings are spread, in the headline table. B2 and B3 are both about the
+/// opening, so an ensemble whose seeds all start in the same place cannot exercise either.
+const OPENING_SPREAD: f64 = 10.0;
+
+/// The shapes an ensemble can have, and what §15.3 says each should be caught by.
+#[derive(Clone, Copy)]
+pub enum Shape {
+    /// AR(1) with the given `phi`, from dispersed openings. At `phi = 0.5` it mixes within a few
+    /// periods; at `phi = 0.98` it is still carrying its opening a hundred periods later.
+    Ar1(f64),
+    /// A random walk from dispersed openings: the cross-seed spread grows without bound, which is
+    /// what B2 exists to catch.
+    Walk,
+    /// A path that never leaves its opening: B3's target, and B2 sees nothing wrong with it.
+    Frozen,
+}
+
+/// `E` series of length `n`, one per seed, all of the same shape, from openings `spread` wide.
+fn ensemble(shape: Shape, base: u64, n: usize, spread: f64) -> Vec<Vec<f64>> {
+    ensemble_of(shape, base, E, n, spread)
+}
+
+/// The same, with the ensemble size given: ADR-0019's calibration needs to vary `E`.
+#[must_use]
+pub fn ensemble_of(shape: Shape, base: u64, seeds: usize, n: usize, spread: f64) -> Vec<Vec<f64>> {
+    (0..seeds)
+        .map(|e| {
+            let seed = base + e as u64;
+            let x0 = 100.0 + spread * normal(seed, 7, 0);
+            let mut out = Vec::with_capacity(n);
+            let mut x = x0;
+            for i in 0..n {
+                #[allow(clippy::cast_possible_truncation)]
+                let noise = normal(seed, 3, i as u64);
+                x = match shape {
+                    Shape::Ar1(phi) => 100.0 + phi * (x - 100.0) + noise,
+                    Shape::Walk => x + noise,
+                    Shape::Frozen => x0 + 0.01 * noise,
+                };
+                out.push(x);
+            }
+            out
+        })
+        .collect()
+}
+
+/// B2 and B3 against ensembles whose answers are known, and the four-test conjunction.
+fn ensemble_report() -> String {
+    let mut out = String::new();
+    for line in [
+        String::new(),
+        format!("  B2 and B3 need an ensemble, so these are over {E} seeds with openings spread"),
+        format!(
+            "  {OPENING_SPREAD:.0} wide. Rates are over {ENSEMBLE_TRIALS} independent ensembles at the gate period {GATE}."
+        ),
+    ] {
+        let _ = writeln!(out, "{line}");
+    }
+    let _ = writeln!(
+        out,
+        "  ensemble                      B1      B1b     B2      B3      all four"
+    );
+
+    let shapes = [
+        ("mixing AR(1), phi 0.5", Shape::Ar1(0.5)),
+        ("slow AR(1), phi 0.98", Shape::Ar1(0.98)),
+        ("random walk", Shape::Walk),
+        ("frozen at its opening", Shape::Frozen),
+    ];
+    let mut settled_all = 0.0;
+    for (name, shape) in shapes {
+        let (mut n1, mut n1b, mut n2, mut n3, mut nall) = (0u32, 0u32, 0u32, 0u32, 0u32);
+        for panel in 0..ENSEMBLE_TRIALS {
+            let ens = ensemble(
+                shape,
+                900_000 + panel * u64::try_from(E).unwrap_or(16),
+                GATE + 1,
+                OPENING_SPREAD,
+            );
+            let v = verdict(&ens, GATE);
+            n1 += u32::from(v.b1);
+            n1b += u32::from(v.b1b);
+            n2 += u32::from(v.b2);
+            n3 += u32::from(v.b3);
+            nall += u32::from(v.all());
+        }
+        let d = f64::from(u32::try_from(ENSEMBLE_TRIALS).unwrap_or(400));
+        let all = f64::from(nall) / d;
+        if matches!(shape, Shape::Ar1(phi) if phi <= 0.5) {
+            settled_all = all;
+        }
+        let _ = writeln!(
+            out,
+            "  {name:<28}  {:.3}   {:.3}   {:.3}   {:.3}   {all:.3}",
+            f64::from(n1) / d,
+            f64::from(n1b) / d,
+            f64::from(n2) / d,
+            f64::from(n3) / d,
+        );
+    }
+
+    // B2's ratio is a function of the opening spread, and the opening spread is not modelled. If
+    // that is what drives it, widening the spread must close the gap between a settled ensemble and
+    // a diverging one — so measure the gap at three spreads rather than assert it at one.
+    for line in [
+        String::new(),
+        "  B2 alone, against the spread the seeds opened with:".to_owned(),
+        String::new(),
+        "  opening spread    settled    random walk    gap".to_owned(),
+    ] {
+        let _ = writeln!(out, "{line}");
+    }
+    for spread in [0.5_f64, 2.0, 10.0, 40.0] {
+        let rate = |shape: Shape| {
+            let mut n = 0u32;
+            for panel in 0..ENSEMBLE_TRIALS {
+                let ens = ensemble(
+                    shape,
+                    700_000 + panel * u64::try_from(E).unwrap_or(16),
+                    GATE + 1,
+                    spread,
+                );
+                n += u32::from(b2(&ens, GATE));
+            }
+            f64::from(n) / f64::from(u32::try_from(ENSEMBLE_TRIALS).unwrap_or(400))
+        };
+        let (settled, walk) = (rate(Shape::Ar1(0.5)), rate(Shape::Walk));
+        let _ = writeln!(
+            out,
+            "  {spread:>13.1}    {settled:>7.3}    {walk:>11.3}    {:>+.3}",
+            settled - walk
+        );
+    }
+
+    // The whole gate, on the world it is supposed to pass: 42 series, four tests, all at once.
+    let flagged = 42i32;
+    let panel = settled_all.powi(flagged);
+    for line in [
+        String::new(),
+        format!("  The settled ensemble passes all four on {settled_all:.3} of series. \u{a7}15.3 requires all 42"),
+        format!("  flagged series to pass at the same period, so the whole panel passes {panel:.2e} of the time."),
+        "  **The gate as specified cannot fire on a world that has settled.** Reaching period 520 without".to_owned(),
+        "  a pass is what \u{a7}15.3 calls a defect; on these numbers it is the certain outcome.".to_owned(),
+    ] {
+        let _ = writeln!(out, "{line}");
+    }
+    out
+}
+
+/// The gate period the ensemble tests are evaluated at: inside §15.3's [260, 520] bracket, and far
+/// enough in that B2's start-of-window trailing mean has its 52 periods of history.
+const GATE: usize = 260;
+/// How many independent ensembles each rate is measured over.
+const ENSEMBLE_TRIALS: u64 = 400;
+
+/// All four tests on one ensemble.
+///
+/// **§15.3 does not say which series B1 and B1b are evaluated on**, and there are `E` of them per
+/// flagged quantity. It says the panel is 42 series and that the gate is 168 hypotheses, which is
+/// 42 x 4 — so B1 and B1b are one hypothesis per flagged quantity, not one per seed. The only
+/// reading that gives 168 is that the path tests run on the ensemble mean, and that is what this
+/// does. It is an inference, not a quotation, and it is recorded as such.
+fn verdict(ensemble: &[Vec<f64>], gate: usize) -> Verdict {
+    let Some(first) = ensemble.first() else {
+        return Verdict {
+            b1: false,
+            b1b: false,
+            b2: false,
+            b3: false,
+        };
+    };
+    let start = gate.saturating_sub(W - 1);
+    #[allow(clippy::cast_precision_loss)]
+    let seeds = ensemble.len() as f64;
+    let mean_path: Vec<f64> = (start..=gate.min(first.len().saturating_sub(1)))
+        .map(|t| ensemble.iter().filter_map(|s| s.get(t)).sum::<f64>() / seeds)
+        .collect();
+    Verdict {
+        b1: b1(&mean_path),
+        b1b: b1b(&mean_path),
+        b2: b2(ensemble, gate),
+        b3: b3(ensemble, gate),
+    }
 }
 
 /// Characterise the tests against known shapes, then measure the conjunction's behaviour.
@@ -224,27 +543,42 @@ pub fn report() -> String {
     );
 
     let _ = write!(out, "{}", calibration());
+    let _ = write!(out, "{}", ensemble_report());
 
-    let _ = writeln!(
-        out,
-        "\n  FINDING. §15.3's gate is a conjunction over 42 flagged series and four tests — 168\n  \
-         hypotheses — and it makes `burnInPeriod` the FIRST period at which every one of them passes,\n  \
-         while making arrival at period 520 without a pass a DEFECT. The measurement above is over two\n  \
-         of the four tests and a world that is stationary by construction. Whatever the exact figure,\n  \
-         the direction is not in doubt and it is the opposite of the one the specification worries\n  \
-         about: the risk is not that the gate passes on noise, it is that **a settled world fails it**,\n  \
-         and §16.2 then classifies a healthy model as defective.\n\n  \
-         The binding constraint is B1b, and it is not a multiplicity problem — it is a mis-specified\n  \
-         threshold. `|Δμ| ≤ 0.25·σ_pooled` is a FIXED EFFECT SIZE with no reference to sampling error,\n  \
-         so it does not become a five-per-cent test at any window length; on an autocorrelated series\n  \
-         it rejects most of the time. B1's disjunction, by contrast, passes every stationary series and\n  \
-         a third of random walks, so the two tests are mis-calibrated in OPPOSITE directions.\n\n  \
-         Two things are owed, and they are different. (1) Each test's threshold must be set from the\n  \
-         distribution of its own statistic under the null, as B3's 0.503 already is — B3 is the only\n  \
-         one of the four whose critical value is derived rather than chosen. (2) A multiplicity\n  \
-         correction over the 168 hypotheses, which is a separate problem and does not fix this one.\n  \
-         E = {E} and W = {W} are §15.3's own; B2 and B3 need cross-seed ensembles and are owed here."
-    );
+    for line in [
+        "",
+        "  FINDING. \u{a7}15.3's gate is a conjunction over 42 flagged series and four tests \u{2014} 168",
+        "  hypotheses \u{2014} and it makes `burnInPeriod` the FIRST period at which every one of them passes,",
+        "  while making arrival at period 520 without a pass a DEFECT. Measured against worlds whose",
+        "  answers are known, the risk is the opposite of the one the specification worries about: not",
+        "  that the gate fires on noise, but that **a settled world never passes it**, after which",
+        "  \u{a7}16.2 classifies a healthy model as defective.",
+        "",
+        "  Where each test actually stands, measured rather than assumed:",
+        "",
+        "  - B1 is the only one of the four that behaves. It passes every settled series and its",
+        "    failures are informative.",
+        "  - B1b rejects the majority of settled series, and no window length fixes it. `|d-mu| <=",
+        "    0.25 sigma_pooled` is a FIXED EFFECT SIZE with no reference to sampling error, so it is not",
+        "    a five-per-cent test at any n; on an autocorrelated series it rejects most of the time.",
+        "  - B2 does not merely lack power, it INVERTS. Its ratio is dominated by the spread the seeds",
+        "    OPENED with, which is not a modelled quantity at all: at a spread of 0.5 it separates the",
+        "    settled ensemble from a random walk by +0.27, at 10 the gap is gone, and at 40 a random",
+        "    walk passes B2 every time while the settled ensemble passes 0.58 \u{2014} a gap of -0.42, the",
+        "    wrong way round. A test whose verdict is decided by an arbitrary opening is not a test.",
+        "    The settled rate of 0.58 is besides too low for a gate: a ratio of two standard deviations",
+        "    at E = 16 is far too noisy for a [0.80, 1.25] band.",
+        "  - B3 does what it says. It rejects the frozen path every time. On the random walk it lands on",
+        "    its own critical value, because a walk from an opening spread of 10 has a true period-0",
+        "    correlation near 0.53 at period 260 \u{2014} so B3's verdict there is arithmetic, not chance.",
+        "",
+        "  So the multiplicity correction \u{a7}15.3 asks for is the SECOND problem, not the first. Three of",
+        "  the four tests have no calibrated null \u{2014} B3's 0.503 is the only critical value in the gate",
+        "  that was derived from a distribution rather than chosen \u{2014} and a correction applied to",
+        "  mis-specified tests corrects nothing. ADR-0019 takes both, in that order.",
+    ] {
+        let _ = writeln!(out, "{line}");
+    }
     out
 }
 

@@ -2209,26 +2209,44 @@ forbids.
 **The panel is 42 series, all dimensionless or stationary by construction.** Levels are excluded: a
 growing economy's output *should* trend, so testing a level for stationarity tests the wrong thing.
 
-Window `W = 104`, ensemble `E = 16` seeds, all statistics computed **outside the engine** from the
+Window `W = 104`, ensemble **`E = 40` seeds**, all statistics computed **outside the engine** from the
 observation store. **No engine handle reads them.**
 
 | Test | Statistic | Passes when | Establishes |
 |---|---|---|---|
-| **B1** no drift | OLS slope `β̂` on period index over `W` | `\|β̂·W\|/μ_W ≤ 0.05`, or `/σ_W ≤ 0.50` | the series is no longer going anywhere |
-| **B1b** no regime shift | split `W` in half | `\|μ₁−μ₂\| ≤ 0.25·σ_pooled` **and** variance ratio ≤ 2.0 | the second half is the same world as the first |
-| **B2** the ensemble mixed | `R` = cross-seed sd of the trailing-52 mean, end over start | `0.80 ≤ R ≤ 1.25` | the spread across seeds has stopped changing |
-| **B3** the opening is forgotten | Spearman ρ across seeds between period-0 value and gate value | `\|ρ\| ≤ 0.503` | the world's arbitrary opening no longer predicts where it is |
+| **B1** no drift | OLS slope `β̂` on period index over `W`, in units of `σ_W` | its bootstrap p-value exceeds `α` | the series is no longer going anywhere |
+| **B1b** no regime shift | split `W` in half: the standardised mean gap, and the variance ratio | the smaller of their two bootstrap p-values exceeds its own null's `α` point | the second half is the same world as the first |
+| **B2** the ensemble mixed | between-seed variance of the trailing-52 mean, over the mean of `(h₁−h₂)²/2` across seeds | below the `1−α` point of the statistic under exchangeable seeds | the spread across seeds is no larger than one seed's own variability at that scale |
+| **B3** the opening is forgotten | Spearman ρ across seeds between period-0 value and gate value | `\|ρ\| ≤` the `1−α` point of the permutation null at `E` | the world's arbitrary opening no longer predicts where it is |
 
-`0.503` is the two-sided 5% critical value of Spearman's ρ at n = 16 — a property of a
-distribution, which is arithmetic, registered `structural`.
+**No critical value in this table is a chosen number, and that is the point (ADR-0019).** B1's and B1b's
+come from a stationary block bootstrap of the window under test, whose mean block length is derived from
+the series' own autocorrelation. B2's and B3's depend on nothing but `E` and are computed once. The
+earlier thresholds — `0.05`, `0.50`, `0.25`, `2.0`, `[0.80, 1.25]`, `0.503` — were measured against
+worlds whose answers were known and are superseded: a settled world passed all four on 28.7% of series,
+so the 42-series conjunction passed about once in 10²³. **The gate as first written could not fire on a
+world that had settled**, and §16.2 would then have classified a healthy model as defective.
 
-**A multiplicity correction is required, and M2 is what requires it.** Four tests across 42 series is
-168 hypotheses; at a nominal 5% each, the conjunction passes roughly 11.6% of the time on a world that
-is *not* settled. A gate that fires on noise one time in nine is not measuring whether the model has
-settled — it is measuring whether 168 tests happened to agree — and M2 asks that the machinery be right
-rather than that it produce an acceptable-looking answer. The correction is declared with the panel, its
-family-wise error rate is stated, and it is validated against synthetic series with known properties
-before any engine output is judged by it.
+**B2's statistic was replaced, not recalibrated.** The cross-seed spread ratio it used was dominated by
+the spread the seeds *opened* with — an unmodelled quantity — and its discrimination inverted as that
+spread widened: at a wide opening a random walk passed it every time while a settled ensemble passed
+58%. The replacement compares the between-seed spread of the trailing mean against what one seed's own
+variability at the same time scale predicts, so no autocorrelation model and no opening appears in it.
+
+**The correction runs toward false failure, not false passage.** Four tests across 42 series is 168
+hypotheses. Conjoined at a nominal 5% each, the gate's actual size is `0.95¹⁶⁸ ≈ 0.02%` — it is not a
+5% test of anything, and the risk §15.3 originally named, that it fires on noise one time in nine, is
+the failure that cannot occur. Each hypothesis is therefore tested at `α = 1 − 0.95^(1/168) ≈ 3.05×10⁻⁴`,
+so that **a settled world passes the conjunction 95% of the time**. The 168 are positively dependent —
+42 series of one world over shared seeds — and positive dependence makes `P(all pass) ≥ ∏P(pass)`, so
+the realised false-failure rate is at or below 5%: the dependence errs in the safe direction, which is
+why the independence assumption is declared rather than estimated.
+
+Two costs follow and are accepted. A bootstrap p-value cannot fall below `1/(R+1)`, so B1 and B1b need
+**R ≥ 3,276 replicates** to resolve their critical value at all and about ten times that to resolve it
+stably. And `E` rises from 16 to 40: under the correction, sixteen seeds give B3 a critical `|ρ|` of
+0.809 — inert against exactly the path dependence a hand-built seed is most likely to have — while forty
+give 0.553, about the power the gate was believed to have before the conjunction was counted.
 
 **`burnInPeriod` is the first period `P` with `260 ≤ P ≤ 520` at which all four pass on all 42
 series, under the declared correction.** It is in the run manifest, the surface refuses to present any earlier period as a result,
@@ -2689,7 +2707,7 @@ what they replaced is in Appendix B.
 | 27 | The A3 build check | eight fields, **seven rules**; `assumed` never a level and never region-scoped; an unread entry fails | the build |
 | 28 | Structural asymmetry | three axes, `Z`, three orderings, δ = 0.35 / 0.20 / 0.15; **rank 1 takes the smallest loading**; every per-region value `derived` | no per-region `assumed` entry compiles |
 | 29 | Policy rate | difference rule with a Wicksellian anchor; `a, b, c, K` = 1.5, 0.5, 0.10, 104; `π* = 0` structural; no rate before tick 104 | the registry; the posted-column owner |
-| 30 | The burn-in gate | 42 series, W = 104, E = 16, four tests, `burnInPeriod ∈ [260, 520]` | reaching 520 without a pass is a defect |
+| 30 | The burn-in gate | 42 series, W = 104, **E = 40**, four tests, every critical value a quantile of its own null, `α = 1 − 0.95^(1/168)`, `burnInPeriod ∈ [260, 520]` | `aurora-tools gate` re-measures each test's realised size on a settled ensemble and fails outside [0.02, 0.10] |
 | 31 | A4 enforcement | total mappings, non-null issuers, `Real`-only counter-accounts, no sentinel | four things unwritable |
 | 32 | Cross-region closure | no rest of world; four exact per-currency identities; the matrix is a report | the identities are integer; the total is displayed as a literal zero |
 

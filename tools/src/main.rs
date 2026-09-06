@@ -6,7 +6,7 @@
 use std::process::ExitCode;
 
 use aurora_tools::{
-    check_adr, check_deps, check_instruments, check_lints, check_refs, check_registry,
+    adr_new, check_adr, check_deps, check_instruments, check_lints, check_refs, check_registry,
     check_surface,
 };
 
@@ -14,7 +14,7 @@ fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
     let Some(cmd) = args.next() else {
         eprintln!(
-            "usage: aurora-tools <verify|check-lints|check-surface|check-deps|check-refs|check-adr|check-registry|seedgen|burnin|sizing>"
+            "usage: aurora-tools <verify|check-lints|check-surface|check-deps|check-refs|check-adr|check-registry|check-instruments|gate|adr new|seedgen|burnin|sizing>"
         );
         return ExitCode::FAILURE;
     };
@@ -30,10 +30,20 @@ fn main() -> ExitCode {
         "check-adr" => check_adr::run(&root),
         "check-registry" => check_registry::run(&root),
         "check-instruments" => check_instruments::run(&root),
+        "adr" => {
+            if args.next().as_deref() == Some("new") {
+                let title = args.next();
+                adr_new::run(&root, title.as_deref())
+            } else {
+                eprintln!("usage: aurora-tools adr new <\"title\"|NNNN>");
+                ExitCode::FAILURE
+            }
+        }
         "sizing" => {
             println!("{}", aurora_tools::sizing::report());
             ExitCode::SUCCESS
         }
+        "gate" => aurora_tools::gate::run(),
         "burnin" => {
             println!("{}", aurora_tools::burnin::report());
             ExitCode::SUCCESS

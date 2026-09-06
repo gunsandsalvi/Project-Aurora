@@ -69,13 +69,35 @@ justification = "The outer element of the unique zero-mean, unit-variance, equal
 [[entry]]
 name = "world.spearman_critical"
 namespace = "model"
-value = 0.503
+value = 0.553
 unit = "ratio"
 scope = "world"
 owner = "burn-in-gate"
 provenance = "structural"
-identity = "SpearmanCritical5Percent"
-justification = "A property of a distribution at n = 16, which is arithmetic."
+identity = "SpearmanCriticalGateSize"
+justification = "A property of a distribution, computed by permutation at the ensemble size and per-hypothesis size the gate actually runs at. Was 0.503, the 5% point at n = 16; ADR-0019 supersedes both numbers, because the conjunction of 168 hypotheses is what sets the size and B3's power is what sets the ensemble."
+
+[[entry]]
+name = "world.burn_in_ensemble"
+namespace = "model"
+value = 40.0
+unit = "count"
+scope = "world"
+owner = "burn-in-gate"
+provenance = "structural"
+identity = "BurnInEnsemble"
+justification = "Seeds per burn-in ensemble. Was sixteen. Under ADR-0019's correction, sixteen gives B3 a critical |rho| of 0.809 and the test goes inert against exactly the failure a hand-built seed is most likely to have; forty restores 0.553, about the power the gate was believed to have before the conjunction was counted."
+
+[[entry]]
+name = "world.burn_in_panel"
+namespace = "model"
+value = 42.0
+unit = "count"
+scope = "world"
+owner = "burn-in-gate"
+provenance = "structural"
+identity = "BurnInPanel"
+justification = "Flagged series in the burn-in panel. Four tests over these is the 168-hypothesis conjunction whose family-wise failure rate ADR-0019 sets to 0.05."
 
 [[entry]]
 name = "world.shard_count"

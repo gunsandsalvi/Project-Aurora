@@ -48,7 +48,7 @@ is written into it. This is why M0 exists and why it contains no engine code.
 **2. Buy the cheap evidence first.** Roughly a dozen numbers carry this design — 96.5 ns per exchange,
 24 B per holding slot, 48 B per journal row, 1,488.3 MB, 0.503, the region generator's output — and most
 were printed without a derivation. Several can be attacked with paper arithmetic or three hundred lines
-of throwaway code. Two are already known to be wrong. Spend days on them before spending months against
+of throwaway code. Several are now known to be wrong. Spend days on them before spending months against
 them.
 
 **3. Build the instruments that cannot be added late.** The differ, the digest, the identity and
@@ -485,8 +485,8 @@ decision.
 > **Question: does a world built from primitives alone settle, and when?**
 
 **Contents** — the full scale class on the device; the acceleration seam, if the measurements say it is
-needed; the out-of-engine analysis harness; sixteen-seed ensembles; the burn-in gate's four tests with
-the multiplicity correction §15.3 now requires; the nightly sensitivity sweep; the surface and its named
+needed; the out-of-engine analysis harness; **forty**-seed ensembles; the burn-in gate's four tests as
+ADR-0019 recalibrated them, and the replicate floor its correction forces; the nightly sensitivity sweep; the surface and its named
 readers; the closure panel; **a separate PPI**, and the curves beyond the sovereign — secured,
 swap-spread, credit by rating, commodity, cross-currency basis.
 
@@ -563,8 +563,7 @@ Sources are `PROJECT_AURORA.md` unless stated.*
 | §8.2's withdrawn accumulator and the price-change rule | §8.2 *Owed* | **M9** |
 | The `DerivedMark` derivation rule | §7.2 Q13 | **M9** |
 | δ₁ = 0.35 — **derived: justified by a named in-model mechanism or not at all** | §13.3 *What is owed* | **M11** names it |
-| **B1b is mis-specified, and it is not a multiplicity problem.** `\|Δμ\| ≤ 0.25·σ_pooled` is a fixed effect size with no reference to sampling error, so it is a ~53rd-percentile cut on a stationary AR(1) and rejects the majority of genuinely settled series. **Measured**: the 42-series conjunction passed 0 of 2,000 panels. §16.2 would then classify a healthy model as defective at period 520 | measured by `aurora-tools burnin` | **M0** states it; **M11** sets every threshold from its own null distribution, as B3's 0.503 already is |
-| Burn-in multiplicity over 168 hypotheses — a **separate** problem from the above, and fixing one does not fix the other | §15.3 | **M11** |
+| **§16.1's four provenances have no slot for a value produced by a simulation.** `world.spearman_critical` and `world.burn_in_ensemble` are quantiles of known distributions computed by permutation — not `assumed` (nothing was chosen), not `derived` (no closed-form expression over other entries), and `structural` only because someone was willing to call a Monte Carlo result arithmetic. Every critical value ADR-0019 adds has the same shape | found while writing ADR-0019's entries | **M2**, which owns §16.1's schema when the registry becomes a type |
 | **§13.3's count rows were not produced by its own generator.** The continuous half reproduces exactly — every share and multiplier to six decimals — and the integer half reproduces under neither §6.3 rule two nor largest-remainder. §13.1 rule 3 forbids a per-region count being typed anywhere, and these appear to have been | measured by `aurora-tools seedgen` | **M0** records it; §13.3 is regenerated before its counts are an input to anything |
 | **Cohort shares cannot vary by region under §13.3's formula.** The axis-3 loading multiplies every cohort of a region by the same factor and renormalisation divides it straight back out — so a primitive §13.3 lists on axis 3 is invariant across regions by construction | measured by `aurora-tools seedgen` | **M4**, with the seed |
 | Observation family 13: 21 × 64 exceeds its sub-cap | §14 | **M5** |

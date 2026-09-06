@@ -1,0 +1,29 @@
+# The ADR counter. One line per number allocated, lowest first, `<id> <slug>`.
+#
+# `aurora-tools adr new "<title>"` appends the next line and writes the file. Two branches allocating
+# at once collide on the same line — which is the point. A merge conflict is a one-line fix; two
+# accepted decisions sharing a number is not.
+#
+# A line with no file beside it is a **reservation**: the number is spoken for by a plan that has not
+# been written up yet. `check-adr` counts written against reserved, which is how exit criterion 15
+# ("all nineteen ADRs are accepted") becomes a number rather than a claim.
+
+0001 rust-crate-per-layer-android
+0002 the-model-wins
+0003 the-layer-matrix
+0004 the-arena-seam
+0005 surface-shell-split
+0006 i64-conserved-quantities
+0007 holdings-slot-24b
+0008 journal-row-layout
+0009 instrument-row-ab
+0010 identifier-census
+0011 shard-count-64
+0012 arena-thread-shareable
+0013 the-sixteen-identities
+0014 registry-namespaces
+0015 output-gap-ratio
+0016 digest-cadence
+0017 retirement-queue
+0018 amendment-handles
+0019 burn-in-multiplicity

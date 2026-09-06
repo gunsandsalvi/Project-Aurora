@@ -42,7 +42,7 @@ pub fn run(root: &Path) -> ExitCode {
     println!("  rule 1: no assumed level          rule 5: an assumed entry carries a bracket");
     println!("  rule 2: no assumed region scope   rule 6: a derived literal is one of 0, 1, -1, 2");
     println!("  rule 3: a derived expression evaluates and its dimensions agree");
-    println!("  rule 4: a structural entry names one of the sixteen identities");
+    println!("  rule 4: a structural entry names one of the declared identities");
     println!("  rule 7: an entry no declared system reads fails the build");
     println!("  exemptions: 0");
     println!("{census}");
@@ -154,7 +154,7 @@ fn one(
                         e.name
                     )),
                     Some(id) if !identities.contains(id) => findings.push(format!(
-                        "rule 4 — {}: `{id}` is not one of the sixteen definitional identities. \
+                        "rule 4 — {}: `{id}` is not one of the declared definitional identities. \
                          A seventeenth is an ADR.",
                         e.name
                     )),

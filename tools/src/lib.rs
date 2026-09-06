@@ -5,6 +5,7 @@
 //! empty exemption list is a claim, and a check that has never seen a violation cannot support it.
 #![forbid(unsafe_code)]
 
+pub mod adr_new;
 pub mod burnin;
 pub mod check_adr;
 pub mod check_deps;
@@ -13,6 +14,7 @@ pub mod check_lints;
 pub mod check_refs;
 pub mod check_registry;
 pub mod check_surface;
+pub mod gate;
 pub mod registry;
 pub mod seedgen;
 pub mod sizing;

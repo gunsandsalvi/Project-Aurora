@@ -1,12 +1,19 @@
-# §16.1 rule 4: a `structural` entry names one of sixteen definitional identities. The specification
-# says "sixteen" and never lists them; ADR-0013 enumerates them, and a seventeenth is an ADR.
+# §16.1 rule 4: a `structural` entry names one of the definitional identities. The specification says
+# "sixteen" and never lists them; ADR-0013 enumerates them, and another is an ADR.
+#
+# **Eighteen since ADR-0019.** `BurnInEnsemble` and `BurnInPanel` were added when the burn-in
+# correction made the ensemble size a derived figure rather than a declared one, and
+# `SpearmanCritical5Percent` was rewritten in the same decision: its "5% at n = 16" was two of the
+# numbers ADR-0019 supersedes.
 #
 # An identity is definitional arithmetic or a closed decision about the shape of the world — never a
 # measurement and never a choice about how the economy behaves.
 UnitOfAccount                 §5.3, §13.2 — the numéraire S, the unit every nominal figure is counted in
 AsymmetryQuadruple            §13.3 — the unique zero-mean unit-variance equally-spaced quadruple
 FixedPointOfPublishedIndex    §13.4 — the inflation target, zero, the identity element of a growth rate
-SpearmanCritical5Percent      §15.3 — the two-sided 5% critical value of Spearman's rho at n = 16
+SpearmanCriticalGateSize      §15.3, ADR-0019 — the two-sided critical value of Spearman's rho at the gate's ensemble size and per-hypothesis size
+BurnInEnsemble                §15.3, ADR-0019 — forty seeds, derived from what B3 needs under the correction
+BurnInPanel                   §15.3 — forty-two flagged series, whose four tests are the 168-hypothesis conjunction
 RegionCount                   §13.1 — four, and a fifth reopens A4
 SectorCount                   §13.1 — seven
 ShardCount                    §11, §12.3 — sixty-four, a saved run parameter and not a device property
