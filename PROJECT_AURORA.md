@@ -2829,7 +2829,7 @@ hand-written guard, and the check publishes how many such rows remain.
 |---|---|---|---|
 | 0 | **The six model rules** | M1–M6 (§1.1). They are the project's requirements; everything mechanical serves them | a mechanism conflicting with a rule is restated, not the rule |
 | 1 | Language, runtime and delivery | **Rust, one crate per layer, delivered as an Android application: native engine plus a thin user interface** (D2) | the crate graph; #![forbid(unsafe_code)]; private fields on newtypes and on the conserved column (ADR-0001) |
-| 2 | Integer width, units, numéraire | **`i64` conserved quantities, overflow panics**; one unit class per asset class; `S = 2 × 10¹¹`, `structural`, upper bracket owed (§5.3) | the type; the unit-class table; the registry check |
+| 2 | Integer width, units, numéraire | **`i64` conserved quantities, overflow panics**; one unit class per asset class; `S = 2 × 10¹¹`, `structural`, upper bracket owed (§5.3) | check-lints — a release profile without `overflow-checks = true` fails the build, and the rule found the profile missing it on its first run (ADR-0006) |
 | 3 | Rounding | three rules and no fourth | a rounding decision outside them is a review-checklist item |
 | 4 | The write model | three doors, nine operations | typed handles; a tenth is an ADR |
 | 5 | Rehypothecation depth | 3 | the pledge door |

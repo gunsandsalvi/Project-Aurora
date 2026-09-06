@@ -24,6 +24,10 @@ pub fn run(root: &Path) -> ExitCode {
     println!(
         "  rule: the only allow of unsafe_code is the declared arena seam   files scanned: {files}, seams: {seams}"
     );
+    println!("  rule: the release profile keeps overflow checks on (Appendix A #2, ADR-0006)");
+    println!(
+        "  rule: no shared-mutability primitive in a layer crate — the arena is thread-shareable (ADR-0012)"
+    );
     println!("  exemptions: 0");
     report(&failures)
 }
@@ -95,7 +99,77 @@ pub fn check(root: &Path) -> (Vec<String>, usize, usize, usize) {
         }
     }
 
+    failures.extend(profile(root));
+    failures.extend(shared_mutability(&files, root));
+
     (failures, crates_checked, files.len(), seams.len())
+}
+
+/// Appendix A #2 says conserved quantities are `i64` and **overflow panics**. In a release profile
+/// that is only true if it is asked for: `overflow-checks` defaults to off there, and the debug build
+/// that panics is not the build that ships.
+fn profile(root: &Path) -> Vec<String> {
+    let Ok(text) = std::fs::read_to_string(root.join("Cargo.toml")) else {
+        return vec!["Cargo.toml is unreadable".to_owned()];
+    };
+    let release: String = text
+        .lines()
+        .skip_while(|l| l.trim() != "[profile.release]")
+        .skip(1)
+        .take_while(|l| !l.trim_start().starts_with('['))
+        .collect::<Vec<_>>()
+        .join("\n");
+    if release.is_empty() {
+        return vec!["Cargo.toml: no [profile.release]".to_owned()];
+    }
+    if release.lines().any(|l| {
+        l.split_once('=')
+            .is_some_and(|(k, v)| k.trim() == "overflow-checks" && v.trim() == "true")
+    }) {
+        Vec::new()
+    } else {
+        vec![
+            "Cargo.toml [profile.release]: no `overflow-checks = true`. Appendix A #2 says overflow \
+             PANICS, and it defaults to off in release — so the build that ships would wrap silently"
+                .to_owned(),
+        ]
+    }
+}
+
+/// ADR-0012: the arena is thread-shareable from the start, run single-threaded until M11.
+///
+/// `Rc`, `RefCell` and `Cell` are the types that make a structure unshareable, and they are cheap to
+/// reach for while the engine is single-threaded — which is exactly when the cost of reaching for them
+/// is invisible. Refusing them now is what makes "shareable from the start" a fact rather than an
+/// intention. `tools` and `probe` are not layers and are not checked.
+fn shared_mutability(files: &[std::path::PathBuf], root: &Path) -> Vec<String> {
+    let mut findings = Vec::new();
+    for file in files {
+        let Ok(rel) = file.strip_prefix(root) else {
+            continue;
+        };
+        let path = rel.to_string_lossy().replace('\\', "/");
+        if !path.starts_with("crates/") {
+            continue;
+        }
+        let Ok(text) = std::fs::read_to_string(file) else {
+            continue;
+        };
+        // Tokenised, so a comment or a doc-string naming `RefCell` is not a finding — the same
+        // discipline the unsafe_code rule needed after its first draft substring-matched itself.
+        let Ok(stream) = text.parse::<TokenStream>() else {
+            continue;
+        };
+        let idents = flatten(stream);
+        for name in ["Rc", "RefCell", "Cell"] {
+            if idents.iter().any(|i| i == name) {
+                findings.push(format!(
+                    "{path}: names `{name}`, which the arena cannot be shared across threads through (ADR-0012)"
+                ));
+            }
+        }
+    }
+    findings
 }
 
 /// True where the source contains an attribute of the form `#[<word>(… unsafe_code …)]`, inner or

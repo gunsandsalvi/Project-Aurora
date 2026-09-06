@@ -14,6 +14,13 @@ fn scratch(name: &str) -> PathBuf {
         .join(name);
     let _ = fs::remove_dir_all(&root);
     fs::create_dir_all(root.join("crates")).expect("scratch root is writable");
+    // A compliant baseline, so every fixture below breaks exactly one thing. A fixture that trips two
+    // rules proves neither, and a scratch root with no manifest trips the profile rule for free.
+    fs::write(
+        root.join("Cargo.toml"),
+        "[profile.release]\noverflow-checks = true\n",
+    )
+    .expect("scratch manifest is writable");
     root
 }
 
@@ -655,4 +662,61 @@ fn an_adr_claiming_a_row_that_does_not_exist_is_caught() {
         panic!("the dangling register-entry is the one finding: {findings:?}")
     };
     assert!(only.contains("names no row in Appendix A"), "{only}");
+}
+
+// ── the two rules ADR-0006 and ADR-0012 added ───────────────────────────────────────────────────
+
+#[test]
+fn a_release_profile_without_overflow_checks_is_caught() {
+    let root = scratch("lints-no-overflow-checks");
+    crate_at(&root, "kernel", "#![forbid(unsafe_code)]\n");
+    fs::write(
+        root.join("Cargo.toml"),
+        "[profile.release]\nlto = \"fat\"\npanic = \"abort\"\n",
+    )
+    .expect("scratch manifest is rewritable");
+
+    let (findings, _, _, _) = aurora_tools::check_lints::check(&root);
+    let [only] = findings.as_slice() else {
+        panic!("the missing overflow-checks is the one finding: {findings:?}")
+    };
+    assert!(only.contains("overflow-checks = true"), "{only}");
+    assert!(
+        only.contains("wrap silently"),
+        "and says what the consequence is: {only}"
+    );
+}
+
+#[test]
+fn a_shared_mutability_primitive_in_a_layer_crate_is_caught() {
+    let root = scratch("lints-refcell");
+    crate_at(
+        &root,
+        "world",
+        "#![forbid(unsafe_code)]\nuse std::cell::RefCell;\npub struct A(RefCell<u8>);\n",
+    );
+
+    let (findings, _, _, _) = aurora_tools::check_lints::check(&root);
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.contains("`RefCell`") && f.contains("ADR-0012")),
+        "the arena must stay thread-shareable: {findings:?}"
+    );
+}
+
+#[test]
+fn a_comment_naming_refcell_is_not_a_finding() {
+    let root = scratch("lints-refcell-comment");
+    crate_at(
+        &root,
+        "world",
+        "#![forbid(unsafe_code)]\n//! Deliberately no RefCell here.\n/// Not a RefCell either.\npub struct A;\n",
+    );
+
+    let (findings, _, _, _) = aurora_tools::check_lints::check(&root);
+    assert!(
+        findings.is_empty(),
+        "prose naming the type is not a use of it: {findings:?}"
+    );
 }

@@ -36,3 +36,7 @@ or_fun_call = "deny"
 lto = "fat"
 codegen-units = 1
 panic = "abort"
+# Appendix A #2 says a conserved quantity is `i64` and OVERFLOW PANICS. `overflow-checks` defaults to
+# off in release, so without this line the claim held only in the build nobody ships (ADR-0006).
+# `check-lints` refuses a release profile that drops it.
+overflow-checks = true

@@ -32,6 +32,12 @@ jobs:
         with:
           targets: aarch64-linux-android
 
+      # rust-toolchain.toml pins the version, and the action honours the file rather than its own
+      # `targets` input — so the target has to be added against the pinned toolchain explicitly. The
+      # first run of this workflow failed with "can't find crate for `std`" for exactly this reason.
+      - name: Add the Android target to the pinned toolchain
+        run: rustup target add aarch64-linux-android
+
       - uses: Swatinem/rust-cache@v2
 
       - uses: actions/setup-java@v4
