@@ -5,8 +5,11 @@
         android:label="Aurora probe"
         android:icon="@android:drawable/ic_menu_manage"
         android:theme="@android:style/Theme.Material.Light"
-        android:extractNativeLibs="true"
         android:largeHeap="true">
+        <!-- Extraction is set in app/build.gradle.kts (`useLegacyPackaging = true`), not here: AGP
+             warns that the manifest attribute is the wrong place for it and overrides it anyway.
+             It matters because the probe is an executable, not a library — it has to be a real file
+             on disk with the execute bit set before it can be run as a subprocess. -->
 
         <activity
             android:name=".MainActivity"

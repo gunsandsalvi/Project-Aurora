@@ -538,9 +538,17 @@ method**, so no index may be built over them and no relation column may cache on
 
 **Retirement is gated on quiescence**: a terminal status *and* a zero hold count. The predicate is
 evaluated where the relation changed, never by a sweep — **no pass over the world may exist to find
-retirable rows.** When an operation drives a terminal row's hold count to zero the ledger pushes
-its identifier onto a fixed 65,536-entry queue, which `lifecycle` drains at position 21; overflow
-is a defect.
+retirable rows.** When an operation drives a terminal row's hold count to zero the ledger pushes its
+identifier onto a fixed 65,536-entry queue; overflow is a defect.
+
+**`lifecycle` drains the queue at the end of every tick, and not at a position** (ADR-0017). Draining
+changes no quantity and appends no journal row — the same reason relocation below is not an operation —
+so it needs no slot in the committed order, and §9.4 already says retirement is not a position. The
+earlier reading, that it drained at position 21, halted the run at about tick 12: position 21 is on a
+52-tick cadence and steady-state retirement is 5,653 identifiers a tick (`aurora-tools workload`), so
+293,956 entries would arrive against a capacity of 65,536. **The capacity is right and the interval was
+wrong** — at one tick, 65,536 carries 11.6 ticks of headroom for the bursts retirement actually has: a
+resolution wave at position 18, a maturity cluster at 19.
 
 A slot is recovered by relocating the last live row into it. **Relocation is not an operation**: it
 changes no quantity, appends no journal row, and happens inside the ledger under its own writable
@@ -2834,7 +2842,7 @@ hand-written guard, and the check publishes how many such rows remain.
 | 4 | The write model | three doors, nine operations | typed handles; a tenth is an ADR |
 | 5 | Rehypothecation depth | 3 | the pledge door |
 | 6 | Counter-accounts | four families, four owners, ten pairs per region, `Real` only | the class law at the door; the minted capability |
-| 7 | Workload | weekly ticks, 1,560-tick runs, burn-in floor 260 / ceiling 520; 550,638 entities; 37 venues; 3,119,665 calls a tick (derivation owed, §3.4) | §3.3 splits requirements from targets; no milestone may be brought into budget by reducing the agent population or coarsening a cadence (ADR-0002) |
+| 7 | Workload | weekly ticks, 1,560-tick runs, burn-in floor 260 / ceiling 520; 550,638 entities; 37 venues; 3,119,665 calls a tick (derivation owed, §3.4) | §3.3 splits requirements from targets; no milestone may be brought into budget by reducing the agent population or coarsening a cadence (ADR-0002); aurora-tools sizing — the census is summed per identity space on every run and the directory row is computed from that sum, so a space added or a mean life changed moves a published number (ADR-0010) |
 | 8 | Journal retention | two ticks, 7,200,000 rows in two segments, 345.6 MB | aurora-tools sizing — the row width is summed from the field list and the ring from the width, so a field added without a decision changes a published number (ADR-0008) |
 | 9 | Observation store | fourteen families, 624 declared, hard cap 2,048 under sub-caps | aurora-tools sizing — both arms are summed from their field lists and priced against the census on every run, so a column added to either changes a published number; and the identifier census has no schedules row to sum (ADR-0009) |
 | 10 | Intrinsic questions | thirteen, at two levels | a missing answer does not compile |
@@ -2844,19 +2852,19 @@ hand-written guard, and the check publishes how many such rows remain.
 | 14 | Budget allocation | two stages, per line, no intra-stage reallocation | the committed order |
 | 15 | Simultaneity | per fact, not per position; one named crossing | the tick stamp; the manifest/order check |
 | 16 | Layering | eleven layers, generated composition root, 120-line shim | the Cargo dependency graph; a crate that is not a dependency cannot be named (ADR-0003); tools check-lints — the only `allow` of `unsafe_code` in the tree is the declared seam, and it is capped at 60 non-blank lines (ADR-0004); tools check-surface — no binary arithmetic punct in `surface`, tokenised; `shell` cannot name `world` (ADR-0003) (ADR-0005) |
-| 17 | Row lifecycle | permanent identifiers, impermanent residency, quiescence-gated retirement | no retirement sweep may exist; slots have no integer-yielding method |
+| 17 | Row lifecycle | permanent identifiers, impermanent residency, quiescence-gated retirement | aurora-tools workload — the queue's capacity is priced against the census's own retirement flow on every run, so a change to either the flow or the interval moves a published number and the 4.5x overflow is what the rule found (ADR-0017) |
 | 18 | Venues and lines | 37 venues, 190 structural lines, 1,276 instantiated, cap 4,096 | the cap at venue registration |
 | 19 | Region and currency | one region per venue, FX the sole exception, no world price | the venue registry |
 | 20 | Submission shapes | two: schedule and price-taking, 64 log-spaced buckets | one clearing interface |
 | 21 | Agent inventory | **eight classes**, `classFacts` mapping class to (regime, count) and cadence to (class, tier); **five declarations, total per class**; two classes differing on none of the five are one class | a class naming no regime, or declaring four items, does not compile |
 | 22 | Agent state budget | 160 B household, 256 B unlisted firm, 1,024 B listed firm and institution, 96.2 MB | asserted at schema build |
-| 22a | Holdings slot | **24 B, field list published in §3.4**; encumbrance derived from lien rows, not stored | asserted at schema build |
+| 22a | Holdings slot | **24 B, field list published in §3.4**; encumbrance derived from lien rows, not stored | aurora-tools sizing — the slot width is summed from the field list and the holdings table from the width, so a column added or widened moves a published number; and there is no encumbrance column to add one to (ADR-0007) |
 | 21a | The dealer | one class, `bank-prudential`, forming **two reservations**; the spread is a read of its own funding, capital, risk aversion and inventory, never a stated width | §8.1 declaration 4 returns a reservation per side |
 | 21b | The political system | parties as platforms on three axes, world scope; one household one vote from its own rows; seats by §6.3 rule two; **the median seat sets policy**; 208-period cadence at position 7 | no region-scoped `assumed` platform compiles; the fiscal and regulatory constants have no other writer |
 | 22b | Firm tiers | **one `Firm` class, two tiers**; listed tier capacity 1,000, `structural`, re-derived from the first long run | exhaustion raises; the high-water series (§8.7) |
 | 23 | Staggering | 13 / 4 / 1; phase from a dedicated stream, never `id mod C`; six triggers, one minted handle each | the manifest fails the N3 check if a trigger's index is a scan |
 | 24 | Decision outputs | `plans` and `intents` as world tables, ≈121 MB fixed at init | no decision system allocates a result object |
-| 25 | The acceleration seam | W1 = 8–10, W2 = 12–13; 64 shards; sequential ledger; one construction site | a second boundary is an ADR |
+| 25 | The acceleration seam | W1 = 8–10, W2 = 12–13; 64 shards; sequential ledger; one construction site | check-registry rule 4 — `world.shard_count` is `structural` and names the `ShardCount` identity, so it cannot be redeclared as an assumption or made to depend on a device (ADR-0011); check-lints rule 4 — no `Rc`, `RefCell` or `Cell` may be named in a layer crate, tokenised so that prose naming one is not a finding (ADR-0012) |
 | 26 | The period trace | rows touched is a series; duration is `NonDeterministic` and never digested | the type |
 | 27 | The A3 build check | eight fields, **seven rules**; `assumed` never a level and never region-scoped; an unread entry fails | check-registry rule 4 — a `structural` entry naming anything else fails the build (ADR-0013); the census counts them separately; the read rule (a capacity entry is unreadable by any agent, valuation or economic system) lands with the manifests (ADR-0014) |
 | 28 | Structural asymmetry | three axes, `Z`, three orderings, δ = 0.35 / 0.20 / 0.15; **rank 1 takes the smallest loading**; every per-region value `derived` | no per-region `assumed` entry compiles |

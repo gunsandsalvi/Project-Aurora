@@ -265,6 +265,57 @@ fn findings(total: u64, owed: usize, positions: usize) -> String {
         let _ = writeln!(out, "{line}");
     }
     out.push_str(&clearing_cost(total));
+    out.push_str(&retirement());
+    out
+}
+
+/// The retirement queue against what it has to hold (ADR-0017).
+///
+/// §5.5 fixes the queue at 65,536 entries and says **overflow is a defect** — a halt, not a wrap. So
+/// its capacity is `max retirements per tick x the interval between drains`, and both terms are
+/// countable from §5.2's census.
+fn retirement() -> String {
+    let mut out = String::new();
+    // In steady state a space retires what it issues: the census's own flow, less the entities, which
+    // are issued once and not replaced within the run.
+    let instruments = (2_100_000 + 2_000_000 + 1_200_000 + 420_000 + 496) / RUN;
+    let liens = 3_100_000 / RUN;
+    let per_tick = instruments + liens;
+    let queue = 65_536u64;
+    let compaction_interval = 52u64;
+    let needed = per_tick * compaction_interval;
+    #[allow(clippy::cast_precision_loss)]
+    let over = needed as f64 / queue as f64;
+    #[allow(clippy::cast_precision_loss)]
+    let ticks_to_fill = queue as f64 / per_tick as f64;
+
+    for line in [
+        String::new(),
+        "  THE RETIREMENT QUEUE, against what it has to hold.".to_owned(),
+        String::new(),
+        format!("    instruments retired per tick   {instruments}   (§5.2's flow, steady state)"),
+        format!("    liens retired per tick         {liens}"),
+        format!("    total per tick                 {per_tick}"),
+        format!("    §5.5's queue                   {queue}"),
+        String::new(),
+        "  FINDING. §5.5 pushes a retired identifier onto this queue and says `lifecycle` drains"
+            .to_owned(),
+        "  it AT POSITION 21 — which §9.4 runs EVERY 52ND TICK. Fifty-two ticks of retirements is"
+            .to_owned(),
+        format!("  {needed} entries against a capacity of {queue}: {over:.1}x over, and §5.5 says overflow is a"),
+        format!("  DEFECT. The queue fills in {ticks_to_fill:.1} ticks and the run halts around tick 12."),
+        String::new(),
+        "  The capacity is right and the interval is wrong. Draining changes no quantity and appends".to_owned(),
+        "  no journal row — §5.5 says relocation is not an operation for exactly that reason — so a".to_owned(),
+        "  drain needs no slot in the committed order, and §9.4 already says RETIREMENT IS NOT A".to_owned(),
+        "  POSITION. It is drained at the end of every tick by `lifecycle`, and position 21 keeps the".to_owned(),
+        "  scope Appendix B gives it: obligation compaction only.".to_owned(),
+        String::new(),
+        format!("  At an interval of 1 the capacity is {per_tick} x 1, and {queue} carries {ticks_to_fill:.1} ticks of"),
+        "  headroom for a burst — a resolution wave at position 18, or a maturity cluster at 19.".to_owned(),
+    ] {
+        let _ = writeln!(out, "{line}");
+    }
     out
 }
 

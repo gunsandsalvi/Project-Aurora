@@ -461,6 +461,86 @@ struct Occupancy {
     why: &'static str,
 }
 
+/// §3.4's holdings slot, derived field by field (ADR-0007).
+///
+/// The previous edition printed 20 bytes, and §6.11 requires an asset, a quantity, a balance-tick
+/// integral and the tick that integral was brought forward to. The first three exhaust 20 on their
+/// own, so the tick column had nowhere to live — a width stated without a schema, contradicted by
+/// another section of the same document.
+fn holdings_slot() -> String {
+    let mut out = String::new();
+    let _ = writeln!(
+        out,
+        "\n\u{a7}3.4 — the holdings slot, derived field by field\n"
+    );
+    let fields = [
+        Field {
+            name: "quantity",
+            kind: "i64",
+            bytes: 8,
+            why: "the conserved quantity; overflow panics (ADR-0006)",
+        },
+        Field {
+            name: "integral",
+            kind: "i64",
+            bytes: 8,
+            why: "\u{a7}6.11's balance-tick integral, which is what makes accrual a read rather than a walk",
+        },
+        Field {
+            name: "asset",
+            kind: "InstrumentId (i32)",
+            bytes: 4,
+            why: "the instrument held",
+        },
+        Field {
+            name: "integralUpdatedAtTick",
+            kind: "u16",
+            bytes: 2,
+            why: "1,560 < 65,536. WITHOUT THIS COLUMN THE INTEGRAL CANNOT BE BROUGHT FORWARD",
+        },
+    ];
+    let _ = writeln!(
+        out,
+        "  field                  type                    B  why"
+    );
+    let mut total = 0usize;
+    for f in &fields {
+        total += f.bytes;
+        let _ = writeln!(
+            out,
+            "  {:<21} {:<22} {:>3}  {}",
+            f.name, f.kind, f.bytes, f.why
+        );
+    }
+    let padding = (8 - total % 8) % 8;
+    let width = total + padding;
+    let _ = writeln!(
+        out,
+        "  {:<21} {:<22} {:>3}  alignment to i64",
+        "(padding)", "", padding
+    );
+    let _ = writeln!(out, "  {:<21} {:<22} {:>3}", "TOTAL", "", width);
+
+    let slots = 7_177_280usize;
+    #[allow(clippy::cast_precision_loss)]
+    let at = |w: usize| (slots * w) as f64 / 1e6;
+    for line in [
+        String::new(),
+        format!("  {slots} slots at {width} B is {:.1} MB. The previous edition's 20 B could not hold", at(width)),
+        "  what \u{a7}6.11 requires: quantity, integral and asset are 20 on their own, leaving nothing for the".to_owned(),
+        "  tick the integral was brought forward to \u{2014} so accrual would have had to walk the journal,".to_owned(),
+        "  which is the walk the integral exists to remove.".to_owned(),
+        String::new(),
+        "  ENCUMBRANCE IS NOT ON THE SLOT. A per-slot flag would be one more byte, which alignment".to_owned(),
+        format!("  makes eight: {:.1} MB, to serve a lien population of 100,000 against {slots}", at(width + 8) - at(width)),
+        "  slots. It is derived from root lien rows through a per-(holder, asset) index instead, and".to_owned(),
+        "  the index is paid for only where liens exist.".to_owned(),
+    ] {
+        let _ = writeln!(out, "{line}");
+    }
+    out
+}
+
 /// §3.4's ten-slot household block, against what a household can simultaneously hold (W7.6).
 ///
 /// A slot is one `(holder, asset)` holding, and under R-1 a claim exists only as its issuer's negative
@@ -753,8 +833,9 @@ pub fn report() -> String {
         memory(),
         identifiers(),
         journal(),
-        household_block()
-    ) + &instrument_row()
+        holdings_slot()
+    ) + &household_block()
+        + &instrument_row()
 }
 
 /// What the 48 buys, and what §6.4 asked for that does not fit.
