@@ -2168,10 +2168,33 @@ economy with no financial instruments and no employment does when it starts.
 credit — so no series is meaningful before the circuit closes. This is why §15.3's burn-in floor is
 260 and not zero, and the opening transient is now a named reason for it rather than a margin.
 
-*Owed, and still owed.* Position 6 sources the opening capital and dwellings, and **no section says who
-holds them.** M4 requires modelled holders and M3 forbids a per-region assumed allocation, so the
-holding must be derived — but the rule is not written. It is the last thing between this section and a
-world that starts.
+**Who holds the opening stocks — derived, and it needs no new rule.** Position 6 sources the opening
+capital and dwellings from `Production:`, and the question of who receives them looked open only
+because it was read as an *allocation* problem. Asked as *which mechanism puts them there*, the
+mechanism already exists and already names the holder: **the producer of a thing receives its own
+output**, which is what position 6 does at every other tick. Tick 0 is not special.
+
+Three consequences follow, and each is a claim the model can be held to:
+
+1. **No household owns a dwelling at tick 0.** Builders hold every dwelling because builders produced
+   them. Home ownership is an *emergent* stock, bought once households hold money, which is tick 1 at
+   the earliest. Seeding households with dwellings would be a per-household assumed allocation, which
+   §16.1 rule 1 refuses.
+2. **Tenancies form from tick 1**, as builders let what they hold. The live tenancy stock is a state
+   the first few ticks *reach*, not a state the seed writes.
+3. **The quantity is still a seed question.** How much capital each firm opens with is §13.3's
+   generator's business, derived from the axis loadings; §13.1 rule 3 forbids a per-region count being
+   typed. What is settled here is the *holder*, not the amount.
+
+**The walk is executable and it has been executed.** `aurora-tools bootstrap` runs these five ticks as
+a double-entry ledger over the smallest cast this section names, checking A1 (every asset sums to zero
+across all holders) and R-1 (a holder is negative only in what it issued, counter-accounts excepted)
+**after every one of its twenty operations**. It runs clean. And the reading this section argues
+against — a firm bidding on the labour line at tick 0 with no settled balance — is run beside it as a
+negative control: it breaks R-1 at position 4 of tick 1, *one tick after the mistake*, because issuing
+the contract costs nothing. That lag is why §9.2's two-stage allocator must prevent the **bid** rather
+than catch the payment: a budget checked at position 12 is a defect refused, and a balance checked at
+position 4 is a firm already in resolution.
 
 ---
 

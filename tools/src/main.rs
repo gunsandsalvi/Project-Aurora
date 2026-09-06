@@ -14,7 +14,7 @@ fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
     let Some(cmd) = args.next() else {
         eprintln!(
-            "usage: aurora-tools <verify|check-lints|check-surface|check-deps|check-refs|check-coupling|check-adr|check-registry|check-instruments|check-register|appendix|gate|adr new|seedgen|burnin|sizing|workload>"
+            "usage: aurora-tools <verify|check-lints|check-surface|check-deps|check-refs|check-coupling|check-adr|check-registry|check-instruments|check-register|check-bootstrap|appendix|gate|adr new|seedgen|burnin|sizing|workload|bootstrap>"
         );
         return ExitCode::FAILURE;
     };
@@ -42,6 +42,8 @@ fn main() -> ExitCode {
                 ExitCode::FAILURE
             }
         }
+        "bootstrap" => aurora_tools::bootstrap::run(true),
+        "check-bootstrap" => aurora_tools::bootstrap::run(false),
         "workload" => {
             println!("{}", aurora_tools::workload::report());
             ExitCode::SUCCESS
@@ -81,7 +83,7 @@ fn verify(root: &std::path::Path) -> ExitCode {
     /// A check: its name, and the function that runs it and reports.
     type Check = (&'static str, fn(&std::path::Path) -> ExitCode);
 
-    let checks: [Check; 9] = [
+    let checks: [Check; 10] = [
         ("check-lints", check_lints::run),
         ("check-surface", check_surface::run),
         ("check-deps", check_deps::run),
@@ -91,6 +93,7 @@ fn verify(root: &std::path::Path) -> ExitCode {
         ("check-instruments", check_instruments::run),
         ("check-coupling", check_coupling::run),
         ("check-register", appendix::run),
+        ("check-bootstrap", |_| aurora_tools::bootstrap::run(false)),
     ];
     let mut failed = Vec::new();
     for (name, run) in checks {

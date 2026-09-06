@@ -135,7 +135,6 @@ was refused for the right reason.
 | | Task | Days | Done when |
 |---|---|---|---|
 | W7.1 | **The memory derivation.** One row per world table, capacity × width, summed against N4. Currently ~705 MB of the 1,488.3 MB is unaccounted and its largest term is the instrument row width §7.5 leaves unsettled | 4 | a table that sums, with every capacity a `capacity` registry entry carrying its arithmetic |
-| W7.2 | **The tick-0 hand trace.** Walk the committed order for ticks 0–4 against **§13.6**, which now derives the bootstrap: no firm bids at tick 0 because §9.2 budgets against settled balances, the government is the only agent with one, and it spends by hiring on the labour line. The trace confirms the derivation position by position and settles the one thing §13.6 leaves open — who holds the capital and dwellings position 6 sources at tick 0 | 2 | a written trace for ticks 0–4, and a derived holding rule for the opening stocks |
 | W7.3 | **The identifier census.** Per identity space, live and ever-issued over 1,560 ticks. §3.4's ≈971,000 against §5.2's implied ≈12,450,000 is a factor of thirteen and it sizes the directory, the digest walk and the save | 2 | one reconciled figure per space |
 | W7.7 | **The registry cost of one economic system.** Write the complete registry for *credit* on paper and count the assumed entries. Under D3 this no longer breaches a cap; it establishes the *rate*, which is what M3 needs to know | 3 | a count, and an extrapolation to seven agent classes |
 | W7.8 | **Household and bank behaviour, hand-simulated.** The five declarations for two classes, written out, and ten ticks simulated by hand. Called by one study the single highest-value item available anywhere in the project: it buys much of G3's signal for none of M7's cost | 5 | two written declarations and a ten-tick trace |
@@ -228,13 +227,18 @@ derivation rather than testing whether one exists. **The first gate with stop au
 | **W4** the parameter registry | **done but for two**, both deferred with a reason: the generated unit vocabulary needs `domain`'s quantity types (M1), and the `capacity` read rule needs systems to police |
 | **W5** ADR machinery | **done.** Format and `check-adr`; the counter (`register.txt` + `adr new`); the coupling (`coupling.toml` + `check-coupling`, ratified against draft); Appendix A's guard column generated from the decisions (`aurora-tools appendix` + `check-register`). Ten negative fixtures across the three |
 | **W6** falsifiers that need code | **done.** The seed generator is red and pinned; all four burn-in tests are measured, and the gate they falsified is recalibrated and guarded (ADR-0019, `aurora-tools gate`); the intrinsic table and the amendment matrix are filled, total, and checked |
-| **W7** falsifiers that need paper | **six of nine done**, every one a computation rather than prose: the memory derivation, the identifier census, the journal row (ADR-0008), the household block and the instrument row (ADR-0009) in `aurora-tools sizing`, and the position workload in `aurora-tools workload`. Three remain: the tick-0 trace, the credit registry cost, and the two-class hand simulation |
+| **W7** falsifiers that need paper | **seven of nine done**, every one a computation rather than prose: five in `aurora-tools sizing` (memory, identifier census, journal row ADR-0008, household block, instrument row ADR-0009), the position workload in `aurora-tools workload`, and §13.6's opening in `aurora-tools bootstrap` — a ledger, not a written trace, with a negative control. Two remain: the credit registry cost and the two-class hand simulation |
 
-**Checks running, behind one `./gate.sh`:** `check-lints` · `check-surface` · `check-deps` ·
-`check-refs` · `check-adr` · `check-registry` · `check-instruments` · `check-coupling` ·
-`check-register`, all behind `aurora-tools verify`, then `aurora-tools gate` — ADR-0019's guard, which
-re-measures the burn-in tests' realised size on a settled ensemble and fails if one has drifted off
-its nominal.
+**Ten checks, behind one `./gate.sh`:** `check-lints` · `check-surface` · `check-deps` · `check-refs` ·
+`check-adr` · `check-registry` · `check-instruments` · `check-coupling` · `check-register` ·
+`check-bootstrap`, all behind `aurora-tools verify`, then `aurora-tools gate` — ADR-0019's guard, which
+re-measures the burn-in tests' realised size on a settled ensemble and fails if one has drifted off its
+nominal.
+
+**Two of the ten carry their own negative control**, and they are the two whose subject is a claim
+rather than a shape: `check-bootstrap` fails if §13.6's opening stops executing *or* if the deadlock it
+argues against stops breaking R-1, and `gate` fails if a calibrated test's realised size drifts off its
+nominal in either direction. A check that cannot fail is not a check.
 
 **The census, published on every build:** 23 model entries — 9 assumed, 12 structural, 2 derived,
 0 placeholder — and 4 capacity entries counted separately. No cap (D3); the direction is down.
@@ -248,7 +252,7 @@ so the thing checked before a commit and the thing checked after a push cannot d
 0005 the surface/shell split · 0013 the definitional identities · 0014 the registry's two namespaces ·
 0018 amendment handles · 0019 the burn-in gate's calibration and correction.
 
-**Twenty-two findings so far, every one measured rather than reviewed.** `check-lints`' first draft substring-matched and its first run reported *itself*.
+**Twenty-three findings so far, every one measured rather than reviewed.** `check-lints`' first draft substring-matched and its first run reported *itself*.
 `check-surface`'s first run flagged one subtraction twice, because `->` is a `-` punct.
 `check-refs` found §17.4 demoted from a heading to bold text by an earlier edit, while three
 citations still pointed at it. `check-registry` rule 3 rejected the first derived entry written
@@ -300,6 +304,12 @@ of the total. And **a position mark cannot be an operation**: per-holding marks 
 journal rows a tick against a ring of 7,200,000 that must hold two ticks of everything, so a mark is
 derived on read and never stored. The eighteen priceable positions come to 3,250,739 against a
 published 3,119,665.
+And walking §13.6's opening as a ledger settled the one thing it marked *"owed, and still owed"* —
+who holds the capital and dwellings position 6 sources at tick 0 — **without a new rule**: the
+producer of a thing receives its own output, which is what position 6 does at every other tick. The
+question was open only because it was read as an allocation problem. It follows that **no household
+owns a dwelling at tick 0** and home ownership is an emergent stock, because seeding one would be the
+per-household assumed allocation §16.1 rule 1 refuses.
 The tenth was found by the process rather than by a check, and it is about the checks: **`verify`
 printed "7 checks ran, 0 failed" on a tree where clippy was reporting a finding, twice**, because
 `verify` never ran clippy and clippy returns zero on a warning. The gate existed as a habit — a list
