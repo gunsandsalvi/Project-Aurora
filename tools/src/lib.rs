@@ -20,3 +20,4 @@ pub mod gate;
 pub mod registry;
 pub mod seedgen;
 pub mod sizing;
+pub mod workload;

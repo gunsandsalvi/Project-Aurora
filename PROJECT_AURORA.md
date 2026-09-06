@@ -330,10 +330,39 @@ any figure here moves by an order of magnitude, the sections derived from it are
 than assumed to still hold. **Under D1 it may never be lowered to meet a performance target**, which is
 the only reason anybody would want to.
 
-*Owed.* The 3,119,665 figure is stated as derived position by position and the derivation is not shown.
-A twenty-one-row table of operation counts summing to a published total — with clearing's sort and
-accumulate cost separated from operation-call cost — is what §12's targets are decomposed against, and
-it does not yet exist.
+*Derived, and it does not reproduce* (`aurora-tools workload`). The twenty-one-row table exists now,
+each row priced from a declared count or marked owed. Eighteen of the twenty-one are priceable and come
+to **3,250,739** against the published 3,119,665, with three positions still owed — demography's birth
+and exit rate, land endowment, and the default rate, which the model produces rather than declares.
+
+Four things the table says that the published figure does not.
+
+**The four largest terms cannot sum into the total.** Position 14 (1,671,884), position 4 (926,246) and
+position 6 (327,886) are 2,926,016, leaving 193,649 for position 13 *and the other seventeen positions
+together*. Position 13 cannot be among the four largest — and it is not, because **a clearing position
+is not an operation count at all**: it sorts and matches and appends no journal row, and the operations
+it causes are appended by the settlement that follows it, which is already position 14's figure.
+
+**Clearing's cost is a separate number in a separate unit.** At two submissions per fill — a floor,
+since an unfilled submission is still sorted — position 13 sorts 3,343,768 submissions across 1,266
+lines, about **38.0 million comparisons**, or 11.7× the tick's whole operation count. A comparison is
+far cheaper than an operation, but a term that size cannot be absorbed into a per-operation budget
+without being named. **§12's targets need two numbers, not one.**
+
+**Position 15 is missing from the published derivation.** Budget reconciliation returns unspent
+allocations per currency; §9.4 gives it a position, an owner and a phase. One return per entity is
+550,622 operations — a fifth of the published total, and the largest term §3.4 never mentions.
+
+**A position mark cannot be an operation.** §6.6 says every operation appends exactly one journal row
+and `post` is one of the nine, so per-holding marks would be 7,177,280 rows a tick against a ring of
+7,200,000 that must hold *two ticks of everything*. **A position mark is therefore derived on read**
+from a posted line price and the holding's own quantity, and never stored; position 17 posts one price
+per instantiated line and one NAV per fund.
+
+*Also.* Position 4's published 926,246 is the live obligation count (960,000) less a few per cent,
+which implies every rent and every loan pays *weekly*. On a four-tick bucket for rents and amortisation
+the position is 502,500. §9.4 says the walk takes "the standing bucket first", so buckets exist; which
+bucket each obligation type falls in is a modelling decision and is not made anywhere.
 
 *Settled.* The identifier census is counted bottom up in `aurora-tools sizing`: **15,732,835 ever
 issued**, a 60.0 MiB directory at 4 bytes each. §3.4's ≈ 971,000 was wrong by a factor of about

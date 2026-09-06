@@ -137,7 +137,6 @@ was refused for the right reason.
 | W7.1 | **The memory derivation.** One row per world table, capacity × width, summed against N4. Currently ~705 MB of the 1,488.3 MB is unaccounted and its largest term is the instrument row width §7.5 leaves unsettled | 4 | a table that sums, with every capacity a `capacity` registry entry carrying its arithmetic |
 | W7.2 | **The tick-0 hand trace.** Walk the committed order for ticks 0–4 against **§13.6**, which now derives the bootstrap: no firm bids at tick 0 because §9.2 budgets against settled balances, the government is the only agent with one, and it spends by hiring on the labour line. The trace confirms the derivation position by position and settles the one thing §13.6 leaves open — who holds the capital and dwellings position 6 sources at tick 0 | 2 | a written trace for ticks 0–4, and a derived holding rule for the opening stocks |
 | W7.3 | **The identifier census.** Per identity space, live and ever-issued over 1,560 ticks. §3.4's ≈971,000 against §5.2's implied ≈12,450,000 is a factor of thirteen and it sizes the directory, the digest walk and the save | 2 | one reconciled figure per space |
-| W7.4 | **The position workload table.** Twenty-one rows of operation counts summing to a published total, clearing's sort cost separated from operation-call cost. §12's targets are decomposed against this and it does not exist | 3 | the table sums to a published total |
 | W7.7 | **The registry cost of one economic system.** Write the complete registry for *credit* on paper and count the assumed entries. Under D3 this no longer breaches a cap; it establishes the *rate*, which is what M3 needs to know | 3 | a count, and an extrapolation to seven agent classes |
 | W7.8 | **Household and bank behaviour, hand-simulated.** The five declarations for two classes, written out, and ten ticks simulated by hand. Called by one study the single highest-value item available anywhere in the project: it buys much of G3's signal for none of M7's cost | 5 | two written declarations and a ten-tick trace |
 
@@ -229,7 +228,7 @@ derivation rather than testing whether one exists. **The first gate with stop au
 | **W4** the parameter registry | **done but for two**, both deferred with a reason: the generated unit vocabulary needs `domain`'s quantity types (M1), and the `capacity` read rule needs systems to police |
 | **W5** ADR machinery | **done.** Format and `check-adr`; the counter (`register.txt` + `adr new`); the coupling (`coupling.toml` + `check-coupling`, ratified against draft); Appendix A's guard column generated from the decisions (`aurora-tools appendix` + `check-register`). Ten negative fixtures across the three |
 | **W6** falsifiers that need code | **done.** The seed generator is red and pinned; all four burn-in tests are measured, and the gate they falsified is recalibrated and guarded (ADR-0019, `aurora-tools gate`); the intrinsic table and the amendment matrix are filled, total, and checked |
-| **W7** falsifiers that need paper | **five of nine done**, all five computations rather than prose, all in `aurora-tools sizing`: the memory derivation, the identifier census, the journal row (ADR-0008), the household block, and the instrument row (ADR-0009). Four remain: the tick-0 trace, the position workload, the credit registry cost, and the two-class hand simulation |
+| **W7** falsifiers that need paper | **six of nine done**, every one a computation rather than prose: the memory derivation, the identifier census, the journal row (ADR-0008), the household block and the instrument row (ADR-0009) in `aurora-tools sizing`, and the position workload in `aurora-tools workload`. Three remain: the tick-0 trace, the credit registry cost, and the two-class hand simulation |
 
 **Checks running, behind one `./gate.sh`:** `check-lints` · `check-surface` · `check-deps` ·
 `check-refs` · `check-adr` · `check-registry` · `check-instruments` · `check-coupling` ·
@@ -249,7 +248,7 @@ so the thing checked before a commit and the thing checked after a push cannot d
 0005 the surface/shell split · 0013 the definitional identities · 0014 the registry's two namespaces ·
 0018 amendment handles · 0019 the burn-in gate's calibration and correction.
 
-**Eighteen findings so far, every one measured rather than reviewed.** `check-lints`' first draft substring-matched and its first run reported *itself*.
+**Twenty-two findings so far, every one measured rather than reviewed.** `check-lints`' first draft substring-matched and its first run reported *itself*.
 `check-surface`'s first run flagged one subtraction twice, because `->` is a `-` punct.
 `check-refs` found §17.4 demoted from a heading to bold text by an earlier edit, while three
 citations still pointed at it. `check-registry` rule 3 rejected the first derived entry written
@@ -292,6 +291,15 @@ the eight dangling references. The two arms then came out 8.5 MB apart, inside t
 bar, so what actually decided it was that **a schedule is not a claim**: nothing holds one, nothing
 pledges one, no journal row names one. Its 6,360,000 identifiers were 40% of the whole census, for
 rows that were never addressable.
+Deriving §3.4's operation count position by position produced four more. **The four largest terms
+cannot sum into the total**, because one of them — position 13's clearing work — is a sort and appends
+no journal row, so it is not an operation count at all; separating the two is the whole of W7.4.
+**Clearing's own cost is 38.0 million comparisons a tick**, 11.7× the operation count, in a unit §12
+never budgets. **Position 15 is missing from the published derivation** at 550,622 operations, a fifth
+of the total. And **a position mark cannot be an operation**: per-holding marks would be 7,177,280
+journal rows a tick against a ring of 7,200,000 that must hold two ticks of everything, so a mark is
+derived on read and never stored. The eighteen priceable positions come to 3,250,739 against a
+published 3,119,665.
 The tenth was found by the process rather than by a check, and it is about the checks: **`verify`
 printed "7 checks ran, 0 failed" on a tree where clippy was reporting a finding, twice**, because
 `verify` never ran clippy and clippy returns zero on a warning. The gate existed as a habit — a list
