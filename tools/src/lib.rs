@@ -20,6 +20,7 @@ pub mod check_registry;
 pub mod check_surface;
 pub mod gate;
 pub mod registry;
+pub mod registry_cost;
 pub mod seedgen;
 pub mod sizing;
 pub mod workload;

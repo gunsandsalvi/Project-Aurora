@@ -136,7 +136,6 @@ was refused for the right reason.
 |---|---|---|---|
 | W7.1 | **The memory derivation.** One row per world table, capacity × width, summed against N4. Currently ~705 MB of the 1,488.3 MB is unaccounted and its largest term is the instrument row width §7.5 leaves unsettled | 4 | a table that sums, with every capacity a `capacity` registry entry carrying its arithmetic |
 | W7.3 | **The identifier census.** Per identity space, live and ever-issued over 1,560 ticks. §3.4's ≈971,000 against §5.2's implied ≈12,450,000 is a factor of thirteen and it sizes the directory, the digest walk and the save | 2 | one reconciled figure per space |
-| W7.7 | **The registry cost of one economic system.** Write the complete registry for *credit* on paper and count the assumed entries. Under D3 this no longer breaches a cap; it establishes the *rate*, which is what M3 needs to know | 3 | a count, and an extrapolation to seven agent classes |
 
 ---
 
@@ -226,7 +225,7 @@ derivation rather than testing whether one exists. **The first gate with stop au
 | **W4** the parameter registry | **done but for two**, both deferred with a reason: the generated unit vocabulary needs `domain`'s quantity types (M1), and the `capacity` read rule needs systems to police |
 | **W5** ADR machinery | **done.** Format and `check-adr`; the counter (`register.txt` + `adr new`); the coupling (`coupling.toml` + `check-coupling`, ratified against draft); Appendix A's guard column generated from the decisions (`aurora-tools appendix` + `check-register`). Ten negative fixtures across the three |
 | **W6** falsifiers that need code | **done.** The seed generator is red and pinned; all four burn-in tests are measured, and the gate they falsified is recalibrated and guarded (ADR-0019, `aurora-tools gate`); the intrinsic table and the amendment matrix are filled, total, and checked |
-| **W7** falsifiers that need paper | **eight of nine done**, every one a computation rather than prose: five in `aurora-tools sizing` (memory, identifier census, journal row ADR-0008, household block, instrument row ADR-0009), the position workload in `aurora-tools workload`, §13.6's opening in `aurora-tools bootstrap`, and §8.1's two declarations run for ten and fifteen ticks in `aurora-tools behaviour`. **W7.7, the credit registry's cost, is the last one** |
+| **W7** falsifiers that need paper | **done, all nine**, and not one of them is prose: five in `aurora-tools sizing` (memory, identifier census, journal row ADR-0008, household block, instrument row ADR-0009), the position workload in `aurora-tools workload`, §13.6's opening in `aurora-tools bootstrap`, §8.1's two declarations in `aurora-tools behaviour`, and credit's registry cost in `aurora-tools registry-cost` |
 
 **Ten checks, behind one `./gate.sh`:** `check-lints` · `check-surface` · `check-deps` · `check-refs` ·
 `check-adr` · `check-registry` · `check-instruments` · `check-coupling` · `check-register` ·
@@ -251,7 +250,7 @@ so the thing checked before a commit and the thing checked after a push cannot d
 0005 the surface/shell split · 0013 the definitional identities · 0014 the registry's two namespaces ·
 0018 amendment handles · 0019 the burn-in gate's calibration and correction.
 
-**Twenty-eight findings so far, every one measured rather than reviewed.** `check-lints`' first draft substring-matched and its first run reported *itself*.
+**Thirty findings so far, every one measured rather than reviewed.** `check-lints`' first draft substring-matched and its first run reported *itself*.
 `check-surface`'s first run flagged one subtraction twice, because `->` is a `-` punct.
 `check-refs` found §17.4 demoted from a heading to bold text by an earlier edit, while three
 citations still pointed at it. `check-registry` rule 3 rejected the first derived entry written
@@ -325,6 +324,15 @@ yet produced, reported on all ten ticks, and it was not caught by reading the co
 declarations were enough, with one qualification**: declaration 3 has to bind at position 12, not at
 the payment, because R-1 already makes an unbacked payment impossible — §8.1 says what the constraints
 are and never says where they bind, §9.2 and §9.4 do, and neither says the two must be read together.
+Writing credit's complete registry produced the last two. **The rate is six assumed entries per
+economic system**, projecting to about 54 across nine against the 9 the census carries — but the
+number that matters is the other one: **six of credit's eighteen questions have no registry entry at
+all**, because a mechanism answers them. There is no default threshold (a borrower defaults when it
+cannot pay, which is a balance test), no recovery rate (§6.7's waterfall produces it), and the
+regulatory levels are the parliament's — **the political system is a registry saving**, which is not
+why it was added. And one of the six assumed entries has no source anywhere: **nothing says who is
+refused when credit is rationed.** §6.3 covers rounding, §9.2 allocates, §9.3 clears; rationing is
+where a credit model's behaviour lives.
 The tenth was found by the process rather than by a check, and it is about the checks: **`verify`
 printed "7 checks ran, 0 failed" on a tree where clippy was reporting a finding, twice**, because
 `verify` never ran clippy and clippy returns zero on a warning. The gate existed as a habit — a list

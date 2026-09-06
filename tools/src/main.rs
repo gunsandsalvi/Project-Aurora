@@ -14,7 +14,7 @@ fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
     let Some(cmd) = args.next() else {
         eprintln!(
-            "usage: aurora-tools <verify|check-lints|check-surface|check-deps|check-refs|check-coupling|check-adr|check-registry|check-instruments|check-register|check-bootstrap|appendix|gate|adr new|seedgen|burnin|sizing|workload|bootstrap|behaviour>"
+            "usage: aurora-tools <verify|check-lints|check-surface|check-deps|check-refs|check-coupling|check-adr|check-registry|check-instruments|check-register|check-bootstrap|appendix|gate|adr new|seedgen|burnin|sizing|workload|bootstrap|behaviour|registry-cost>"
         );
         return ExitCode::FAILURE;
     };
@@ -41,6 +41,10 @@ fn main() -> ExitCode {
                 eprintln!("usage: aurora-tools adr new <\"title\"|NNNN>");
                 ExitCode::FAILURE
             }
+        }
+        "registry-cost" => {
+            println!("{}", aurora_tools::registry_cost::report());
+            ExitCode::SUCCESS
         }
         "behaviour" => {
             println!("{}", aurora_tools::behaviour::report());

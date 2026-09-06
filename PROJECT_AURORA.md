@@ -2415,6 +2415,30 @@ not.** The schema is eight fields:
 | `basis` | discriminated by provenance: an identity for `structural`, an expression for `derived`, a bracket and axis for `assumed`, a deleting ADR for `placeholder` |
 | `justification` | in model terms only |
 
+**What one economic system costs the registry** (`aurora-tools registry-cost`). D3 replaced the cap
+with a published count that review pushes down, which makes the *rate* the number that matters and
+nobody had measured it. Written out entry by entry, **credit has eighteen questions that need a
+number: 2 structural, 4 derived, 6 assumed, and 6 with no registry entry at all because a mechanism
+answers them.** Across the nine economic systems that projects to roughly **54 assumed entries**,
+against the 9 the census carries today — a floor rather than a forecast, since labour and housing each
+carry a search process credit does not.
+
+**The six absorbed questions are the interesting number**, because they are what the rate turns on:
+
+- **There is no default threshold.** A borrower defaults when it cannot pay, which is a balance test at
+  position 18. A model carrying a default probability carries a prior about an outcome; this one
+  carries an arithmetic test about a state.
+- **There is no recovery rate.** §6.7's waterfall over what the estate actually holds produces it.
+- **The regulatory levels belong to the parliament.** §21 makes the capital floor and the LTV cap
+  *planks* rather than parameters, and their opening values are the opening parliament's, derived from
+  households' own rows. **The political system is a registry saving** — which is not why it was added,
+  and is the strongest argument for it.
+
+*Found in the same pass, and it is a gap rather than a cost.* `credit.rationing_rule` — when demand
+exceeds a bank's headroom, **who is refused** — has no source anywhere. §6.3 covers rounding, §9.2
+allocates against balances, §9.3 clears. Rationing is exactly where a credit model's behaviour lives,
+and the specification does not have a rule for it.
+
 #### The six rules of the build check
 
 **These six are build failures and remain build failures.** D3 removed the cap on how many entries there
