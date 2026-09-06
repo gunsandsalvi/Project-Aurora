@@ -559,7 +559,10 @@ Sources are `PROJECT_AURORA.md` unless stated.*
 | §8.2's withdrawn accumulator and the price-change rule | §8.2 *Owed* | **M9** |
 | The `DerivedMark` derivation rule | §7.2 Q13 | **M9** |
 | δ₁ = 0.35 — **derived: justified by a named in-model mechanism or not at all** | §13.3 *What is owed* | **M11** names it |
-| Burn-in multiplicity — **derived: a correction is required**, its form and error rate to be declared | ~11.6% false pass under the null | **M0** declares, **M11** applies |
+| **B1b is mis-specified, and it is not a multiplicity problem.** `\|Δμ\| ≤ 0.25·σ_pooled` is a fixed effect size with no reference to sampling error, so it is a ~53rd-percentile cut on a stationary AR(1) and rejects the majority of genuinely settled series. **Measured**: the 42-series conjunction passed 0 of 2,000 panels. §16.2 would then classify a healthy model as defective at period 520 | measured by `aurora-tools burnin` | **M0** states it; **M11** sets every threshold from its own null distribution, as B3's 0.503 already is |
+| Burn-in multiplicity over 168 hypotheses — a **separate** problem from the above, and fixing one does not fix the other | §15.3 | **M11** |
+| **§13.3's count rows were not produced by its own generator.** The continuous half reproduces exactly — every share and multiplier to six decimals — and the integer half reproduces under neither §6.3 rule two nor largest-remainder. §13.1 rule 3 forbids a per-region count being typed anywhere, and these appear to have been | measured by `aurora-tools seedgen` | **M0** records it; §13.3 is regenerated before its counts are an input to anything |
+| **Cohort shares cannot vary by region under §13.3's formula.** The axis-3 loading multiplies every cohort of a region by the same factor and renormalisation divides it straight back out — so a primitive §13.3 lists on axis 3 is invariant across regions by construction | measured by `aurora-tools seedgen` | **M4**, with the seed |
 | Observation family 13: 21 × 64 exceeds its sub-cap | §14 | **M5** |
 | Observation family 9: 60 series against 224 identities | §14 | **M6** |
 | Eight dangling cross-references | §3.4.4, §9.6.1, §15.3.4, §21.3, D-7 | **M0** |

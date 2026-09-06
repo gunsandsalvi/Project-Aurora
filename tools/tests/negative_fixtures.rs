@@ -352,3 +352,45 @@ fn a_justification_citing_the_outside_world_is_caught() {
     let f = only_finding(&doc);
     assert!(f.contains("outside the model"), "{f}");
 }
+
+// ── §13.3's generator, pinned ───────────────────────────────────────────────────────────────────
+
+#[test]
+fn the_seed_generators_continuous_half_reproduces_and_its_integer_half_does_not() {
+    // A committed finding, not a passing test dressed as one. It asserts the state of §13.3 as
+    // measured, so that regenerating the table breaks this test rather than passing silently — which
+    // is the failure mode a "known red" note in a document always eventually has.
+    let (report, disagreements) = aurora_tools::seedgen::report();
+
+    assert!(
+        report.contains("computed: 0.147152 0.201244 0.275219 0.376386"),
+        "the axis-1 shares must still reproduce exactly; if they do not, the formula changed:\n{report}"
+    );
+    assert!(
+        report.contains("§6.3 rule two reproduces 1 of 8 rows; largest-remainder reproduces 1."),
+        "the integer half still reproduces under neither rule. If this count has MOVED, §13.3 was \
+         regenerated and this test is what should be updated:\n{report}"
+    );
+    assert!(
+        disagreements
+            .iter()
+            .any(|d| d.contains("cohort shares are invariant")),
+        "the cohort-share invariance is structural and cannot be fixed by regenerating: {disagreements:?}"
+    );
+}
+
+#[test]
+fn b1b_rejects_most_stationary_series_and_the_conjunction_never_passes() {
+    // A committed finding. §15.3's gate makes reaching period 520 without a pass a DEFECT, so a gate
+    // that a settled world cannot pass does not delay a result — it condemns a healthy model.
+    let report = aurora_tools::burnin::report();
+    assert!(
+        report.contains("all 42 series pass both B1 and B1b together in 0 panels"),
+        "the conjunction still never passes on stationary series; if it now does, §15.3's thresholds \
+         were changed and this test is what should be updated:\n{report}"
+    );
+    assert!(
+        report.contains("rejects the majority of genuinely stationary series"),
+        "B1b's 0.25 band is still not a five-per-cent test:\n{report}"
+    );
+}

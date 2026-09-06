@@ -152,9 +152,8 @@ be *recorded* until this exists.
 
 | | Task | Days | Done when |
 |---|---|---|---|
-| W6.1 | **The seed generator, standalone.** Implement §13.3's `p_r = p_base × exp(δ_k · Z[P_k[r]])` and print its output against the published table. Already known red: four of the eight count vectors do not reproduce under rule two, largest-remainder or nearest, and cohort shares are provably invariant across regions under the stated formula | 4 | the comparison is committed with each row marked reproduces / does not |
 | W6.2 | **The burn-in conjunction.** B1/B1b/B2/B3 against synthetic AR(1), random walk, mid-window break, diverging ensemble, frozen path; then Monte Carlo ~1,000 synthetic 42-series panels and report the empirical false-pass rate of the conjunction. `0.95^42 ≈ 11.6%` under the true null | 5 | the false-pass rate is measured and a multiplicity correction is specified |
-| W6.3 | **The intrinsic facts table as data.** All thirteen answers for the seven opening types, as a total mapping that fails to compile if any is missing. Not prose — the actual table | 3 | it compiles, and deleting one answer fails to compile |
+| W6.3 | **The intrinsic facts table as data.** All thirteen answers for the seven opening types, as a total mapping. **As data plus a totality check, not Rust** — §1 forbids engine code here for the same reason it did in W4, and the typechecked version lands in M3 | 3 | the table is complete and deleting one answer fails the check |
 | W6.4 | **The amendment matrix.** 7 types × 8 mechanisms as a total mapping. Decides whether handles are per-mechanism or per-(mechanism, type) — one extra column now, a rewrite of `amend` later | 2 | the mapping is total and the handle shape is ADR'd |
 
 ---
@@ -263,7 +262,7 @@ derivation rather than testing whether one exists. **The first gate with stop au
 | **W3** the probe and the way results get back | **open** — the long pole, and the only workstream needing the owner's device |
 | **W4** the parameter registry | **done but for two**, both deferred with a reason: the generated unit vocabulary needs `domain`'s quantity types (M1), and the `capacity` read rule needs systems to police |
 | **W5** ADR machinery | **part done** — the format and `check-adr` landed with W2; numbering, coupling and appendix generation remain |
-| **W6** falsifiers that need code | open |
+| **W6** falsifiers that need code | **two of four done** — the seed generator and the burn-in tests, both red and both pinned by tests. The facts table and the amendment matrix remain |
 | **W7** falsifiers that need paper | open |
 
 **Checks running, each with negative fixtures, behind one `aurora-tools verify`:**
@@ -279,13 +278,18 @@ derivation rather than testing whether one exists. **The first gate with stop au
 0004 the arena seam · 0005 the surface/shell split · 0013 the sixteen identities ·
 0014 the registry's two namespaces.
 
-**Four findings from the work so far, every one from a check catching something rather than from
-review.** `check-lints`' first draft substring-matched and its first run reported *itself*.
+**Six findings so far, every one from a check catching something rather than from review.** `check-lints`' first draft substring-matched and its first run reported *itself*.
 `check-surface`'s first run flagged one subtraction twice, because `->` is a `-` punct.
 `check-refs` found §17.4 demoted from a heading to bold text by an earlier edit, while three
 citations still pointed at it. `check-registry` rule 3 rejected the first derived entry written
 against it — a labour endowment declared in `hour` where the arithmetic says `hour/count` — and in
 doing so showed that §16.1's rule 1, stated over unit *names*, cannot express a compound unit at all.
+`aurora-tools seedgen` found that §13.3's continuous half reproduces exactly and its integer half
+reproduces under **no** quantization rule, so its count rows were not computed from its own generator —
+and that cohort shares are invariant across regions by construction, so an axis-3 primitive cannot
+vary on axis 3. `aurora-tools burnin` found that B1b rejects 56% of genuinely stationary series and
+the 42-series conjunction passed **0 of 2,000 panels**, so §15.3's gate as written would classify a
+healthy model as defective.
 **A check is not known to work until it has caught something, and each of these caught something on
 its first run.**
 
