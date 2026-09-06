@@ -513,8 +513,11 @@ Sources are `PROJECT_AURORA.md` unless stated.*
 
 | Item | Source | Settle by |
 |---|---|---|
-| N4's itemisation — ~705 MB unaccounted | §12.1 | **M0** (paper) |
-| Identifier census: 971,000 against an implied 12.45M | §3.4, §5.2 | **M0** (paper) |
+| **N4's itemisation: 902.6 MiB of the published 1,488.3 MB is in rows that cannot be computed** — measured by `aurora-tools sizing`, which derives what the named tables actually come to. The largest missing row is the instruments table, which §7.5 declares unresolved while also saying its own counts are not to be used for sizing | measured | **M1**, as the tables are written |
+| ~~Identifier census~~ **Settled: §3.4's ≈971,000 is wrong.** A bottom-up census lands at ~15.7 M, the same order as §5.2's implied 12.45 M. §3.4's figure is below the opening entity count plus one generation of employment contracts alone | measured by `aurora-tools sizing` | §3.4 is corrected; the mean lives it rests on are owed to **M3** |
+| **§12.2's 96.5 ns per exchange is exceeded 2.2× on a desktop** — 211.9 ns measured over a 164 MiB arena with a simplified access pattern and no door preconditions, so it is a floor and the device will be worse. The derived tick of 478.7 ms is optimistic by at least that factor | measured by `aurora-probe` | **M0/G0** restates §12's targets; under D1 the model does not shrink to meet them |
+| **A sorted block of 16,384 slots costs ~1,827 ns per insert-and-remove** — nineteen times the whole per-exchange budget, and the bank block is 16,384 slots that every settlement touches. §5.6's holder-major sorted block does not scale to the institutional tier as written | measured by `aurora-probe` | **M1**, before the holdings layout is committed |
+| **Columnar beats interleaved by 1.6× at random access**, which is the opposite of the usual expectation and vindicates §5.1 for a reason it does not state: the narrow columns are small enough to stay resident, so only the 64-bit columns miss | measured by `aurora-probe` | closed — §5.1 stands, and now on evidence |
 | The 3,119,665 operation count, per position | §3.4 | **M0** (paper) |
 | The journal row's field list against 48 B | §6.6 | **M0** (paper) |
 | The 44 B versus 148 B instrument row | §7.5 *Unresolved* | **M0** decides on paper; M3 confirms |

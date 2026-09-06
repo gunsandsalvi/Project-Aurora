@@ -11,7 +11,7 @@ fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
     let Some(cmd) = args.next() else {
         eprintln!(
-            "usage: aurora-tools <verify|check-lints|check-surface|check-deps|check-refs|check-adr|check-registry|seedgen|burnin>"
+            "usage: aurora-tools <verify|check-lints|check-surface|check-deps|check-refs|check-adr|check-registry|seedgen|burnin|sizing>"
         );
         return ExitCode::FAILURE;
     };
@@ -26,6 +26,10 @@ fn main() -> ExitCode {
         "check-refs" => check_refs::run(&root),
         "check-adr" => check_adr::run(&root),
         "check-registry" => check_registry::run(&root),
+        "sizing" => {
+            println!("{}", aurora_tools::sizing::report());
+            ExitCode::SUCCESS
+        }
         "burnin" => {
             println!("{}", aurora_tools::burnin::report());
             ExitCode::SUCCESS

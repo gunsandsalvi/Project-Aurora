@@ -14,3 +14,4 @@ pub mod check_registry;
 pub mod check_surface;
 pub mod registry;
 pub mod seedgen;
+pub mod sizing;

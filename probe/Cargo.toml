@@ -1,0 +1,22 @@
+[package]
+name = "aurora-probe"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+# `probe` is not a layer (ADR-0003). It is the device measurement of D4: a throwaway benchmark whose
+# whole output is one JSON document. It becomes the Android cdylib in W3 and it ships in no engine
+# artifact, so the engine's lint table does not apply to it — the same boundary `tools` has.
+
+[dependencies]
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+must_use_candidate = "allow"
+cast_precision_loss = "allow"
+cast_possible_truncation = "allow"

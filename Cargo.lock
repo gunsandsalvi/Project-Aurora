@@ -67,6 +67,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "aurora-probe"
+version = "0.0.0"
+
+[[package]]
 name = "aurora-runtime"
 version = "0.0.0"
 dependencies = [

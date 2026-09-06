@@ -84,12 +84,9 @@ the paper falsifiers need no device at all.
 | W3.1 | `cargo-ndk` cross-compile | `aarch64-linux-android`, release profile with the shipping codegen settings, into a `cdylib` | 3 | an `.so` builds in CI |
 | W3.2 | The shell APK | Minimal Kotlin activity: one **Run** button, a scrolling text view, a **Copy** button. `largeHeap="true"`, a foreground service so a long run is not killed. It calls one JNI entry point and displays what comes back | 5 | the APK installs on the owner's device and prints `{}` |
 | W3.3 | Release delivery | The `probe` workflow attaches a signed debug APK to a GitHub Release with the commit SHA in its name | 2 | the owner can install from a link with no toolchain |
-| W3.4 | Allocation ceiling | Allocate in 128 MB steps, **commit every page by touching it**, hold 60 s under a churn workload, record where it fails. Reserved-but-uncommitted address space tells you nothing on Android | 2 | the ceiling is in the JSON |
-| W3.5 | Operation-cost benchmark | The measurement the whole design rests on. A realistic arena (holdings at the corrected 24 B, ~171 MB), random-holder read-modify-writes of (asset, quantity, integral, tick), plus a 48 B journal append. Report ns/op with a noise floor, burst and after a 15-minute soak | 5 | ns/op for the simulated `move` and `exchange` paths is in the JSON |
-| W3.6 | Block insert/remove | Sorted-block insertion and deletion at 10, 256, 4,096 and 16,384 slots — the bank block is 16,384 and every settlement touches it | 2 | four figures in the JSON |
-| W3.7 | Storage bandwidth | Sequential write of 1.5 GB, and the same at 64 MB granularity, to app-private storage. Prices checkpointing | 1 | two figures in the JSON |
-| W3.8 | Transcendental bit-identity | `f64::ln` and `f64::exp` over a fixed vector of 4,096 inputs; hash the bit patterns; compare CI x86 against the device. **`ln` lowers to the platform math library, so this can genuinely differ** | 2 | two hashes in the JSON, equal or not |
-| W3.9 | Thermal soak | 15 minutes at full load, throughput per minute, battery temperature. N2b is a sustained figure and every other measurement here is a burst | 1 | the throttled/burst ratio is in the JSON |
+| W3.4 | Allocation ceiling | Allocate in 128 MB steps, **commit every page by touching it**, hold 60 s under a churn workload, record where it fails. Reserved-but-uncommitted address space tells you nothing on Android. **Host-meaningless; needs the device** | 2 | the ceiling is in the JSON |
+| W3.8 | Transcendental bit-identity | The **host half is measured**: `ln` hashes to `b5d414b87dd05ab7` and `exp` to `a493d8dc7d53c03e` over the committed 4,096 inputs. What remains is the device half and the comparison | 1 | two hashes from the device, equal to the host's or not |
+| W3.9 | Thermal soak | 15 minutes at full load, throughput per minute, battery temperature. N2b is a sustained figure and every other measurement here is a burst. **Needs the device** | 1 | the throttled/burst ratio is in the JSON |
 
 **The output the owner copies back** — one object, printed once, with a Copy button beside it:
 
@@ -259,11 +256,11 @@ derivation rather than testing whether one exists. **The first gate with stop au
 |---|---|
 | **W1** the workspace that refuses | **done** — 12 crates, the layer matrix proved by a committed fixture, the lint floor, the `surface`/`shell` split |
 | **W2** build machinery and CI | **done but for two**, each blocked on the thing it would police: `check-generated` needs a generator (M1), `check-registry` is W4's |
-| **W3** the probe and the way results get back | **open** — the long pole, and the only workstream needing the owner's device |
+| **W3** the probe and the way results get back | **the measurements are written and run** (`cargo run --release -p aurora-probe`), and three are already red on the host, which is a floor. What remains is the Android packaging — `cargo-ndk`, the Kotlin shell, the release — and the device run |
 | **W4** the parameter registry | **done but for two**, both deferred with a reason: the generated unit vocabulary needs `domain`'s quantity types (M1), and the `capacity` read rule needs systems to police |
 | **W5** ADR machinery | **part done** — the format and `check-adr` landed with W2; numbering, coupling and appendix generation remain |
 | **W6** falsifiers that need code | **two of four done** — the seed generator and the burn-in tests, both red and both pinned by tests. The facts table and the amendment matrix remain |
-| **W7** falsifiers that need paper | open |
+| **W7** falsifiers that need paper | **two of nine done**, and both were computations rather than prose: the memory derivation and the identifier census (`aurora-tools sizing`) |
 
 **Checks running, each with negative fixtures, behind one `aurora-tools verify`:**
 `check-lints` · `check-surface` · `check-deps` · `check-refs` · `check-adr` · `check-registry`
@@ -278,7 +275,7 @@ derivation rather than testing whether one exists. **The first gate with stop au
 0004 the arena seam · 0005 the surface/shell split · 0013 the sixteen identities ·
 0014 the registry's two namespaces.
 
-**Six findings so far, every one from a check catching something rather than from review.** `check-lints`' first draft substring-matched and its first run reported *itself*.
+**Nine findings so far, every one measured rather than reviewed.** `check-lints`' first draft substring-matched and its first run reported *itself*.
 `check-surface`'s first run flagged one subtraction twice, because `->` is a `-` punct.
 `check-refs` found §17.4 demoted from a heading to bold text by an earlier edit, while three
 citations still pointed at it. `check-registry` rule 3 rejected the first derived entry written
