@@ -20,6 +20,7 @@ none is a schedule with a name on it.
 | what would make us stop | §6 |
 | what this costs | §7 |
 | the first milestone in executable detail | `MILESTONE_0.md` |
+| **what has to be in the model at all** | **`MODEL_SCOPE.md` — the breadth target** |
 
 **This plan supersedes §19's phase table** wherever the two differ. §19 is kept in the specification
 because its gates are cited from elsewhere; it is a summary of this.
@@ -60,7 +61,8 @@ per tick" is the project's central assertion. It should be a green test running 
 a third of the way in — not a promise redeemed at the end. Everything after that point is a substitution
 into a system that is already running and already closed.
 
-**5. Decompose the economics; do not schedule it as one bar.** The specification contains the machine
+**5. Decompose the economics; do not schedule it as one bar.** `MODEL_SCOPE.md` is what it consists of,
+and reading it is the fastest way to see why one bar was never going to hold. The specification contains the machine
 and not the model: one production section of five sentences, no content for any of the thirty-five agent
 declarations, roughly thirty per-position specifications owed and one written. Every candidate plan that
 treated this as a single milestone under-sized it by two to three times. It is four milestones here, each
@@ -460,7 +462,12 @@ Sources are `PROJECT_AURORA.md` unless stated.*
 | **Who holds the opening capital and dwellings** sourced at position 6 of tick 0 | *silently missing*, surfaced by §13.6 | **M6** |
 | The production specification | Appendix B *Owed* | **M6** |
 | The five declarations for seven agent classes | §8.1 — a shape with no content | **M7**, **M9** |
-| ~~SME and Large firm: two classes or one?~~ **Decided: one `Firm` class, two storage tiers, promotion by listing (§8.7).** What remains is economics: the listing requirement's ratios and their brackets, and the funding-policy rule that makes a firm want to list | §8.4, §8.7 *Owed* | **M7**, with the firm declarations |
+| ~~SME and Large firm: two classes or one?~~ **Decided: one `Firm` class; tier by block pressure, listing by decision, the two independent (§8.7).** What remains is economics: the listing requirement's ratios and their brackets, and the funding-policy rule that makes a firm want to list | §8.4, §8.7 *Owed* | **M7**, with the firm declarations |
+| **Is a dealer an agent class, or is quoting two-sided a behaviour any agent may have?** Aurora has no market-maker, so every participant is an end investor and a price cannot move because somebody disagrees — which M6 does not allow. Needs §8.1 declaration 4 or §9.1's submission shapes to express a spread rather than one reservation | `MODEL_SCOPE.md` §3.3 | **M7** |
+| **Covenants and acceleration**: an option family under §7.6, a ninth `amend` mechanism, or a fourteenth intrinsic question | `MODEL_SCOPE.md` §2.3 | **M3** |
+| **The derivative contract shape and a clearing house.** §7.6 gives options embedded in an instrument, not a bilateral contract with a reference and variation margin. Margin must respond to the reference's own realised move, or procyclicality — the contagion mechanism — is deleted | `MODEL_SCOPE.md` §3.1 | **M9** |
+| **The securitisation vehicle.** §6.5's trustee *holds* for a class of holders; an SPV *issues* against a pool | `MODEL_SCOPE.md` §3.2 | **M9** |
+| **Is freight in scope at all?** A network with capacity per route is genuinely new structure. Under R20 the options are to model it or declare it out of scope on the surface | `MODEL_SCOPE.md` §3.6 | **M9** |
 | ~30 per-position §17.4 specifications, 1 written | *silently missing* | **M6**–**M10** |
 | The trait declaration set | *silently missing* | **M7** |
 | The bank capital regime's values and cure window | *silently missing* | **M8** |
@@ -553,6 +560,11 @@ arrives at roughly the halfway point rather than at the finish.
 | **Total** | **605–840** |
 
 **That is 12–17 engineer-years; at four engineers, roughly three to four calendar years.**
+
+**`MODEL_SCOPE.md` changes this table and the change is not yet made.** M7–M10 were sized against
+"the economics" as an idea; the scope document is what the economics consists of, and it is substantially
+larger than those four bars were estimated against. **The re-derivation is owed at G2**, where the first
+real counts exist, and until then the figures below should be read as a floor rather than an estimate.
 
 **Where the uncertainty is.** M0 through M6 are estimated against a specification that describes them,
 and the range there is the ordinary one. M7 through M10 are estimated against a specification that does

@@ -1109,8 +1109,25 @@ A4 intact under staggering: a household that re-plans quarterly still pays its m
 
 ### 8.7 Promotion and demotion
 
-**A firm changes tier by listing, and listing is a decision it takes.** This is the one place the model
-lets an agent change what it costs to store, and it exists because the alternative — a fixed size
+**Tier and listing are two facts, and conflating them was a defect in the first draft of this section.**
+A *tier* is how many holding slots a row needs — storage. *Listed* is whether the firm's equity clears on
+a venue — economics. They correlate and they are not the same, and tying them together makes **a large
+private firm inexpressible**: a leveraged buy-out, which takes a listed company private without shrinking
+it, would force a firm into a sixteen-slot block it cannot fit. Private equity is in scope
+(`MODEL_SCOPE.md` §2.2), so the two facts are separate.
+
+| Fact | What moves it | What it governs |
+|---|---|---|
+| **Tier** — unlisted-sized or listed-sized block | the firm needs a seventeenth slot, or falls durably below sixteen | storage, and the re-plan cadence that follows balance-sheet complexity |
+| **Listed** | a decision the firm takes, against a listing requirement | which equity instrument it has issued, and whether its credit is priced by name or from a bucket |
+
+**A large private firm is tier-large and unlisted, and that is the ordinary shape of a buy-out target.**
+
+**Tier moves on block pressure, and costs nothing.** §5.6 says a block with no free slot raises; for a
+firm that becomes a promotion instead. It is a storage decision with no economics in it and no assumed
+number behind it, which is exactly what makes it cheap.
+
+**Listing is a decision the firm takes**, and it exists because the alternative — a fixed size
 distribution — is a phenomenon asserted at the opening that M6 requires to be produced.
 
 **The trigger is a decision, never a threshold in currency.** A firm lists when its funding policy
@@ -1128,18 +1145,25 @@ class, so it needs no class to carry it.
 | | Step | Where |
 |---|---|---|
 | 1 | The firm decides to list, and the listing requirement is tested against its own rows | position 8, on its re-plan tick |
-| 2 | Equity is issued — **an ordinary operation with an ordinary journal row** | position 19 |
-| 3 | The row and its holdings block relocate from the unlisted tier to the listed tier | inside the ledger, with the issuance |
+| 2 | Listed equity is issued — **an ordinary operation with an ordinary journal row** | position 19 |
+| 3 | Separately, whenever a firm needs a seventeenth slot, its row and block relocate to the listed-sized tier | inside the ledger, where the seventeenth slot was needed |
 | 4 | The identifier does not change, so every journal row, lien and schedule naming the firm still resolves | §5.2 |
+
+**Going public and going private are instrument events, not tier events.** Private equity and listed
+equity are two instrument types differing on Q13 — `DerivedMark` and `VenueCleared` — because a private
+stake genuinely is priced differently from a listed share. Listing redeems the private line and issues
+the listed one; a buy-out does the reverse. Both are ordinary work at position 19, both cost one
+intrinsic row and one relational row per regime under §18, and **neither touches an agent.** That is A2
+doing the job it was designed for, and it is why no `PrivateEquityFund` class is needed either: what
+makes a fund a buy-out fund is the instruments it holds and the units it issued.
 
 **Promotion is a relocation, not an operation.** It changes no quantity and appends no journal row of its
 own (§5.5); the journal row belongs to the equity issuance that caused it. The directory re-points and
 nothing else moves, which is exactly the property §5.5 was built for.
 
-**Demotion is symmetric and the tier is freed.** A firm delists when its equity is redeemed — bought out,
-or the listing requirement lapses — and its row relocates back to the unlisted tier, **provided its
-holdings occupy sixteen slots or fewer**. A firm too large to fit stays listed, and that is a modelled
-outcome rather than an error: it is a firm whose balance sheet has outgrown the private tier.
+**Demotion is symmetric and the tier is freed** when a firm's holdings fall durably below sixteen slots.
+A firm that delists but stays complex keeps its large block and simply stops having a venue-cleared
+equity line — which is a large private firm, and the point of separating the two facts.
 
 **A one-way ratchet was rejected.** Under it the listed population could only grow, so the size
 distribution would still be unable to emerge — only to inflate — and the listed tier would have to be
@@ -1152,10 +1176,10 @@ nobody can derive that rate before the economics exists, and pretending otherwis
 expression's clothing. The tier's high-water mark is a declared series, and a run that exhausts it is a
 defect that says so rather than a run that quietly stops promoting.
 
-*Accepted cost.* Two tiers is a storage decision visible in the model: a firm's re-planning cadence
-changes when it lists, from four ticks to one, so listing makes a firm respond faster to the world as
-well as larger. That is defensible — a listed firm is under continuous market scrutiny — but it is a
-behavioural consequence of a storage choice, and it is stated here rather than discovered.
+*Accepted cost.* Cadence follows tier, so a firm that grows complex enough to need a large block also
+begins re-planning every tick rather than every fourth. That is a behavioural consequence of a storage
+decision and it is stated here rather than discovered — though it is defensible on its own terms, since
+the firms needing sixty-four positions are the ones with something to decide every week.
 
 *Owed.* The listing requirement's ratios, their brackets, and the funding-policy rule that makes a firm
 want to list. They are economics and they are written with the firm's five declarations, not before.
