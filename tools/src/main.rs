@@ -5,13 +5,13 @@
 
 use std::process::ExitCode;
 
-use aurora_tools::{check_adr, check_deps, check_lints, check_refs, check_surface};
+use aurora_tools::{check_adr, check_deps, check_lints, check_refs, check_registry, check_surface};
 
 fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
     let Some(cmd) = args.next() else {
         eprintln!(
-            "usage: aurora-tools <verify|check-lints|check-surface|check-deps|check-refs|check-adr>"
+            "usage: aurora-tools <verify|check-lints|check-surface|check-deps|check-refs|check-adr|check-registry>"
         );
         return ExitCode::FAILURE;
     };
@@ -25,6 +25,7 @@ fn main() -> ExitCode {
         "check-deps" => check_deps::run(&root),
         "check-refs" => check_refs::run(&root),
         "check-adr" => check_adr::run(&root),
+        "check-registry" => check_registry::run(&root),
         "verify" => verify(&root),
         other => {
             eprintln!("unknown check: {other}");
@@ -42,12 +43,13 @@ fn verify(root: &std::path::Path) -> ExitCode {
     /// A check: its name, and the function that runs it and reports.
     type Check = (&'static str, fn(&std::path::Path) -> ExitCode);
 
-    let checks: [Check; 5] = [
+    let checks: [Check; 6] = [
         ("check-lints", check_lints::run),
         ("check-surface", check_surface::run),
         ("check-deps", check_deps::run),
         ("check-refs", check_refs::run),
         ("check-adr", check_adr::run),
+        ("check-registry", check_registry::run),
     ];
     let mut failed = Vec::new();
     for (name, run) in checks {

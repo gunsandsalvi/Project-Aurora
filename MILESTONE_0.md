@@ -112,15 +112,22 @@ the paper falsifiers need no device at all.
 Built now, against a hand-drafted census, before the seed exists — because §12.1 makes every capacity a
 registry entry and M1 writes every capacity there is. A registry arriving later arrives in debt.
 
+**W4.1 and W4.3 as drafted broke §1's constraint, and the constraint wins.** Both named engine code —
+an `Entry` type in `declarations`, and a unit vocabulary generated from `domain`'s quantity types — in a
+milestone whose defining rule is that no engine code is written. Rewritten below rather than worked
+around, per §1a. The registry in M0 is **data plus a `tools` checker**; the engine-side type and the
+generated vocabulary land in M1, when the quantity types they depend on exist.
+
+*Nothing of the point is lost.* What M0 is for is that the rules are mechanical before anything can
+break them, and a checker over a data file achieves that as completely as a type would. The fixtures
+become data fixtures the checker must reject **for their own stated reason**, which is a stronger test
+than a compile failure: a compile error proves something was refused, and a checked message proves it
+was refused for the right reason.
+
 | | Task | Detail | Days | Done when |
 |---|---|---|---|---|
-| W4.1 | The `Entry` type | Eight fields; `basis` an enum discriminated by provenance | 2 | it compiles and a malformed entry does not |
-| W4.2 | The sixteen identities | §16.1 rule 4 names sixteen definitional identities and the document never enumerates them. Enumerate them; a seventeenth is an ADR | 2 | the closed enum exists and rule 4 checks against it |
-| W4.3 | The unit vocabulary, generated | Generated from `domain`'s quantity types, so there is one dimension system and not two — the document's own Appendix C failure mode 1, occurring in §16.1 | 2 | a registry unit naming no quantity type fails the build |
-| W4.4 | The derived-expression evaluator | Closed AST, dimension algebra, literals restricted to `{0, 1, −1, 2}` | 4 | a dimension mismatch fails with a message naming both sides |
-| W4.5 | The seven rules | Six from §16.1 plus the dead-entry check D3's §16.1 now requires | 3 | seven compile-fail fixtures, each failing for its own reason and no other |
-| W4.6 | Two namespaces | `model` entries carry M3's published count; `capacity` entries carry the arena sizes and are unreadable by any agent, valuation or economic system | 2 | a `capacity` entry read from `agents` fails `check-layers` |
-| W4.7 | The census, published | Draft the registry to the entries currently identifiable; emit total, assumed, structural, placeholder and the trend as a build artefact | 3 | the census prints on every build and is in the run manifest schema |
+| W4.3b | The unit vocabulary, generated from `domain` | The closed list M0 hard-codes becomes generated from the quantity types, so there is one dimension system and not two — Appendix C failure mode 1, occurring in §16.1 itself. **Deferred to M1** with the types | 2 | a registry unit naming no quantity type fails the build |
+| W4.6 | The `capacity` namespace's read rule | `capacity` entries are unreadable by any agent, valuation or economic system. The split lands in M0; **the read rule needs systems to police**, so its check lands with the manifests | 2 | a `capacity` entry read from `agents` fails a check |
 
 ---
 
@@ -183,8 +190,6 @@ Enumerated, because "roughly eighteen ADRs" in an exit criterion is not a criter
 | 0010 | Identifier census, and the directory sizing that follows |
 | 0011 | Shard count always 64, a saved run parameter; thread count carries no semantics |
 | 0012 | Arena is thread-shareable from the start, run single-threaded until M11 |
-| 0013 | The sixteen definitional identities, enumerated |
-| 0014 | Registry namespaces: `model` versus `capacity` (records D3's consequence) |
 | 0015 | The output gap as a ratio; the transcendental ban widened to any digested path |
 | 0016 | Digest cadence decoupled from checkpoint cadence |
 | 0017 | Retirement queue drained every tick; capacity derived from max-per-tick × interval |
@@ -198,8 +203,6 @@ Enumerated, because "roughly eighteen ADRs" in an exit criterion is not a criter
 Mechanically checkable. No "or restate by ADR"; no "reported" where "passes" is meant; nothing that
 passes because the tree is empty.
 
-4. **Each of the registry's seven rules has a compile-fail fixture that fails for its own stated reason
-   and no other.** Seven fixtures, seven distinct messages.
 5. `check-generated` fails on a hand edit to any generated file.
 7. An ADR without a `guard` field fails `check-adr`. A parsed-value change to a *ratified* registered
    file without a `Decision:` trailer is refused; the same change to an unratified file is not.
@@ -251,22 +254,40 @@ derivation rather than testing whether one exists. **The first gate with stop au
 
 ---
 
-## 7. Calendar
+## 7. Where the work stands
 
-| Week | In flight | Lands |
-|---|---|---|
-| 1 | W1.1–W1.3, W3.1, W4.1–W4.2, W5.1, W7.2 | Twelve crates build; NDK toolchain up; ADR numbering |
-| 2 | W1.4–W1.6, W3.2, W4.3–W4.4, W5.2, W6.1, W7.1 | Layer fixture passes; **seed generator red, committed**; tick-0 trace |
-| 3 | W2.1–W2.3, W3.2, W4.4–W4.5, W5.3, W6.1, W7.1, W7.3 | First APK installs; memory derivation drafted |
-| 4 | W2.4–W2.6, W3.3–W3.4, W4.5–W4.6, W5.4, W6.2, W7.4–W7.5 | **CI green; APK on Releases; allocation ceiling known** |
-| 5 | W3.5–W3.6, W4.7, W6.2–W6.3, W7.6–W7.7 | **Operation cost measured** — the number the design rests on |
-| 6 | W3.7–W3.9, W6.3–W6.4, W7.7–W7.8 | Probe complete; JSON returned; census published |
-| 7 | ADRs 0003–0019 drafted against the evidence; W7.9 | Instrument row decided; transcendental decided |
-| 8 | ADRs accepted; exit criteria swept; G0 | **G0** |
+| Workstream | State |
+|---|---|
+| **W1** the workspace that refuses | **done** — 12 crates, the layer matrix proved by a committed fixture, the lint floor, the `surface`/`shell` split |
+| **W2** build machinery and CI | **done but for two**, each blocked on the thing it would police: `check-generated` needs a generator (M1), `check-registry` is W4's |
+| **W3** the probe and the way results get back | **open** — the long pole, and the only workstream needing the owner's device |
+| **W4** the parameter registry | **done but for two**, both deferred with a reason: the generated unit vocabulary needs `domain`'s quantity types (M1), and the `capacity` read rule needs systems to police |
+| **W5** ADR machinery | **part done** — the format and `check-adr` landed with W2; numbering, coupling and appendix generation remain |
+| **W6** falsifiers that need code | open |
+| **W7** falsifiers that need paper | open |
 
-Weeks 9–10 are float. On the evidence of every comparable plan reviewed, they will be used.
+**Checks running, each with negative fixtures, behind one `aurora-tools verify`:**
+`check-lints` · `check-surface` · `check-deps` · `check-refs` · `check-adr` · `check-registry`
 
----
+**The census, published on every build:** 21 model entries — 9 assumed, 10 structural, 2 derived,
+0 placeholder — and 4 capacity entries counted separately. No cap (D3); the direction is down.
+
+**Gates green:** `cargo build`, `cargo test`, `cargo clippy --all-targets -D warnings`,
+`cargo fmt --check`, `aurora-tools verify`.
+
+**ADRs taken:** 0001 Rust/crates/Android · 0002 the model wins · 0003 the layer matrix ·
+0004 the arena seam · 0005 the surface/shell split · 0013 the sixteen identities ·
+0014 the registry's two namespaces.
+
+**Four findings from the work so far, every one from a check catching something rather than from
+review.** `check-lints`' first draft substring-matched and its first run reported *itself*.
+`check-surface`'s first run flagged one subtraction twice, because `->` is a `-` punct.
+`check-refs` found §17.4 demoted from a heading to bold text by an earlier edit, while three
+citations still pointed at it. `check-registry` rule 3 rejected the first derived entry written
+against it — a labour endowment declared in `hour` where the arithmetic says `hour/count` — and in
+doing so showed that §16.1's rule 1, stated over unit *names*, cannot express a compound unit at all.
+**A check is not known to work until it has caught something, and each of these caught something on
+its first run.**
 
 ## 8. Explicitly out of scope
 

@@ -9,4 +9,6 @@ pub mod check_adr;
 pub mod check_deps;
 pub mod check_lints;
 pub mod check_refs;
+pub mod check_registry;
 pub mod check_surface;
+pub mod registry;

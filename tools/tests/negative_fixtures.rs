@@ -230,3 +230,125 @@ fn an_adr_without_a_guard_is_caught() {
         "and says why an empty field is not a field: {only}"
     );
 }
+
+// ── the registry's seven rules, one fixture each ────────────────────────────────────────────────
+//
+// §16.1's rules are the whole of A3's first subject, and each must fail **for its own stated reason
+// and no other**. A fixture that trips two rules proves neither.
+
+/// A well-formed entry, which each fixture then breaks in exactly one way.
+fn entry(extra: &str) -> String {
+    format!(
+        "[[entry]]\nname = \"t.x\"\nnamespace = \"model\"\nvalue = 1.0\n\
+         scope = \"world\"\nowner = \"seed\"\njustification = \"a mechanism inside the model\"\n{extra}\n"
+    )
+}
+
+fn findings_for(doc: &str) -> Vec<String> {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .expect("the tools crate always has a workspace parent");
+    let units = aurora_tools::registry::Units::load(root).expect("units.txt is committed");
+    let ids = aurora_tools::registry::identities(root).expect("identities.txt is committed");
+    let entries = aurora_tools::registry::parse_entries(doc).expect("the fixture parses");
+    aurora_tools::check_registry::rules(&entries, &units, &ids)
+}
+
+fn only_finding(doc: &str) -> String {
+    let f = findings_for(doc);
+    let [only] = f.as_slice() else {
+        panic!(
+            "a fixture must break exactly one rule, and this broke {}: {f:?}",
+            f.len()
+        )
+    };
+    only.clone()
+}
+
+#[test]
+fn rule_1_an_assumed_level_is_caught() {
+    let f = only_finding(&entry(
+        "unit = \"minor-unit\"\nprovenance = \"assumed\"\nbracket = [0.0, 2.0]\naxis = \"none\"",
+    ));
+    assert!(f.starts_with("rule 1"), "{f}");
+    assert!(
+        f.contains("money"),
+        "the finding names the dimension that makes it a level: {f}"
+    );
+}
+
+#[test]
+fn rule_2_an_assumed_region_scope_is_caught() {
+    let doc =
+        entry("unit = \"ratio\"\nprovenance = \"assumed\"\nbracket = [0.0, 2.0]\naxis = \"none\"")
+            .replace("scope = \"world\"", "scope = \"region:3\"");
+    let f = only_finding(&doc);
+    assert!(f.starts_with("rule 2"), "{f}");
+    assert!(f.contains("no exception form"), "{f}");
+}
+
+#[test]
+fn rule_3_a_dimension_mismatch_names_both_sides() {
+    let doc = format!(
+        "{}{}",
+        entry("unit = \"count\"\nprovenance = \"structural\"\nidentity = \"RegionCount\""),
+        "[[entry]]\nname = \"t.y\"\nnamespace = \"model\"\nvalue = 1.0\nunit = \"hour\"\n\
+         scope = \"world\"\nowner = \"seed\"\nprovenance = \"derived\"\n\
+         expression = \"t.x\"\njustification = \"a mechanism inside the model\"\n"
+    );
+    let f = only_finding(&doc);
+    assert!(f.starts_with("rule 3"), "{f}");
+    assert!(
+        f.contains("count") && f.contains("hour"),
+        "both sides are named: {f}"
+    );
+}
+
+#[test]
+fn rule_4_an_unknown_identity_is_caught() {
+    let f = only_finding(&entry(
+        "unit = \"count\"\nprovenance = \"structural\"\nidentity = \"Invented\"",
+    ));
+    assert!(f.starts_with("rule 4"), "{f}");
+    assert!(f.contains("seventeenth is an ADR"), "{f}");
+}
+
+#[test]
+fn rule_5_a_value_outside_its_bracket_is_caught() {
+    let f = only_finding(&entry(
+        "unit = \"ratio\"\nprovenance = \"assumed\"\nbracket = [2.0, 3.0]\naxis = \"none\"",
+    ));
+    assert!(f.starts_with("rule 5"), "{f}");
+    assert!(f.contains("outside its bracket"), "{f}");
+}
+
+#[test]
+fn rule_6_a_literal_outside_the_closed_set_is_caught() {
+    let doc = entry("unit = \"ratio\"\nprovenance = \"derived\"\nexpression = \"1 * 7\"");
+    let f = only_finding(&doc);
+    assert!(f.contains("rule 3/6"), "{f}");
+    assert!(
+        f.contains("wearing an expression's clothes"),
+        "the finding says why: {f}"
+    );
+}
+
+#[test]
+fn rule_7_an_entry_nothing_reads_is_caught() {
+    let doc = entry("unit = \"count\"\nprovenance = \"structural\"\nidentity = \"RegionCount\"")
+        .replace("owner = \"seed\"", "owner = \"nobody\"");
+    let f = only_finding(&doc);
+    assert!(f.starts_with("rule 7"), "{f}");
+    assert!(f.contains("correctly declared and unread"), "{f}");
+}
+
+#[test]
+fn a_justification_citing_the_outside_world_is_caught() {
+    let doc = entry("unit = \"ratio\"\nprovenance = \"structural\"\nidentity = \"RegionCount\"")
+        .replace(
+            "a mechanism inside the model",
+            "observed in the euro area, see https://example.org",
+        );
+    let f = only_finding(&doc);
+    assert!(f.contains("outside the model"), "{f}");
+}

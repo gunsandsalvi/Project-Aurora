@@ -1,0 +1,21 @@
+# §16.1 rule 4: a `structural` entry names one of sixteen definitional identities. The specification
+# says "sixteen" and never lists them; ADR-0013 enumerates them, and a seventeenth is an ADR.
+#
+# An identity is definitional arithmetic or a closed decision about the shape of the world — never a
+# measurement and never a choice about how the economy behaves.
+UnitOfAccount                 §5.3, §13.2 — the numéraire S, the unit every nominal figure is counted in
+AsymmetryQuadruple            §13.3 — the unique zero-mean unit-variance equally-spaced quadruple
+FixedPointOfPublishedIndex    §13.4 — the inflation target, zero, the identity element of a growth rate
+SpearmanCritical5Percent      §15.3 — the two-sided 5% critical value of Spearman's rho at n = 16
+RegionCount                   §13.1 — four, and a fifth reopens A4
+SectorCount                   §13.1 — seven
+ShardCount                    §11, §12.3 — sixty-four, a saved run parameter and not a device property
+PeriodsPerYear                §10 — fifty-two, a week being the tick
+RunLength                     §2.1 — 1,560 periods, thirty simulated years
+RehypothecationDepth          §6.5 — three
+IntrinsicQuestionCount        §7.2 — thirteen, and a fourteenth breaks every type until each is decided
+RegimeCount                   §7.3 — seven
+PositionCount                 §9.4 — twenty-one stable names in the committed period order
+ObservationCap                §14 — 2,048 series, under sub-caps that sum to exactly it
+LineCap                       §9.5 — 4,096 priced lines, checked at venue registration
+JournalRetention              §6.6 — two ticks, below which §9.3's prior-close reads break

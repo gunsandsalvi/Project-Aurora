@@ -1,0 +1,14 @@
+# The closed unit vocabulary (§16.1). A unit determines a dimension; the dimension is what rule 3's
+# expression check operates on.
+#
+# `assumable` marks the five §16.1 rule 1 admits for an `assumed` entry. A currency or index dimension
+# with `assumed` provenance fails the build: that is the whole of A3's first rule.
+#
+# name          dimension        assumable
+ratio           -                yes
+count           count            yes
+period          period           yes
+hour            hour             yes
+physical-unit   physical         yes
+minor-unit      money            no
+index           index            no

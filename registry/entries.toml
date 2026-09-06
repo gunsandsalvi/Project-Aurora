@@ -1,0 +1,302 @@
+# The parameter registry (§16.1). Every number the model opens with is an entry here, and the build
+# refuses one that is not.
+#
+# Two namespaces (ADR-0014). `model` entries are claims about the world and their count is the honest
+# measure of how much of it was chosen rather than produced (M3). `capacity` entries are engineering
+# sizes: they answer no question about the economy, they are counted separately, and no agent,
+# valuation or economic system may read one.
+#
+# THIS IS A DRAFT CENSUS, not the seed. It holds what is identifiable today, which is enough to
+# exercise every rule and to publish a count before the count can be embarrassing.
+
+# ─────────────────────────── structural: definitional arithmetic ───────────────────────────
+
+[[entry]]
+name = "world.region_count"
+namespace = "model"
+value = 4.0
+unit = "count"
+scope = "world"
+owner = "seed"
+provenance = "structural"
+identity = "RegionCount"
+justification = "The world is four regions; a fifth reopens A4 and is an ADR before it is anything else."
+
+[[entry]]
+name = "world.sector_count"
+namespace = "model"
+value = 7.0
+unit = "count"
+scope = "world"
+owner = "seed"
+provenance = "structural"
+identity = "SectorCount"
+justification = "The sector partition the closure identities are computed over."
+
+[[entry]]
+name = "world.numeraire"
+namespace = "model"
+value = 2.0e11
+unit = "minor-unit"
+scope = "world"
+owner = "seed"
+provenance = "structural"
+identity = "UnitOfAccount"
+justification = "The unit the whole world is counted in. Not a scale factor: quantization does not commute with scaling, and it fixes the model's arithmetic resolution."
+
+[[entry]]
+name = "world.inflation_target"
+namespace = "model"
+value = 0.0
+unit = "ratio"
+scope = "world"
+owner = "monetary-policy"
+provenance = "structural"
+identity = "FixedPointOfPublishedIndex"
+justification = "Zero is the fixed point of a growth rate: the identity element, and the only value that is not a choice."
+
+[[entry]]
+name = "world.asymmetry_extreme"
+namespace = "model"
+value = 1.341641
+unit = "ratio"
+scope = "world"
+owner = "seed"
+provenance = "structural"
+identity = "AsymmetryQuadruple"
+justification = "The outer element of the unique zero-mean, unit-variance, equally-spaced quadruple. Arithmetic, not a choice."
+
+[[entry]]
+name = "world.spearman_critical"
+namespace = "model"
+value = 0.503
+unit = "ratio"
+scope = "world"
+owner = "burn-in-gate"
+provenance = "structural"
+identity = "SpearmanCritical5Percent"
+justification = "A property of a distribution at n = 16, which is arithmetic."
+
+[[entry]]
+name = "world.shard_count"
+namespace = "model"
+value = 64.0
+unit = "count"
+scope = "world"
+owner = "runtime"
+provenance = "structural"
+identity = "ShardCount"
+justification = "A saved run parameter, not a device property. Thread count carries no semantic content."
+
+[[entry]]
+name = "world.periods_per_year"
+namespace = "model"
+value = 52.0
+unit = "period"
+scope = "world"
+owner = "runtime"
+provenance = "structural"
+identity = "PeriodsPerYear"
+justification = "A tick is one week."
+
+[[entry]]
+name = "world.run_length"
+namespace = "model"
+value = 1560.0
+unit = "period"
+scope = "world"
+owner = "runtime"
+provenance = "structural"
+identity = "RunLength"
+justification = "Thirty simulated years."
+
+[[entry]]
+name = "world.rehypothecation_depth"
+namespace = "model"
+value = 3.0
+unit = "count"
+scope = "world"
+owner = "ledger"
+provenance = "structural"
+identity = "RehypothecationDepth"
+justification = "The pledge door refuses a fourth hop."
+
+# ─────────────────────────── assumed: dimensionless, bracketed ───────────────────────────
+
+[[entry]]
+name = "world.policy_slope_inflation"
+namespace = "model"
+value = 1.5
+unit = "ratio"
+scope = "world"
+owner = "monetary-policy"
+provenance = "assumed"
+bracket = [1.0, 2.5]
+axis = "none"
+justification = "The weight the rule puts on its own published index's deviation from its fixed point."
+
+[[entry]]
+name = "world.policy_slope_output"
+namespace = "model"
+value = 0.5
+unit = "ratio"
+scope = "world"
+owner = "monetary-policy"
+provenance = "assumed"
+bracket = [0.0, 1.5]
+axis = "none"
+justification = "The weight the rule puts on the output gap."
+
+[[entry]]
+name = "world.policy_anchor_weight"
+namespace = "model"
+value = 0.10
+unit = "ratio"
+scope = "world"
+owner = "monetary-policy"
+provenance = "assumed"
+bracket = [0.02, 0.30]
+axis = "none"
+justification = "What pulls the rate toward the world's own realised return. Without it the rate has a unit root and wanders."
+
+[[entry]]
+name = "world.policy_anchor_window"
+namespace = "model"
+value = 104.0
+unit = "period"
+scope = "world"
+owner = "monetary-policy"
+provenance = "assumed"
+bracket = [52.0, 208.0]
+axis = "none"
+justification = "Two years, over which the realised return on capital is averaged."
+
+[[entry]]
+name = "world.axis1_dispersion"
+namespace = "model"
+value = 0.35
+unit = "ratio"
+scope = "world"
+owner = "seed"
+provenance = "assumed"
+bracket = [0.15, 0.50]
+axis = "1"
+justification = "How unalike the regions are in scale. Its in-model justification is withdrawn and owed: the argument it carried cited eighteen banks in the smallest region against a census in which that region has eight."
+
+[[entry]]
+name = "world.axis2_dispersion"
+namespace = "model"
+value = 0.20
+unit = "ratio"
+scope = "world"
+owner = "seed"
+provenance = "assumed"
+bracket = [0.05, 0.30]
+axis = "2"
+justification = "Bounded above by the requirement that no region's technology makes a sub-unit unprofitable at period 0."
+
+[[entry]]
+name = "world.axis3_dispersion"
+namespace = "model"
+value = 0.15
+unit = "ratio"
+scope = "world"
+owner = "seed"
+provenance = "assumed"
+bracket = [0.05, 0.30]
+axis = "3"
+justification = "Bounded above by the requirement that the smallest labour endowment still exceeds the largest sub-unit's minimum staffing at period 0."
+
+[[entry]]
+name = "world.household_count"
+namespace = "model"
+value = 500000.0
+unit = "count"
+scope = "world"
+owner = "seed"
+provenance = "assumed"
+bracket = [100000.0, 1000000.0]
+axis = "1"
+justification = "The world total; the regional split is derived from it and no per-region count is written anywhere."
+
+[[entry]]
+name = "world.labour_endowment_hours"
+namespace = "model"
+value = 40.0
+unit = "hour/count"
+scope = "world"
+owner = "seed"
+provenance = "assumed"
+bracket = [20.0, 60.0]
+axis = "3"
+justification = "A household's weekly hours before the axis-3 loading is applied. The unit is hours PER HOUSEHOLD: §13.1 writes it as `hour` and leaves the per-household implicit, which is what made the first derived entry written against it fail rule 3."
+
+# ─────────────────────────── derived: an expression, dimension-checked ───────────────────────────
+
+[[entry]]
+name = "world.total_hours"
+namespace = "model"
+value = 20000000.0
+unit = "hour"
+scope = "world"
+owner = "seed"
+provenance = "derived"
+expression = "world.household_count * world.labour_endowment_hours"
+justification = "The world's labour supply, before the axis-3 loading redistributes it across regions."
+
+[[entry]]
+name = "world.labour_anchor"
+namespace = "model"
+value = 10000.0
+unit = "minor-unit/hour"
+scope = "world"
+owner = "reservation-mint"
+provenance = "derived"
+expression = "world.numeraire / world.total_hours"
+justification = "The unit a period-0 labour reservation is quoted in. It sets the unit, never the level; the price is whatever crosses."
+
+# ─────────────────────────── capacity: engineering sizes, counted separately ───────────────────────────
+
+[[entry]]
+name = "capacity.holding_slots"
+namespace = "capacity"
+value = 7177280.0
+unit = "count"
+scope = "world"
+owner = "world"
+provenance = "structural"
+identity = "ShardCount"
+justification = "The sum of §3.4's per-class slot table at 24 bytes a slot. Exhaustion raises; it is never grown."
+
+[[entry]]
+name = "capacity.journal_rows"
+namespace = "capacity"
+value = 7200000.0
+unit = "count"
+scope = "world"
+owner = "ledger"
+provenance = "structural"
+identity = "JournalRetention"
+justification = "Two ticks of operations in two segments. Exhausting it is a defect that raises, never a wrap that loses history."
+
+[[entry]]
+name = "capacity.listed_tier"
+namespace = "capacity"
+value = 1000.0
+unit = "count"
+scope = "world"
+owner = "world"
+provenance = "structural"
+identity = "RegionCount"
+justification = "440 firms listed at the opening plus headroom, to be re-derived from the first long run's realised promotion rate."
+
+[[entry]]
+name = "capacity.retirement_queue"
+namespace = "capacity"
+value = 65536.0
+unit = "count"
+scope = "world"
+owner = "ledger"
+provenance = "structural"
+identity = "PositionCount"
+justification = "Identifiers pushed by the ledger and drained by lifecycle. Overflow is a defect."
