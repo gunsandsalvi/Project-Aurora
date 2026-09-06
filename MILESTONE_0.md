@@ -266,14 +266,15 @@ derivation rather than testing whether one exists. **The first gate with stop au
 **The census, published on every build:** 21 model entries — 9 assumed, 10 structural, 2 derived,
 0 placeholder — and 4 capacity entries counted separately. No cap (D3); the direction is down.
 
-**Gates green:** `cargo build`, `cargo test`, `cargo clippy --all-targets -D warnings`,
-`cargo fmt --check`, `aurora-tools verify`.
+**The gate is one command:** `./gate.sh` — format, build, clippy `-D warnings`, test, then
+`aurora-tools verify`. CI runs that same file and nothing else, so the thing checked before a commit
+and the thing checked after a push cannot drift.
 
 **ADRs taken:** 0001 Rust/crates/Android · 0002 the model wins · 0003 the layer matrix ·
 0004 the arena seam · 0005 the surface/shell split · 0013 the sixteen identities ·
 0014 the registry's two namespaces.
 
-**Nine findings so far, every one measured rather than reviewed.** `check-lints`' first draft substring-matched and its first run reported *itself*.
+**Ten findings so far, every one measured rather than reviewed.** `check-lints`' first draft substring-matched and its first run reported *itself*.
 `check-surface`'s first run flagged one subtraction twice, because `->` is a `-` punct.
 `check-refs` found §17.4 demoted from a heading to bold text by an earlier edit, while three
 citations still pointed at it. `check-registry` rule 3 rejected the first derived entry written
@@ -285,6 +286,12 @@ and that cohort shares are invariant across regions by construction, so an axis-
 vary on axis 3. `aurora-tools burnin` found that B1b rejects 56% of genuinely stationary series and
 the 42-series conjunction passed **0 of 2,000 panels**, so §15.3's gate as written would classify a
 healthy model as defective.
+The tenth was found by the process rather than by a check, and it is about the checks: **`verify`
+printed "7 checks ran, 0 failed" on a tree where clippy was reporting a finding, twice**, because
+`verify` never ran clippy and clippy returns zero on a warning. The gate existed as a habit — a list
+of five commands in a document — and a habit is skippable in a way an exit code is not. `gate.sh` is
+the repair: one command, non-zero on any stage, and the CI workflow now runs that file rather than
+its own copy of the list.
 **A check is not known to work until it has caught something, and each of these caught something on
 its first run.**
 

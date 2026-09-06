@@ -191,7 +191,7 @@ fn check_rank(name: &str, v: &toml::Value, findings: &mut Vec<String>) {
                 )),
                 ("true" | "false", _) => {}
                 (other, _) => {
-                    findings.push(format!("{name}: q11 secured is `{other}`, not a boolean"))
+                    findings.push(format!("{name}: q11 secured is `{other}`, not a boolean"));
                 }
             }
         }

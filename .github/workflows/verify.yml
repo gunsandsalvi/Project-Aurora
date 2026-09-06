@@ -1,5 +1,9 @@
 # The gate. Rule: mid-milestone these are the only things that run, they are seconds, and they are
 # green before every commit. A budget is published because a gate nobody can afford stops being run.
+#
+# This runs gate.sh and nothing else, so what CI checks and what a developer runs before committing
+# are the same file. The failure this prevents is real: on 2026-09-06 a commit shipped with a clippy
+# finding because `verify` was green and clippy was a separate habit.
 name: verify
 
 on:
@@ -8,7 +12,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  RUSTFLAGS: -D warnings
+  AURORA_GATE_LOCKED: --locked
 
 jobs:
   verify:
@@ -24,19 +28,5 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      - name: Format
-        run: cargo fmt --all -- --check
-
-      - name: Build
-        run: cargo build --workspace --locked
-
-      - name: Clippy
-        run: cargo clippy --workspace --all-targets --locked -- -D warnings
-
-      - name: Test
-        run: cargo test --workspace --locked
-
-      # The checks the compiler cannot make. Each prints its rule inventory and its exemption count,
-      # and the count must read zero — §17's empty exemption list is only a claim if something counts it.
-      - name: Checks
-        run: cargo run -q -p aurora-tools -- verify
+      - name: Gate
+        run: ./gate.sh
