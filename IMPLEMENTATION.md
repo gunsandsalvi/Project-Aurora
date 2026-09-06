@@ -61,7 +61,7 @@ a third of the way in — not a promise redeemed at the end. Everything after th
 into a system that is already running and already closed.
 
 **5. Decompose the economics; do not schedule it as one bar.** The specification contains the machine
-and not the model: one production section of five sentences, no content for any of the forty agent
+and not the model: one production section of five sentences, no content for any of the thirty-five agent
 declarations, roughly thirty per-position specifications owed and one written. Every candidate plan that
 treated this as a single milestone under-sized it by two to three times. It is four milestones here, each
 with its own gate and its own draw on the assumption count.
@@ -366,7 +366,7 @@ instruments, which nothing currently specifies.
 inventive. If it is not repetitive, the change-cost table is wrong, and that is worth finding out under
 controlled conditions rather than at the end.
 
-**Exits when** all eight agent classes carry content; the change-cost table's claims are measured against
+**Exits when** all seven agent classes carry content; the change-cost table's claims are measured against
 the diffs this milestone actually produced and the table is corrected where it was wrong; and §3.1's
 requirements 1–3 still pass.
 
@@ -459,13 +459,13 @@ Sources are `PROJECT_AURORA.md` unless stated.*
 | The fiscal rule, including the tick-0 headcount decision §13.6 requires | *silently missing* | **M6** |
 | **Who holds the opening capital and dwellings** sourced at position 6 of tick 0 | *silently missing*, surfaced by §13.6 | **M6** |
 | The production specification | Appendix B *Owed* | **M6** |
-| The five declarations for eight agent classes | §8.1 — a shape with no content | **M7**, **M9** |
-| **SME and Large firm: two classes, or one with a listing fact?** Two classes fix the firm size distribution at the opening for the whole run, which M6 makes a phenomenon built in rather than explained. The mandate difference is real (§9.5 prices SMEs in buckets and large firms as single names) but neither mandate is written | §8.4, surfaced by the class-merge test | **M7**, when the firm declarations are written |
+| The five declarations for seven agent classes | §8.1 — a shape with no content | **M7**, **M9** |
+| ~~SME and Large firm: two classes or one?~~ **Decided: one `Firm` class, two storage tiers, promotion by listing (§8.7).** What remains is economics: the listing requirement's ratios and their brackets, and the funding-policy rule that makes a firm want to list | §8.4, §8.7 *Owed* | **M7**, with the firm declarations |
 | ~30 per-position §17.4 specifications, 1 written | *silently missing* | **M6**–**M10** |
 | The trait declaration set | *silently missing* | **M7** |
 | The bank capital regime's values and cure window | *silently missing* | **M8** |
 | Issuer-freeze payment continuity | *silently missing* | **M8** |
-| ~~The insurer / pension split of 40~~ **Derived: not split.** One class of 40; eight agent classes, not nine | §8.4 *Owed* | closed |
+| ~~The insurer / pension split of 40~~ **Derived: not split.** One `Liability-matched institution` class of 40 | §8.4 *Owed* | closed |
 | §8.2's withdrawn accumulator and the price-change rule | §8.2 *Owed* | **M9** |
 | The `DerivedMark` derivation rule | §7.2 Q13 | **M9** |
 | δ₁ = 0.35 — **derived: justified by a named in-model mechanism or not at all** | §13.3 *What is owed* | **M11** names it |
@@ -556,7 +556,7 @@ arrives at roughly the halfway point rather than at the finish.
 
 **Where the uncertainty is.** M0 through M6 are estimated against a specification that describes them,
 and the range there is the ordinary one. M7 through M10 are estimated against a specification that does
-*not* contain them — no production section, no content for forty declarations, roughly thirty
+*not* contain them — no production section, no content for thirty-five declarations, roughly thirty
 per-position specifications owed and one written — and those four milestones are 245–350 of the total.
 **The honest statement is that the second half of this plan is an estimate of work that has not been
 specified**, and the first thing M7 does is find out how wrong it is by writing four agent classes and

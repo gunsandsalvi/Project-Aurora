@@ -217,15 +217,15 @@ allocated once:
 | Class | Slots each | Holders | Slots |
 |---|---|---|---|
 | Household | 10 | 500,000 | 5,000,000 |
-| SME | 16 | 50,000 | 800,000 |
-| Large firm | 64 | 440 | 28,160 |
+| Firm, unlisted tier | 16 | 50,000 | 800,000 |
+| Firm, listed tier | 64 | 1,000 declared | 64,000 |
 | Bank | 16,384 | 56 | 917,504 |
 | Fund | 4,096 | 54 | 221,184 |
 | Liability-matched institution | 4,096 | 40 | 163,840 |
 | Government | 1,024 | 4 | 4,096 |
 | Central bank | 1,024 | 4 | 4,096 |
 | Counter-account | 64 | 40 | 2,560 |
-| | | | **7,141,440 slots, 24 B each, 171.4 MB** |
+| | | | **7,177,280 slots, 24 B each, 172.3 MB** |
 
 Blocks are sized for the tail, not the mean, because **exhaustion is a halt**: a mean household
 occupies about three of its ten slots once the negative side of what it issued is counted.
@@ -252,7 +252,7 @@ market exchanges, position 4's 926,246 per-contract payments, position 13's clea
 position 6's 327,886 production moves.
 
 **Cadences.** A system does not run on a tick it has no content for. Household re-planning is 13
-ticks, SME 4, everything else 1; monetary policy 13, fiscal 52; depreciation 13; deposit interest
+ticks, an unlisted firm 4, everything else 1; monetary policy 13, fiscal 52; depreciation 13; deposit interest
 13; dividends and distributions 13; taxes 13; pensions and transfers 4.33; the property and
 installed-capital price lines 4; checkpointing 64. **Wages, rent, debt service and consumption fire
 every tick from the standing plan**, and that is what keeps A4 intact under staggering.
@@ -979,26 +979,26 @@ every other agent already uses. **Zero edits to any instrument, any venue, or an
 
 ### 8.4 The inventory
 
-`AgentClass` is a closed union and `classFacts: AgentClass → (regime, cadence, count)` is a total
+`AgentClass` is a closed union and `classFacts: AgentClass → (regime, count)` is a total
 mapping. A class naming no regime does not compile. **Counts are in §13.3; nothing is repeated
 here.**
 
 | Class | World | Regime | Re-plan cadence | Block |
 |---|---|---|---|---|
 | Household | 500,000 | `household` | 13 ticks, staggered | 160 B |
-| SME | 50,000 | `corporate` | 4 ticks, staggered | 256 B |
-| Large firm | 440 | `corporate` | 1 tick | 1,024 B |
+| Firm — unlisted tier | 50,000 | `corporate` | 4 ticks, staggered | 256 B |
+| Firm — listed tier | 440 opening, 1,000 declared | `corporate` | 1 tick | 1,024 B |
 | Bank | 56 | `bank-prudential` | 1 tick | 1,024 B |
 | Fund | 54 | `fund-unconstrained` | 1 tick | 1,024 B |
 | Liability-matched institution | 40 | `liability-matched` | 1 tick | 1,024 B |
 | Government | 4 | `sovereign-fiscal` | declared meeting cadence | 1,024 B |
 | Central bank | 4 | `central-bank` | declared meeting cadence | 1,024 B |
-| | **550,598** | | | **95.6 MB** |
+| | **550,598** | | | **96.2 MB** |
 
 Plus **40 counter-account rows**, 10 per region, which are entities but decide nothing and are
 never retired: 550,638 rows live at tick 0.
 
-Four things this settles: **class is not regime** (eight classes, seven regimes); **class is not
+Four things this settles: **class is not regime** (seven classes, seven regimes); **class is not
 cadence** (cadence is a cost decision and lives here, so changing it is a one-row diff); **class is
 not a block** (block is a schema fact with a hard cap asserted at schema build); and **class is not an
 institutional label.**
@@ -1025,34 +1025,30 @@ nothing, and §13.1 never carried it — the seed has always had one primitive f
 **Representative agents are abolished.** A row is one household. There is no scaling factor between
 a model household and anything outside the model, because there is nothing outside the model.
 
-*Accepted cost.* Industrial structure is thin — the smallest region has 64 large firms across the
-sub-units it must supply — so concentration is a property of the opening rather than an outcome of
-entry, and entry dynamics among large firms are effectively absent at this scale.
+*Accepted cost.* Industrial structure is thin — the smallest region opens with 64 listed firms across
+the sub-units it must supply — so **concentration starts as a property of the opening**, and at this
+scale entry dynamics among listed firms are sparse. §8.7's promotion path is what stops it *staying* a
+property of the opening: the distribution can move, slowly, and whether it moves enough to matter is a
+measurement rather than an assumption.
 
-*Open, and it is a model question rather than a scale question.* **SME and Large firm are two classes, so
-no firm can cross between them, and the size distribution of firms is fixed at the opening for the whole
-run.** Under M6 that is a phenomenon built in rather than explained, and the accepted cost above frames
-it as being about the count when the binding constraint is the split: at ten times the scale, still no
-firm could grow into the other class.
+**`Firm` is one class with two tiers, and the previous edition's two classes are withdrawn** (§8.7). SME
+and Large firm shared a regime and differed on no declaration of §8.1 that anybody had written: what
+differed was capital-market access, and under §8.7 that is something a firm *does* rather than something
+it *is*. Holding them as two classes fixed the size distribution of firms at the opening for the whole
+run, which M6 makes a phenomenon built in rather than explained.
 
-What legitimately separates them is **mandate**, and it is real: §9.5 prices corporate credit in *two
-buckets plus single names* and lists equity *on a listing rule*, so a large firm is named in the market —
-individually priced debt, listed equity — and an SME is treated generically. That is declaration 1 of
-§8.1 and it survives the test §8.4 now applies to classes. **But nobody has written either mandate down**,
-and until both exist the split rests on the names rather than on a declaration.
-
-Two resolutions, and the choice is owed at the point the firm declarations are written. **Two classes**:
-simple, matches the block widths, and firm growth stays inexpressible. **One firm class carrying a
-listing fact**: growth becomes expressible when a firm meets the listing rule, M6 is better served, and
-the cost is that every firm needs the larger block or a promotion that relocates a row into a bigger one —
-which §5.5's relocation already makes work rather than a new concept.
+**Tier is a fact about a row, not a class**, which is §8.4's third rule read forwards: class is not a
+block, so two block widths inside one class is what that rule licenses rather than what it forbids.
+Cadence follows tier for the same reason — cadence is a cost decision — so `classFacts` maps a class to
+its regime and count, and cadence is a function of (class, tier).
 
 *Settled, where the previous edition owed a rule.* One seed primitive covers the pair, and no rule
 splitting 40 into 22 and 18 is needed, because there is nothing to split: the class is the pair.
 
 ### 8.5 What a row is
 
-A household is **160 bytes**; an SME is **256**; an institution is **1,024**. The caps are asserted
+A household is **160 bytes**; an unlisted firm is **256**; a listed firm and every other institution is
+**1,024**. The caps are asserted
 at schema build. **No per-good, per-venue or aggregate column on any agent** — those are the
 columns that turn a row into an N×M matrix.
 
@@ -1110,6 +1106,59 @@ declare it fails the N3 check.
 Consumption, wages and debt service fire **every tick** from the standing plan. That is what keeps
 A4 intact under staggering: a household that re-plans quarterly still pays its mortgage weekly.
 
+
+### 8.7 Promotion and demotion
+
+**A firm changes tier by listing, and listing is a decision it takes.** This is the one place the model
+lets an agent change what it costs to store, and it exists because the alternative — a fixed size
+distribution — is a phenomenon asserted at the opening that M6 requires to be produced.
+
+**The trigger is a decision, never a threshold in currency.** A firm lists when its funding policy
+(declaration 5) wants equity it cannot raise privately, and when it satisfies a **listing requirement
+expressed entirely in dimensionless ratios** — free float, capital ratio, and a count of consecutive
+periods of positive earnings. A currency threshold would be an `assumed` level, which §16.1 rule 1
+refuses; ratios are admissible and carry brackets like any other assumed entry. **§9.5 already implies
+this rule exists** — equity clears *on a listing rule* — and §8.7 is where it acquires content.
+
+**Listing is why single-name pricing is realistic.** §9.5 prices corporate credit in two buckets plus
+single names: a listed firm is priced by name because public information about it exists, and an unlisted
+one is priced off a bucket because it does not. The market treatment follows the listing rather than the
+class, so it needs no class to carry it.
+
+| | Step | Where |
+|---|---|---|
+| 1 | The firm decides to list, and the listing requirement is tested against its own rows | position 8, on its re-plan tick |
+| 2 | Equity is issued — **an ordinary operation with an ordinary journal row** | position 19 |
+| 3 | The row and its holdings block relocate from the unlisted tier to the listed tier | inside the ledger, with the issuance |
+| 4 | The identifier does not change, so every journal row, lien and schedule naming the firm still resolves | §5.2 |
+
+**Promotion is a relocation, not an operation.** It changes no quantity and appends no journal row of its
+own (§5.5); the journal row belongs to the equity issuance that caused it. The directory re-points and
+nothing else moves, which is exactly the property §5.5 was built for.
+
+**Demotion is symmetric and the tier is freed.** A firm delists when its equity is redeemed — bought out,
+or the listing requirement lapses — and its row relocates back to the unlisted tier, **provided its
+holdings occupy sixteen slots or fewer**. A firm too large to fit stays listed, and that is a modelled
+outcome rather than an error: it is a firm whose balance sheet has outgrown the private tier.
+
+**A one-way ratchet was rejected.** Under it the listed population could only grow, so the size
+distribution would still be unable to emerge — only to inflate — and the listed tier would have to be
+sized for a run's cumulative promotions rather than its peak concurrent population.
+
+**The listed tier has a declared capacity and exhaustion raises**, like the journal ring and the
+retirement queue. It is a `structural` registry entry carrying its arithmetic: **1,000**, from 440 at the
+opening plus headroom, and **it is re-derived from the first long run's realised promotion rate** —
+nobody can derive that rate before the economics exists, and pretending otherwise would be a level in an
+expression's clothing. The tier's high-water mark is a declared series, and a run that exhausts it is a
+defect that says so rather than a run that quietly stops promoting.
+
+*Accepted cost.* Two tiers is a storage decision visible in the model: a firm's re-planning cadence
+changes when it lists, from four ticks to one, so listing makes a firm respond faster to the world as
+well as larger. That is defensible — a listed firm is under continuous market scrutiny — but it is a
+behavioural consequence of a storage choice, and it is stated here rather than discovered.
+
+*Owed.* The listing requirement's ratios, their brackets, and the funding-policy rule that makes a firm
+want to list. They are economics and they are written with the firm's five declarations, not before.
 
 ---
 
@@ -1780,8 +1829,8 @@ source tree where a region's population can be typed.
 |---|---|---|---|---|---|
 | Axis-1 share | 0.147152 | 0.201244 | 0.275219 | 0.376386 | 1.000000 |
 | Households | 73,576 | 100,621 | 137,610 | 188,193 | **500,000** |
-| SMEs | 7,357 | 10,062 | 13,761 | 18,820 | **50,000** |
-| Large firms | 64 | 89 | 121 | 166 | **440** |
+| Firms, unlisted at the opening | 7,357 | 10,062 | 13,761 | 18,820 | **50,000** |
+| Firms, listed at the opening | 64 | 89 | 121 | 166 | **440** |
 | Banks | 8 | 11 | 15 | 22 | **56** |
 | Funds | 7 | 11 | 15 | 21 | **54** |
 | Liability-matched institutions | 5 | 8 | 11 | 16 | **40** |
@@ -2395,9 +2444,10 @@ what they replaced is in Appendix B.
 | 18 | Venues and lines | 37 venues, 190 structural lines, 1,276 instantiated, cap 4,096 | the cap at venue registration |
 | 19 | Region and currency | one region per venue, FX the sole exception, no world price | the venue registry |
 | 20 | Submission shapes | two: schedule and price-taking, 64 log-spaced buckets | one clearing interface |
-| 21 | Agent inventory | **eight classes**, one total mapping to (regime, cadence, count); **five declarations, total per class**; two classes differing on none of the five are one class | a class naming no regime, or declaring four items, does not compile |
-| 22 | Agent state budget | 160 B household, 256 B SME, 1,024 B institution, 95.6 MB | asserted at schema build |
+| 21 | Agent inventory | **seven classes**, `classFacts` mapping class to (regime, count) and cadence to (class, tier); **five declarations, total per class**; two classes differing on none of the five are one class | a class naming no regime, or declaring four items, does not compile |
+| 22 | Agent state budget | 160 B household, 256 B unlisted firm, 1,024 B listed firm and institution, 96.2 MB | asserted at schema build |
 | 22a | Holdings slot | **24 B, field list published in §3.4**; encumbrance derived from lien rows, not stored | asserted at schema build |
+| 22b | Firm tiers | **one `Firm` class, two tiers**; listed tier capacity 1,000, `structural`, re-derived from the first long run | exhaustion raises; the high-water series (§8.7) |
 | 23 | Staggering | 13 / 4 / 1; phase from a dedicated stream, never `id mod C`; six triggers, one minted handle each | the manifest fails the N3 check if a trigger's index is a scan |
 | 24 | Decision outputs | `plans` and `intents` as world tables, ≈121 MB fixed at init | no decision system allocates a result object |
 | 25 | The acceleration seam | W1 = 8–10, W2 = 12–13; 64 shards; sequential ledger; one construction site | a second boundary is an ADR |
@@ -2462,7 +2512,9 @@ nothing reads failing the build. **The cap was never what made A3 true; the rule
 | N4's 1,488.3 MB | **unresolved, and named as such** | the itemisation was never published and the named components leave roughly 705 MB unaccounted, whose largest term is the instrument row width §7.5 declares unsettled |
 | §3.4's identifier census | **unresolved, and named as such** | ≈ 971,000 ever issued against §5.2's implied ≈ 12,450,000 is a factor of thirteen, and it sizes the directory, the digest walk and the save |
 | The trailing-statistics system | **owed a position** | §13.4 requires it, §9.4's twenty-one positions do not contain it |
-| Insurer and Pension fund | **merged into one class, `Liability-matched institution`** — eight agent classes, not nine | They differed on no column §8.4 carries and on no declaration of §8.1. What differs is the liabilities they issued, which A2 makes instrument data. The owed rule for splitting 40 into 22 and 18 is not needed, because nothing is split |
+| Insurer and Pension fund | **merged into one class, `Liability-matched institution`** — nine agent classes became eight | They differed on no column §8.4 carries and on no declaration of §8.1. What differs is the liabilities they issued, which A2 makes instrument data. The owed rule for splitting 40 into 22 and 18 is not needed, because nothing is split |
+| SME and Large firm | **merged into one class `Firm` with two tiers, and a promotion path** (§8.7) — seven agent classes | Two classes fixed the firm size distribution at the opening for the whole run, which M6 makes a phenomenon asserted rather than produced. What separated them was capital-market access, which §8.7 makes something a firm *does*. Tier is a fact, not a class: §8.4's "class is not a block" licenses two block widths in one class rather than forbidding them |
+| The listed tier's capacity | **1,000, `structural`, exhaustion raises** | Giving every firm the 64-slot block would cost roughly 38 MB of agent rows and 2.4 M slots to serve a population that is 1% listed. The tier is the cheap answer, and its capacity is re-derived from the first long run's promotion rate rather than guessed at now |
 
 #### Answers derived from the model rules, not decided afresh
 
@@ -2476,7 +2528,7 @@ checked; none of them is a new choice.*
 | How is "a household may not hold a consumption good" enforced, given Q10 cannot say it? | **It needs no rule.** The retail exchange delivers its goods leg to the buyer's declared sink, so no holding is created for the door to refuse. Q10 gains no fifth answer and §18's most expensive change is avoided | M2, plus §9.6.3's existing sink |
 | Should the burn-in gate carry a multiplicity correction? | **Yes, and it is required rather than advisable.** 168 hypotheses at a nominal 5% pass together ~11.6% of the time on an unsettled world | M2 — a gate that fires on noise measures agreement among tests, not the model |
 | What justifies δ₁, δ₂, δ₃? | **A mechanism inside the model, named**, never a resemblance to an observed economy. §13.3 already states the standard; M2 is why it is the standard | M2 |
-| How is the insurer/pension count of 40 split? | **It is not split.** The two shared regime, cadence and block, and no §8.1 declaration was ever named on which they differ; what differs is the liabilities they issued, which under A2 is instrument data. **One class of 40, and eight classes rather than nine.** Cheap to reintroduce under §8.3 if a declaration is found | A2 (instrument behaviour does not live in an agent), M3 (the splitting prior bought nothing), §7.3's naming rule generalised |
+| How is the insurer/pension count of 40 split? | **It is not split.** The two shared regime, cadence and block, and no §8.1 declaration was ever named on which they differ; what differs is the liabilities they issued, which under A2 is instrument data. **One class of 40.** Cheap to reintroduce under §8.3 if a declaration is found | A2 (instrument behaviour does not live in an agent), M3 (the splitting prior bought nothing), §7.3's naming rule generalised |
 | The institutional census: banks, funds, insurers-and-pension-funds | **56 / 54 / 40** | The seed carried 120 / 240 / 80 while the entity census, the agent inventory and the workload decision carried 56 / 54 / 22 + 18. The layout, the arena sizing, the block widths and the entity budget are all derived from the second set, and it is the set with an argument attached |
 | Every published per-region vector | **withdrawn; §13.3's derived table replaces them** | The published household row descended while every other axis-1 primitive in the same table ascended, so one axis was being read in two directions; and no household vector printed anywhere was the formula's output |
 | `Z`'s index direction | **rank 1 takes the smallest loading** | The only reading reproducing the axis-1 share row, both multiplier rows and the sign of ρ(P₂,P₃) |
@@ -2498,7 +2550,7 @@ costs. It is settled by measurement on the target device and is an entry criteri
 **Owed**, and this list is the honest measure of what the document does not yet contain:
 
 *Model content, which is most of it.* A **production section**, of which position 6's row and five
-sentences are the whole. The **five declarations of §8.1 for all eight agent classes** — mandate, regime,
+sentences are the whole. The **five declarations of §8.1 for all seven agent classes** — mandate, regime,
 constraints, valuation, funding policy — which are a shape with no content for any class: no consumption
 rule, no labour supply rule, no firm pricing rule, no credit underwriting rule, no portfolio rule, no
 default test, no bank capital values, no cure windows. A **§17.4 specification per committed position**,
