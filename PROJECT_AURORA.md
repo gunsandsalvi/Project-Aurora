@@ -275,22 +275,28 @@ allocated once:
 
 Blocks are sized for the tail, not the mean, because **exhaustion is a halt**. Written out against the
 eight opening types (`aurora-tools sizing`), a mean household occupies **five** of its ten slots once
-the negative side of what it borrowed is counted — currency, a deposit line, a loan, an employment
-contract and a goods line.
+the negative side of what it borrowed is counted, and **the tail occupies eleven**. Ten does not hold
+it.
 
-**The tail needs seventeen, and ten does not hold it.** The term that decides the block is
-`GoodsUnit`, which is one line *per sector* and §9.5 has seven: a household that holds a goods stock
-between operations needs seven goods slots, and one that consumes inside the tick that bought needs
-one. Without a goods stock the tail is exactly ten — the declared capacity, with nothing spare, on a
-block whose entire justification is headroom. **Seven slots per household is 84.0 MB**, and nothing in
-§9 says which it is. The question is open and it is named in the register; the capacity is re-derived
-in M1 when the schema is written, not now.
+**The goods term is settled by §9.4 rather than assumed.** There is no Consumption position and no
+household larder, so a purchase is consumed in the settlement that bought it and one goods line is live
+at a time — *provided position 14 pairs each purchase with its move* rather than buying across sectors
+first. Seven sectors bought before any is consumed would be six more slots, 72.0 MB. **The pairing is a
+constraint on the settlement order and it is cheaper than the block it saves.**
+
+**Raising the capacity to sixteen would not fix this, because the tail is not bounded.** Nothing in the
+model stops a household holding equity in fifty listed firms or accounts at ten banks. A fixed block
+plus "exhaustion is a halt" plus a class whose members may hold an unbounded number of lines is a halt
+waiting at every capacity. **What the block model needs is a modelled rule that bounds what a member of
+a class may hold** — §9.4's "no larder" is exactly such a rule, and it is a statement about the world
+rather than a capacity. The equivalent for portfolios (a household holds beyond *n* lines only through
+a fund) is the shape the answer must take. *The capacity follows from the rule; it cannot substitute
+for it.* M1 re-derives the capacity when the rule exists.
 
 The enumeration also covers only the eight opening types. §5.2's census counts 250,000 live tenancies
 against no tenancy instrument type, and §8.4's liability-matched institution issues pension and
-insurance claims that have no type either. Each is at least one more slot on the households holding one,
-at 12.0 MB per slot. **Ten is the only capacity in the table that is not a power of two**, which is what
-a figure reached by looking at a mean looks like.
+insurance claims that have no type either — at 12.0 MB per slot. **Ten is the only capacity in the
+table that is not a power of two**, which is what a figure reached by looking at a mean looks like.
 
 **The slot is 24 bytes and its field list is published here**, because a width printed without a schema
 is a number that cannot be checked: asset `i32` (4), quantity `i64` (8), balance-tick integral `i64` (8),
@@ -2807,7 +2813,7 @@ nothing reads failing the build. **The cap was never what made A3 true; the rule
 |---|---|---|
 | A1's part 2 | **the conserved column is private to the `ledger` crate**, replacing "exactly one writer in the whole source tree, checked in CI" | The old form was false. Relocation, the zeroed-entry tail shift and slot canonicalisation all write the quantity column; a CI check would have needed exemptions on its first run. The crate boundary is true, is the compiler's, and covers writers nobody has thought of |
 | The instrument row | **80 B, schedule and both price epochs inline; no schedule identity space** | §7.5's 44 B and §3.4.4's 148 B are both underived, and §3.4.4 does not exist. The arms are 8.5 MB apart; what decides it is that nothing holds a schedule, so it is a field rather than a claim (ADR-0009) |
-| The household block | **ten slots, and named as not holding the enumerated tail** | Written out against the eight opening types, the tail is seventeen and the mean five. Whether it is ten or seventeen turns on whether a household holds a goods stock, which is worth 84.0 MB and which nothing in §9 answers. The capacity is re-derived in M1 with the schema |
+| The household block | **ten slots, and named as not holding the enumerated tail** | The tail is eleven and the mean five. §9.4's "no larder" settles the goods term at one line, and what remains is that the tail is *unbounded*: the block model needs a modelled rule bounding what a class member may hold, which no capacity can substitute for |
 | The journal row | **48 B, field list published; the realised rate is not a field** | §6.4 asked for both rates and both do not fit — 53 B padding to 56, a 403.2 MB ring. The realised rate is `quantityReceived / quantityGiven` exactly, so the pair in the row is it at full precision and a stored copy is that value rounded twice (ADR-0008) |
 | The holdings slot | **24 B, with its field list published** | 20 B could not hold what §6.11 requires — asset, quantity and integral exhaust it with no tick column — so it was an unsourced constant the rest of the document contradicted |
 | §11's transcendental ban | **widened from samplers to any path reaching a digested value** | §13.4's output gap computed `log(output)` inside the engine and was read by a decision, slipping the letter of a rule it violated in substance. `ŷ` is now a ratio |

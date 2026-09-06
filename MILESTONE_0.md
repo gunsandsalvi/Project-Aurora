@@ -277,10 +277,14 @@ Deriving the journal row found that §6.6's 48 bytes hold **only because the rea
 stored**: §6.4 asks for both rates, both come to 53 B and pad to 56, and the ring goes from 345.6 MB
 to 403.2 MB — while the realised rate is `quantityReceived / quantityGiven` exactly, so the pair in
 the row already is it, at better precision than a stored copy. And enumerating what a household can
-hold found that **§3.4's ten slots do not cover its own tail**: the tail is seventeen, and the term
-that decides it is `GoodsUnit` at one line per sector across seven sectors — 84.0 MB of holdings
-table riding on a question (does a household hold a goods stock between operations?) that no section
-answers. Ten is the only capacity in §3.4's table that is not a power of two.
+hold found that **§3.4's ten slots do not cover its own tail**, which is eleven. The goods term was
+settled by derivation rather than left open — §9.4 has no Consumption position and no larder, so one
+goods line is live at a time provided position 14 pairs each purchase with its move, which is a
+constraint on the settlement order worth 72.0 MB. What survives is worse than a capacity being wrong:
+**the tail is unbounded**. Nothing stops a household holding fifty equity lines, so a fixed block plus
+"exhaustion is a halt" is a halt waiting at every capacity, and what the block model needs is a
+modelled rule bounding what a class member may hold. Ten is also the only capacity in §3.4's table
+that is not a power of two.
 Writing out both arms of §7.5's instrument row found that **neither published width is derived** —
 the eleven columns come to 40 B, not 44, and the inline row to 80 B, not 148 — and that **the
 comparison could not have been made at all**, because the 148-byte arm is specified in §3.4.4, one of

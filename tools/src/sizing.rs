@@ -520,8 +520,8 @@ fn household_block() -> String {
         Occupancy {
             kind: "GoodsUnit",
             mean: 1,
-            tail: 7,
-            why: "ONE PER SECTOR, and \u{a7}9.5 has seven. This is the term that decides the block",
+            tail: 1,
+            why: "\u{a7}9.4: NO Consumption position and NO LARDER \u{2014} a purchase is consumed in the settlement that bought it",
         },
     ];
     let _ = writeln!(out, "  type                  mean   tail  why");
@@ -540,7 +540,7 @@ fn household_block() -> String {
     out
 }
 
-/// What the enumeration costs, at the capacities that could hold it.
+/// What the enumeration costs, and the rule the block model turns out to need.
 fn household_finding(mean: usize, tail: usize) -> String {
     let mut out = String::new();
     let households = 500_000usize;
@@ -548,33 +548,32 @@ fn household_finding(mean: usize, tail: usize) -> String {
     let declared = 10usize;
     #[allow(clippy::cast_precision_loss)]
     let mb = |slots: usize| (households * slots * slot) as f64 / 1e6;
-    let without_goods = tail - 7;
 
     for line in [
         String::new(),
-        format!("  \u{a7}3.4 declares {declared} slots. The mean household needs {mean}, which is \u{a7}3.4's own"),
-        "  \"about three of its ten\" and is not the question: \u{a7}3.4 says blocks are sized for the TAIL,".to_owned(),
-        "  not the mean, BECAUSE EXHAUSTION IS A HALT.".to_owned(),
+        format!("  \u{a7}3.4 declares {declared} slots. The mean household needs {mean} \u{2014} \u{a7}3.4's own \"about three of"),
+        "  its ten\", and not the question. \u{a7}3.4 sizes blocks for the TAIL, BECAUSE EXHAUSTION IS A".to_owned(),
+        format!("  HALT, and the enumerated tail is {tail}."),
         String::new(),
-        format!("  The tail needs {tail}. Without a goods stock it needs {without_goods} \u{2014} which is {declared}"),
-        "  exactly, with nothing spare, on a block whose whole justification is headroom.".to_owned(),
+        "  The goods term is settled by \u{a7}9.4 rather than assumed: there is NO CONSUMPTION POSITION and".to_owned(),
+        "  no household larder, so a purchase is consumed in the settlement that bought it. One goods".to_owned(),
+        "  line is live at a time \u{2014} PROVIDED position 14 pairs each purchase with its move rather than".to_owned(),
+        "  buying across sectors first. Seven sectors bought before any is consumed would be six more".to_owned(),
+        format!("  slots, which is {:.1} MB. The pairing is a constraint on the settlement order, and it is", mb(6)),
+        "  cheaper than the block that would otherwise be needed.".to_owned(),
         String::new(),
         "  capacity   slots      MB   holds".to_owned(),
     ] {
         let _ = writeln!(out, "{line}");
     }
     for (capacity, holds) in [
-        (10usize, "the mean; not the tail, with or without goods"),
-        (16, "the tail without a goods stock, with 6 spare"),
-        (20, "the tail with goods in 3 sectors"),
-        (
-            32,
-            "the full tail, and the next two instrument types M9 adds",
-        ),
+        (10usize, "the mean; ONE SHORT of the enumerated tail"),
+        (16, "the tail, with 5 spare"),
+        (32, "the tail, and the tenancy and claim types M9 adds"),
     ] {
         let _ = writeln!(
             out,
-            "  {capacity:>8}  {:>6}  {:>6.1}  {holds}",
+            "  {capacity:>8}  {:>8}  {:>6.1}  {holds}",
             households * capacity,
             mb(capacity)
         );
@@ -582,19 +581,25 @@ fn household_finding(mean: usize, tail: usize) -> String {
 
     for line in [
         String::new(),
-        "  FINDING. The block turns on ONE UNSETTLED QUESTION: does a household hold a goods stock".to_owned(),
-        "  between operations, or is a purchase consumed inside the same tick that bought it? Seven".to_owned(),
-        "  sectors means the answer is worth 7 slots per household, and 7 slots per household is".to_owned(),
-        format!("  {:.1} MB \u{2014} more than the entire holdings table costs today. Nothing in \u{a7}9 answers it.", mb(7)),
+        "  FINDING. Ten does not hold the tail, and RAISING IT TO SIXTEEN WOULD NOT FIX THE PROBLEM,".to_owned(),
+        "  because the tail is not bounded. Nothing in the model stops a household holding equity in".to_owned(),
+        "  fifty listed firms, or accounts at ten banks. \u{a7}3.4 allocates a fixed block and says".to_owned(),
+        "  exhaustion is a halt, so a class whose members may hold an unbounded number of lines has a".to_owned(),
+        "  halt waiting in it at every capacity.".to_owned(),
         String::new(),
-        "  And the enumeration is over the EIGHT OPENING TYPES ONLY. \u{a7}5.2's identifier census counts".to_owned(),
-        "  250,000 live tenancies, and there is no tenancy instrument type; the pension and insurance".to_owned(),
-        "  claims \u{a7}8.4's liability-matched institution issues have no type either. Each is at least one".to_owned(),
-        format!("  more slot on the households that hold one, and at {:.1} MB per slot the block cannot", mb(1)),
-        "  absorb them silently.".to_owned(),
+        "  So the block model needs something it does not have: A MODELLED RULE THAT BOUNDS WHAT A".to_owned(),
+        "  MEMBER OF A CLASS MAY HOLD. \u{a7}9.4 already supplies one of these, for goods \u{2014} no larder \u{2014} and".to_owned(),
+        "  it is a statement about the world rather than a capacity. The equivalent for portfolios (a".to_owned(),
+        "  household holds beyond N lines only through a fund) is the shape the answer has to take,".to_owned(),
+        "  and it is a modelling decision, not a schema one. The capacity FOLLOWS FROM the rule; it".to_owned(),
+        "  cannot substitute for it.".to_owned(),
         String::new(),
-        "  Ten is not a derived figure. It is the only block capacity in \u{a7}3.4's table that is not a".to_owned(),
-        "  power of two, which is what a number reached by looking at a mean looks like.".to_owned(),
+        "  And the enumeration covers only the eight opening types. \u{a7}5.2 counts 250,000 live tenancies".to_owned(),
+        "  against no tenancy type, and \u{a7}8.4's liability-matched institution issues pension and".to_owned(),
+        format!("  insurance claims that have no type either \u{2014} at {:.1} MB per slot.", mb(1)),
+        String::new(),
+        "  Ten is also the only capacity in \u{a7}3.4's table that is not a power of two, which is what a".to_owned(),
+        "  figure reached by looking at a mean looks like.".to_owned(),
     ] {
         let _ = writeln!(out, "{line}");
     }
