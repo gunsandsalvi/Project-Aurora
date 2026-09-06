@@ -71,7 +71,7 @@ with its own gate and its own draw on the assumption count.
 ## 2. The shape of the road
 
 ```
-M0  The Refusing Workspace        ── G0 ──►  delivery envelope settled, nine ADRs taken
+M0  The Refusing Workspace        ── G0 ──►  delivery envelope settled, 19 ADRs taken
 M1  One Arena, One Digest
 M2  One Crate Writes Money        ── G1a ─►  CONTINUE/STOP on the write model
 M3  Seven Types That Pay          ── G1b ─►  CONTINUE/STOP on the instrument model
@@ -112,8 +112,7 @@ compile-fail fixture that fails for its own reason and no other; the probe has r
 and returned its JSON; and all nine paper falsifiers have run, with their results written down whether
 green or red.
 
-**Gate G0** — settles the delivery envelope and nine ADRs. **Rescope authority, not stop authority**, and
-§3's honesty about that matters: under D1 no performance finding can stop this project, so a gate whose
+**Gate G0** — settles the delivery envelope and nineteen ADRs. **Rescope authority, not stop authority**, and saying so matters: under D1 no performance finding can stop this project, so a gate whose
 thresholds are all in nanoseconds decides nothing. What G0 can do is change the delivery target.
 
 **Size** — 55–65 engineer-weeks, 8–10 calendar weeks at 3–4 engineers plus a part-time modeller.
@@ -564,7 +563,35 @@ cost after A2 makes each system an insertion, and never counted the units.
 
 ---
 
-## 8. Honest weaknesses of this plan
+## 8. Working the plan
+
+**A milestone file lists remaining work, never completed work.** When an item is done it is **deleted**,
+in the same commit that completes it, with the commit message naming what it was. Git history is the
+record; the file is the state. A milestone is finished when its work-item tables are empty and its exit
+criteria pass — which means progress is legible at a glance rather than inferred from a column of ticks.
+
+**A defect found mid-flight is never fixed opportunistically.** It is classified, written up as a new
+numbered step, and resolved at the point in the plan that owns it. Three buckets:
+
+| The defect | Where it goes |
+|---|---|
+| Blocks the current milestone's exit | A new step in the current milestone, inserted at the right place in its dependency order |
+| Is in code a later milestone owns | A new step in that milestone. It waits, and the waiting is visible |
+| Is a defect in the specification rather than the build | A row in §4's open decisions register, assigned to the milestone that must settle it, and an ADR if it touches a registered value |
+
+**Why not just fix it.** An opportunistic fix is a change nobody scheduled, made under the pressure of
+whatever else was being done at the time, in a milestone whose exit criteria do not mention it. The
+project's own standard already covers this: Appendix A refuses a diff that touches a registered value
+without an ADR, for the same reason. **Work that disappeared without being named is the same failure as a
+value that changed without being named** — and a bug fixed silently in the wrong milestone is both.
+
+The one exception is a defect that makes the current work unbuildable — a broken build, a check that
+cannot run. That is repaired immediately, and the repair still gets its numbered step, written
+afterwards.
+
+---
+
+## 9. Honest weaknesses of this plan
 
 - **M7–M10 are four boxes around a hole.** They are the subject of the title and they are the part
   nobody has specified. Decomposing them into four gated bars with their own assumption draw is better

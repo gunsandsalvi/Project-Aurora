@@ -30,6 +30,18 @@ now costs days; attacking them in month nine costs the same days plus everything
 
 ---
 
+## 1a. How this file is maintained
+
+**This file lists remaining work.** A completed work item is deleted in the commit that completes it, and
+the commit message names it. When every table below is empty and §5's exit criteria pass, M0 is done.
+
+**A defect found while working M0** is classified and written up as a new numbered step rather than fixed
+in passing — into this milestone if it blocks G0, into a later milestone if that milestone owns the code,
+or into `IMPLEMENTATION.md` §4's register if it is a defect in the specification. `IMPLEMENTATION.md` §8
+has the rule and the reasoning.
+
+---
+
 ## 2. Team and the first Monday
 
 | Who | Owns | Monday morning |
